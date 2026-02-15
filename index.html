@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocolo V | Recrutamento Valorant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Teko:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --val-dark: #0f1923;
+            --val-light: #ece8e1;
+            --val-red: #ff4655;
+            --val-gray: #768079;
+        }
+
+        body {
+            background-color: var(--val-light);
+            color: var(--val-dark);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .role-title {
+            font-family: 'Teko', sans-serif;
+            text-transform: uppercase;
+            line-height: 0.9;
+            margin: 0;
+        }
+
+        .display-massive {
+            font-size: clamp(6rem, 15vw, 12rem);
+            color: var(--val-light);
+            text-shadow: -1px -1px 0 var(--val-dark), 1px -1px 0 var(--val-dark), -1px 1px 0 var(--val-dark), 1px 1px 0 var(--val-dark);
+            opacity: 0.1;
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            z-index: 0;
+            user-select: none;
+        }
+
+        .section-header {
+            position: relative;
+            z-index: 1;
+            font-size: clamp(3rem, 6vw, 5rem);
+            color: var(--val-dark);
+            border-bottom: 2px solid var(--val-dark);
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        .text-accent { color: var(--val-red); }
+        .bg-dark-section { background-color: var(--val-dark); color: var(--val-light); }
+
+        .role-row {
+            border-bottom: 1px solid rgba(15, 25, 35, 0.2);
+            padding: 30px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .role-title { font-size: 3rem; }
+        
+        .slot-indicator {
+            font-family: 'Teko', sans-serif;
+            font-size: 2.5rem;
+            color: var(--val-red);
+        }
+
+        .role-full .slot-indicator { color: var(--val-gray); text-decoration: line-through; }
+
+        /* Estilização dos Cards dos Jogadores */
+        .player-card {
+            background-color: rgba(15, 25, 35, 0.4);
+            border: 1px solid var(--val-gray);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: 0.3s ease;
+            height: 100%;
+        }
+        .player-card:hover {
+            border-color: var(--val-red);
+            background-color: rgba(15, 25, 35, 0.8);
+        }
+        .player-avatar {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border: 1px solid var(--val-red);
+        }
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--val-gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .stat-val {
+            font-size: 0.9rem;
+            color: var(--val-light);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+        .loading-pulse {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .btn-val {
+            display: inline-block;
+            background-color: var(--val-red);
+            color: var(--val-light);
+            font-family: 'Teko', sans-serif;
+            font-size: 2rem;
+            padding: 10px 40px;
+            text-decoration: none;
+            text-transform: uppercase;
+            position: relative;
+            transition: 0.2s ease-in-out;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+        .btn-val::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 10px; height: 10px;
+            border-top: 2px solid var(--val-light); border-left: 2px solid var(--val-light);
+        }
+        .btn-val:hover { background-color: var(--val-dark); color: var(--val-light); border: 1px solid var(--val-red); }
+
+        .manifesto-text { font-size: 1.1rem; line-height: 1.6; color: var(--val-gray); }
+        .manifesto-text strong { color: var(--val-dark); }
+        .bg-dark-section .manifesto-text strong { color: var(--val-light); }
+        .square-bullet { display: inline-block; width: 8px; height: 8px; background-color: var(--val-red); margin-right: 10px; }
+    </style>
+</head>
+<body>
+
+    <header class="container-fluid py-5 position-relative overflow-hidden">
+        <div class="display-massive">PROTOCOLO V</div>
+        <div class="container position-relative z-1 pt-5">
+            <h1 class="display-1 fw-bold">PROTOCOLO <span class="text-accent">V</span></h1>
+            <p class="fs-5 text-uppercase fw-bold text-muted mt-2">//// Operação Premiere: 18h - 23h</p>
+        </div>
+    </header>
+
+    <section class="container mb-5">
+        <div class="row g-5">
+            <div class="col-lg-6">
+                <h2 class="section-header">O Manifesto</h2>
+                <p class="manifesto-text">Não somos um hub casual. Somos um projeto de evolução tática focado em <strong>subir de elo e dominar o Premiere</strong>. Exigimos consistência, foco no macro game e sinergia estruturada.</p>
+                <p class="manifesto-text mt-3"><span class="square-bullet"></span><strong>Horário Base:</strong> Segunda a Sexta, das 18h às 23h.</p>
+            </div>
+            <div class="col-lg-6">
+                <h2 class="section-header">Regras de Engajamento</h2>
+                <ul class="list-unstyled manifesto-text">
+                    <li class="mb-3"><span class="square-bullet"></span><strong>Comunicação Limpa:</strong> Callouts precisos. Zero flood pós-morte.</li>
+                    <li class="mb-3"><span class="square-bullet"></span><strong>Mentalidade Blindada:</strong> Tiltar não vence round. Foco no próximo passo.</li>
+                    <li class="mb-3"><span class="square-bullet"></span><strong>Feedback Analítico:</strong> Avaliamos derrotas com frieza. O ego não entra no servidor.</li>
+                    <li><span class="square-bullet"></span><strong>Setup Operacional:</strong> Microfone limpo e ambiente sem ruído.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="container-fluid bg-dark-section py-5 my-5 position-relative overflow-hidden">
+        <div class="display-massive" style="color: var(--val-dark); text-shadow: none; opacity: 0.5;">AGENTES</div>
+        <div class="container position-relative z-1">
+            <h2 class="section-header" style="border-color: var(--val-light); color: var(--val-light);">Status da Line-up</h2>
+            <p class="mb-5 text-muted text-uppercase">Total de 2 Squads.</p>
+            
+            <div id="roles-container">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-danger" role="status">
+                        <span class="visually-hidden">Sincronizando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container text-center py-5 mb-5">
+        <h2 class="section-header border-0 justify-content-center d-flex">Pronto para o drop?</h2>
+        <p class="manifesto-text mb-5 w-75 mx-auto">Verifique o status acima, preencha o formulário para sua função e aguarde o contato no jogo.</p>
+        <a href="https://forms.gle/jULFiyjojXUiN3EcA" target="_blank" class="btn-val">Iniciar Inscrição</a>
+    </section>
+
+    <footer class="container text-center py-4 border-top border-dark">
+        <p class="mb-0 text-muted text-uppercase fw-bold fs-5">Adicione no jogo: <span class="text-dark">SEUNICK#TAG</span></p>
+        <small class="text-muted mt-2 d-block">© Protocolo V. Hospedado no GitHub Pages.</small>
+    </footer>
+
+    <script>
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQsQpPYEeRoSsXmeUOUdev46g2G2dbjGAs0JW-AIiU5icSenr1_btqyIDiJc7BlftpZpcABHvMSpGPV/pub?output=csv';
+        const henrikApiKey = 'HDEV-f8ab178e-da4d-40d6-9426-e127dabe60b3';
+        
+        const rolesConfig = {
+            'Sentinela': { max: 2, current: 0, desc: 'Setup defensivo e controle de flanco.', players: [] },
+            'Iniciador': { max: 2, current: 0, desc: 'Coleta de informação e quebra de bomb.', players: [] },
+            'Flex': { max: 2, current: 0, desc: 'Adaptação total às necessidades da composição.', players: [] },
+            'Duelista': { max: 2, current: 0, desc: 'Criação de espaço e entry agressivo.', players: [] },
+            'Controlador': { max: 2, current: 0, desc: 'Smokes, ritmo e domínio de mapa.', players: [] } 
+        };
+
+        function parseCSVRow(text) {
+            let columns = []; let inQuotes = false; let currentVal = '';
+            for (let char of text) {
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) { columns.push(currentVal.trim()); currentVal = ''; }
+                else currentVal += char;
+            }
+            columns.push(currentVal.trim());
+            return columns;
+        }
+
+        async function fetchAndProcessData() {
+            try {
+                const response = await fetch(csvUrl + '&t=' + Date.now());
+                const data = await response.text();
+                
+                const rows = data.split('\n');
+                if (rows.length > 0) {
+                    const headers = parseCSVRow(rows[0]);
+                    let roleCol = -1, riotIdCol = -1, trackerCol = -1;
+                    
+                    for (let i = 0; i < headers.length; i++) {
+                        let h = headers[i].toLowerCase();
+                        if (h.includes('função') || h.includes('funcao') || h.includes('principal')) roleCol = i;
+                        if (h.includes('riot id')) riotIdCol = i;
+                        if (h.includes('tracker')) trackerCol = i;
+                    }
+
+                    if (roleCol !== -1 && riotIdCol !== -1) {
+                        for (let i = 1; i < rows.length; i++) {
+                            const rowText = rows[i].trim();
+                            if (!rowText) continue;
+
+                            const columns = parseCSVRow(rowText);
+                            let roleRaw = columns[roleCol] ? columns[roleCol].replace(/"/g, '').toLowerCase() : '';
+                            let riotId = columns[riotIdCol] ? columns[riotIdCol].replace(/"/g, '') : '';
+                            let trackerLink = (trackerCol !== -1 && columns[trackerCol]) ? columns[trackerCol].replace(/"/g, '') : '#';
+                            
+                            if (roleRaw && riotId) {
+                                for (let role in rolesConfig) {
+                                    const searchTerms = role === 'Controlador' ? ['controlador', 'smoker'] : [role.toLowerCase()];
+                                    if (searchTerms.some(term => roleRaw.includes(term))) {
+                                        if (rolesConfig[role].current < rolesConfig[role].max) {
+                                            rolesConfig[role].current++;
+                                            rolesConfig[role].players.push({ riotId, trackerLink });
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                renderRoles();
+            } catch (error) {
+                console.error('Falha na sincronização tática:', error);
+                renderRoles(); 
+            }
+        }
+
+        function renderRoles() {
+            const container = document.getElementById('roles-container');
+            let fullHTML = '';
+            let apiCallsQueue = []; 
+
+            for (const [role, data] of Object.entries(rolesConfig)) {
+                const isFull = data.current >= data.max;
+                const formattedCurrent = String(data.current).padStart(2, '0');
+                const formattedMax = String(data.max).padStart(2, '0');
+
+                let playersHTML = '';
+                
+                data.players.forEach((player, index) => {
+                    const cardId = `player-${role}-${index}`;
+                    playersHTML += `
+                        <div class="col-md-6" id="${cardId}">
+                            <div class="player-card p-3 loading-pulse">
+                                <div class="spinner-border spinner-border-sm text-danger me-3" role="status"></div>
+                                <span class="text-muted small">Buscando inteligência de ${player.riotId}...</span>
+                            </div>
+                        </div>
+                    `;
+                    apiCallsQueue.push({ player, cardId });
+                });
+
+                fullHTML += `
+                    <div class="row align-items-start role-row ${isFull ? 'role-full' : ''}">
+                        <div class="col-md-3 mb-4 mb-md-0">
+                            <h3 class="role-title">${role}</h3>
+                            <p class="mb-0 text-muted small">${data.desc}</p>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-3">
+                                <span class="text-uppercase text-muted small">Operadores Alocados</span>
+                                <span class="slot-indicator fs-4 ${isFull ? 'text-secondary' : ''}">
+                                    ${isFull ? 'FECHADO' : `[ ${formattedCurrent} / ${formattedMax} ]`}
+                                </span>
+                            </div>
+                            <div class="row g-3">
+                                ${playersHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = fullHTML;
+
+            apiCallsQueue.forEach(task => {
+                fetchPlayerAPI(task.player, task.cardId);
+            });
+        }
+
+        async function fetchPlayerAPI(player, elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+
+            if (!player.riotId.includes('#')) {
+                el.innerHTML = `<div class="player-card p-3 border-danger"><span class="text-danger small">Riot ID Inválido: ${player.riotId}</span></div>`;
+                return;
+            }
+
+            const [name, tag] = player.riotId.split('#');
+            const headers = { 'Authorization': henrikApiKey };
+
+            try {
+                const [accRes, mmrRes] = await Promise.all([
+                    fetch(`https://api.henrikdev.xyz/valorant/v1/account/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`, { headers }),
+                    fetch(`https://api.henrikdev.xyz/valorant/v2/mmr/br/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`, { headers })
+                ]);
+
+                const accData = await accRes.json();
+                const mmrData = await mmrRes.json();
+
+                let level = '--';
+                let cardImg = 'https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png';
+                
+                if (accData.status === 200 && accData.data) {
+                    level = accData.data.account_level;
+                    cardImg = accData.data.card.small;
+                }
+
+                let currentRank = 'Sem Rank';
+                let peakRank = 'Sem Rank';
+                let currentRankIcon = '';
+                let peakRankIcon = '';
+
+                if (mmrData.status === 200 && mmrData.data) {
+                    currentRank = mmrData.data.current_data?.currenttierpatched || 'Sem Rank';
+                    peakRank = mmrData.data.highest_rank?.patched_tier || 'Sem Rank';
+                    
+                    // Extrai o link da imagem do ícone do Elo Atual (se a API trouxer)
+                    currentRankIcon = mmrData.data.current_data?.images?.small || '';
+                    
+                    // Busca ativamente a imagem do Rank Máximo via Valorant-API
+                    const peakTier = mmrData.data.highest_rank?.tier;
+                    if (peakTier && peakTier > 2) {
+                        // UUID atualizado (03621f52-342b-cf4e-4f86-9350a49c6d04) que traz os ícones modernos pós-Ascendente
+                        peakRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
+                    }
+                } else if (mmrData.status === 404 || mmrData.status === 403) {
+                    currentRank = 'Privado/S. Rank';
+                    peakRank = 'Privado/S. Rank';
+                }
+
+                // Cria o HTML dos ícones se a URL existir
+                const eloHTML = currentRankIcon 
+                    ? `<img src="${currentRankIcon}" alt="${currentRank}" style="width: 20px; height: 20px; object-fit: contain;"> ${currentRank}`
+                    : currentRank;
+
+                const peakHTML = peakRankIcon
+                    ? `<img src="${peakRankIcon}" alt="${peakRank}" style="width: 20px; height: 20px; object-fit: contain;"> ${peakRank}`
+                    : peakRank;
+
+                el.innerHTML = `
+                    <div class="player-card p-2">
+                        <img src="${cardImg}" alt="Card" class="player-avatar">
+                        <div class="flex-grow-1">
+                            <div class="fw-bold text-white mb-2" style="font-size: 1rem; line-height: 1;">
+                                ${player.riotId} <span class="badge bg-secondary ms-1" style="font-size: 0.6rem;">LVL ${level}</span>
+                            </div>
+                            <div class="d-flex gap-4">
+                                <div>
+                                    <div class="stat-label">Elo Atual</div>
+                                    <div class="stat-val d-flex align-items-center gap-2">${eloHTML}</div>
+                                </div>
+                                <div>
+                                    <div class="stat-label">Rank Máximo</div>
+                                    <div class="stat-val text-accent d-flex align-items-center gap-2">${peakHTML}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ms-auto pe-2">
+                            <a href="${player.trackerLink !== '#' ? player.trackerLink : '#'}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Tracker.gg" style="border-radius: 0;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                  <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
+                                  <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error("Erro na API para " + player.riotId, error);
+                el.innerHTML = `
+                    <div class="player-card p-3 border-warning">
+                        <span class="text-warning small">API Indisponível para ${player.riotId}</span>
+                    </div>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchAndProcessData);
+    </script>
+</body>
+</html>
