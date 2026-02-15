@@ -72,7 +72,6 @@
 
         .role-full .slot-indicator { color: var(--val-gray); text-decoration: line-through; }
 
-        /* Estilização dos Cards dos Jogadores */
         .player-card {
             background-color: rgba(15, 25, 35, 0.4);
             border: 1px solid var(--val-gray);
@@ -196,7 +195,7 @@
     </footer>
 
     <script>
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFrlbFvaPDuVahEtPUOJdt4EfIBzCJvHITDIR5cEDHcFCBTEofMe_-gG57bSh5KCuqD2dnzuaFn66p/pub?output=csv';
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQsQpPYEeRoSsXmeUOUdev46g2G2dbjGAs0JW-AIiU5icSenr1_btqyIDiJc7BlftpZpcABHvMSpGPV/pub?output=csv';
         const henrikApiKey = 'HDEV-f8ab178e-da4d-40d6-9426-e127dabe60b3';
         
         const rolesConfig = {
@@ -206,6 +205,14 @@
             'Duelista': { max: 2, current: 0, desc: 'Criação de espaço e entry agressivo.', players: [] },
             'Controlador': { max: 2, current: 0, desc: 'Smokes, ritmo e domínio de mapa.', players: [] } 
         };
+
+        // Função para sanitizar HTML e evitar XSS
+        function sanitizeHTML(str) {
+            if (!str) return '';
+            const temp = document.createElement('div');
+            temp.textContent = str;
+            return temp.innerHTML;
+        }
 
         function parseCSVRow(text) {
             let columns = []; let inQuotes = false; let currentVal = '';
@@ -241,9 +248,11 @@
                             if (!rowText) continue;
 
                             const columns = parseCSVRow(rowText);
-                            let roleRaw = columns[roleCol] ? columns[roleCol].replace(/"/g, '').toLowerCase() : '';
-                            let riotId = columns[riotIdCol] ? columns[riotIdCol].replace(/"/g, '') : '';
-                            let trackerLink = (trackerCol !== -1 && columns[trackerCol]) ? columns[trackerCol].replace(/"/g, '') : '#';
+                            
+                            // Aplicando a sanitização nos dados de entrada
+                            let roleRaw = columns[roleCol] ? sanitizeHTML(columns[roleCol].replace(/"/g, '').toLowerCase()) : '';
+                            let riotId = columns[riotIdCol] ? sanitizeHTML(columns[riotIdCol].replace(/"/g, '')) : '';
+                            let trackerLink = (trackerCol !== -1 && columns[trackerCol]) ? sanitizeHTML(columns[trackerCol].replace(/"/g, '')) : '#';
                             
                             if (roleRaw && riotId) {
                                 for (let role in rolesConfig) {
@@ -358,13 +367,10 @@
                     currentRank = mmrData.data.current_data?.currenttierpatched || 'Sem Rank';
                     peakRank = mmrData.data.highest_rank?.patched_tier || 'Sem Rank';
                     
-                    // Extrai o link da imagem do ícone do Elo Atual (se a API trouxer)
                     currentRankIcon = mmrData.data.current_data?.images?.small || '';
                     
-                    // Busca ativamente a imagem do Rank Máximo via Valorant-API
                     const peakTier = mmrData.data.highest_rank?.tier;
                     if (peakTier && peakTier > 2) {
-                        // UUID atualizado (03621f52-342b-cf4e-4f86-9350a49c6d04) que traz os ícones modernos pós-Ascendente
                         peakRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
                     }
                 } else if (mmrData.status === 404 || mmrData.status === 403) {
@@ -372,7 +378,6 @@
                     peakRank = 'Privado/S. Rank';
                 }
 
-                // Cria o HTML dos ícones se a URL existir
                 const eloHTML = currentRankIcon 
                     ? `<img src="${currentRankIcon}" alt="${currentRank}" style="width: 20px; height: 20px; object-fit: contain;"> ${currentRank}`
                     : currentRank;
@@ -422,6 +427,4 @@
         document.addEventListener('DOMContentLoaded', fetchAndProcessData);
     </script>
 </body>
-
 </html>
-
