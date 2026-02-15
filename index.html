@@ -252,7 +252,13 @@
                             // Aplicando a sanitização nos dados de entrada
                             let roleRaw = columns[roleCol] ? sanitizeHTML(columns[roleCol].replace(/"/g, '').toLowerCase()) : '';
                             let riotId = columns[riotIdCol] ? sanitizeHTML(columns[riotIdCol].replace(/"/g, '')) : '';
-                            let trackerLink = (trackerCol !== -1 && columns[trackerCol]) ? sanitizeHTML(columns[trackerCol].replace(/"/g, '')) : '#';
+                            // Gera o link do Tracker.gg automaticamente a partir do Riot ID
+                            let trackerLink = '#';
+                            if (riotId && riotId.includes('#')) {
+                                const parts = riotId.split('#');
+                                // Codifica o nome e a tag para não quebrar a URL se houver espaços ou caracteres especiais
+                                trackerLink = `https://tracker.gg/valorant/profile/riot/${encodeURIComponent(parts[0].trim())}%23${encodeURIComponent(parts[1].trim())}/overview`;
+                            }
                             
                             if (roleRaw && riotId) {
                                 for (let role in rolesConfig) {
@@ -428,5 +434,6 @@
     </script>
 </body>
 </html>
+
 
 
