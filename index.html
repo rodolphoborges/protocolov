@@ -412,10 +412,15 @@
             }
 
             container.innerHTML = fullHTML;
-
-            apiCallsQueue.forEach(task => {
-                fetchPlayerAPI(task.player, task.cardId);
-            });
+            
+            async function processQueue(queue) {
+                const delay = ms => new Promise(res => setTimeout(res, ms));
+                for (const task of queue) {
+                    fetchPlayerAPI(task.player, task.cardId);
+                    await delay(300); // Pausa de 300ms antes de pedir os dados do próximo jogador
+                }
+            }
+            processQueue(apiCallsQueue);
         }
 
         async function fetchPlayerAPI(player, elementId) {
@@ -560,6 +565,7 @@
     </script>
 </body>
 </html>
+
 
 
 
