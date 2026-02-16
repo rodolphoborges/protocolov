@@ -3,7 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>Protocolo V | Recrutamento Valorant</title>
+    <meta name="description" content="Recrutamento tático e focado para Valorant. Suba de elo e jogue Premiere em um ambiente sem toxicidade.">
+    <meta property="og:title" content="Protocolo V | Recrutamento Valorant">
+    <meta property="og:description" content="Vagas abertas para line-up focada em progressão tática e Premiere.">
+    <meta property="og:image" content="https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/largeart.png">
+    <meta property="og:url" content="https://protocolov.com">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#ff4655">
+
+    <link rel="icon" type="image/png" href="https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/24/smallicon.png">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,6 +33,7 @@
             color: var(--val-dark);
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
+            scroll-behavior: smooth; /* Rolagem suave nativa */
         }
 
         h1, h2, h3, .role-title {
@@ -32,7 +44,7 @@
         }
 
         .display-massive {
-            font-size: clamp(6rem, 15vw, 12rem);
+            font-size: clamp(4rem, 15vw, 12rem); /* Ajustado para não quebrar no mobile */
             color: var(--val-light);
             text-shadow: -1px -1px 0 var(--val-dark), 1px -1px 0 var(--val-dark), -1px 1px 0 var(--val-dark), 1px 1px 0 var(--val-dark);
             opacity: 0.1;
@@ -46,7 +58,7 @@
         .section-header {
             position: relative;
             z-index: 1;
-            font-size: clamp(3rem, 6vw, 5rem);
+            font-size: clamp(2.5rem, 6vw, 5rem); /* Ajustado para mobile */
             color: var(--val-dark);
             border-bottom: 2px solid var(--val-dark);
             padding-bottom: 10px;
@@ -72,6 +84,7 @@
 
         .role-full .slot-indicator { color: var(--val-gray); text-decoration: line-through; }
 
+        /* Estilização dos Cards dos Jogadores */
         .player-card {
             background-color: rgba(15, 25, 35, 0.4);
             border: 1px solid var(--val-gray);
@@ -84,6 +97,7 @@
         .player-card:hover {
             border-color: var(--val-red);
             background-color: rgba(15, 25, 35, 0.8);
+            transform: translateY(-2px); /* Efeito de elevação suave */
         }
         .player-avatar {
             width: 64px;
@@ -135,12 +149,51 @@
         .manifesto-text { font-size: 1.1rem; line-height: 1.6; color: var(--val-gray); }
         .manifesto-text strong { color: var(--val-dark); }
         .bg-dark-section .manifesto-text strong { color: var(--val-light); }
-        .square-bullet { display: inline-block; width: 8px; height: 8px; background-color: var(--val-red); margin-right: 10px; }
+        
+        /* Novas Classes para Animações e UI */
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            will-change: opacity, visibility;
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #btn-back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: none;
+            background-color: var(--val-red);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 1.5rem;
+            z-index: 99;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        #btn-back-to-top:hover { background-color: var(--val-dark); }
+
+        .req-box {
+            background-color: rgba(15, 25, 35, 0.05);
+            border-left: 4px solid var(--val-red);
+            padding: 15px 20px;
+            text-align: left;
+            margin: 0 auto 30px auto;
+            max-width: 500px;
+        }
+
+        .icon-svg { width: 20px; height: 20px; fill: var(--val-red); margin-right: 10px; flex-shrink: 0;}
+        .rule-item { display: flex; align-items: start; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <header class="container-fluid py-5 position-relative overflow-hidden">
+    <header class="container-fluid py-5 position-relative overflow-hidden fade-in-section is-visible">
         <div class="display-massive">PROTOCOLO V</div>
         <div class="container position-relative z-1 pt-5">
             <h1 class="display-1 fw-bold">PROTOCOLO <span class="text-accent">V</span></h1>
@@ -148,7 +201,7 @@
         </div>
     </header>
 
-    <section class="container mb-5">
+    <section class="container mb-5 fade-in-section">
         <div class="row g-5">
             <div class="col-lg-6">
                 <h2 class="section-header">O Manifesto</h2>
@@ -157,17 +210,29 @@
             </div>
             <div class="col-lg-6">
                 <h2 class="section-header">Regras de Engajamento</h2>
-                <ul class="list-unstyled manifesto-text">
-                    <li class="mb-3"><span class="square-bullet"></span><strong>Comunicação Limpa:</strong> Calls precisas. Morreu? Passa a info e deixa o time jogar.</li>
-                    <li class="mb-3"><span class="square-bullet"></span><strong>Foco no Next:</strong> Tiltar não ganha round. Errou, a gente arruma na próxima rodada.</li>
-                    <li class="mb-3"><span class="square-bullet"></span><strong>Feedback sem Ego:</strong> Analisamos nossas derrotas para evoluir. Aceitar críticas construtivas faz parte do jogo.</li>
-                    <li><span class="square-bullet"></span><strong>Compromisso:</strong> Nosso horário base é de Segunda a Sexta, das 18h às 23h. Valorizamos a consistência.</li>
-                </ul>
+                <div class="manifesto-text">
+                    <div class="rule-item">
+                        <svg class="icon-svg" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>
+                        <div><strong>Comunicação Limpa:</strong> Calls precisas. Morreu? Passa a info e deixa o time jogar.</div>
+                    </div>
+                    <div class="rule-item">
+                        <svg class="icon-svg" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>
+                        <div><strong>Foco no Next:</strong> Tiltar não ganha round. Errou, a gente arruma na próxima rodada.</div>
+                    </div>
+                    <div class="rule-item">
+                        <svg class="icon-svg" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>
+                        <div><strong>Feedback sem Ego:</strong> Analisamos nossas derrotas para evoluir. Aceitar críticas construtivas faz parte do jogo.</div>
+                    </div>
+                    <div class="rule-item">
+                        <svg class="icon-svg" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>
+                        <div><strong>Compromisso:</strong> Nosso horário base é de Segunda a Sexta, das 18h às 23h. Valorizamos a consistência.</div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="container-fluid bg-dark-section py-5 my-5 position-relative overflow-hidden">
+    <section class="container-fluid bg-dark-section py-5 my-5 position-relative overflow-hidden fade-in-section">
         <div class="display-massive" style="color: var(--val-dark); text-shadow: none; opacity: 0.5;">AGENTES</div>
         <div class="container position-relative z-1">
             <h2 class="section-header" style="border-color: var(--val-light); color: var(--val-light);">Status da Line-up</h2>
@@ -183,18 +248,35 @@
         </div>
     </section>
 
-    <section class="container text-center py-5 mb-5">
+    <section class="container text-center py-5 mb-5 fade-in-section">
         <h2 class="section-header border-0 justify-content-center d-flex">Pronto para o drop?</h2>
-        <p class="manifesto-text mb-5 w-75 mx-auto">Verifique o status acima, preencha o formulário para sua função e aguarde o contato no jogo.</p>
+        
+        <div class="req-box manifesto-text">
+            <strong>Requisitos de Admissão:</strong>
+            <ul class="mb-0 mt-2 ps-3">
+                <li>Microfone limpo e uso obrigatório de Discord.</li>
+                <li>Disponibilidade no horário base (18h às 23h).</li>
+                <li>Idade e maturidade para lidar com frustrações in-game.</li>
+            </ul>
+        </div>
+
+        <p class="manifesto-text mb-4 w-75 mx-auto">Verifique o status acima, preencha o formulário para sua função e aguarde o contato no jogo.</p>
         <a href="https://forms.gle/jULFiyjojXUiN3EcA" target="_blank" class="btn-val">Iniciar Inscrição</a>
     </section>
 
-    <footer class="container text-center py-4 border-top border-dark">
+    <footer class="container text-center py-4 border-top border-dark fade-in-section">
         <p class="mb-0 text-muted text-uppercase fw-bold fs-5">Adicione no jogo: <span class="text-dark">OUSADIA#013</span></p>
         <small class="text-muted mt-2 d-block">© Protocolo V. Hospedado no GitHub Pages.</small>
     </footer>
 
+    <button type="button" class="btn" id="btn-back-to-top">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"/>
+        </svg>
+    </button>
+
     <script>
+        // O SEU CÓDIGO FONTE INTACTO (URLs e Lógica da Planilha)
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFrlbFvaPDuVahEtPUOJdt4EfIBzCJvHITDIR5cEDHcFCBTEofMe_-gG57bSh5KCuqD2dnzuaFn66p/pub?output=csv';
         const henrikApiKey = 'HDEV-f8ab178e-da4d-40d6-9426-e127dabe60b3';
         
@@ -252,6 +334,7 @@
                             // Aplicando a sanitização nos dados de entrada
                             let roleRaw = columns[roleCol] ? sanitizeHTML(columns[roleCol].replace(/"/g, '').toLowerCase()) : '';
                             let riotId = columns[riotIdCol] ? sanitizeHTML(columns[riotIdCol].replace(/"/g, '')) : '';
+                            
                             // Gera o link do Tracker.gg automaticamente a partir do Riot ID
                             let trackerLink = '#';
                             if (riotId && riotId.includes('#')) {
@@ -430,10 +513,50 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', fetchAndProcessData);
+        // LÓGICA DAS ANIMAÇÕES DE SCROLL
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // LÓGICA DO BOTÃO VOLTAR AO TOPO
+        let backToTopBtn = document.getElementById("btn-back-to-top");
+
+        window.onscroll = function () { scrollFunction() };
+
+        function scrollFunction() {
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                backToTopBtn.style.display = "block";
+            } else {
+                backToTopBtn.style.display = "none";
+            }
+        }
+
+        backToTopBtn.addEventListener("click", function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // INICIALIZAÇÃO DE TUDO NO CARREGAMENTO DA PÁGINA
+        document.addEventListener('DOMContentLoaded', () => {
+            // Roda a extração da planilha original do usuário
+            fetchAndProcessData(); 
+            
+            // Inicia o observador visual das seções
+            const sections = document.querySelectorAll('.fade-in-section');
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
     </script>
 </body>
 </html>
-
-
-
