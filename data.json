@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771426287731,
+  "updatedAt": 1771426860471,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -55,10 +55,10 @@
       "trackerLink": "https://tracker.gg/valorant/profile/riot/TDAH%20IsNotAlex%23REN/overview",
       "level": 465,
       "card": "https://media.valorant-api.com/playercards/cd87781f-4d21-cde6-959c-28b61b882fa3/smallart.png",
-      "currentRank": "Sem Rank",
-      "peakRank": "Sem Rank",
-      "currentRankIcon": "",
-      "peakRankIcon": "",
+      "currentRank": "Platinum 1",
+      "peakRank": "Diamond 3",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
+      "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/20/smallicon.png",
       "apiError": false
     },
     {
