@@ -209,7 +209,8 @@ async function run() {
                     id: matchId,
                     map: match.metadata.map,
                     mode: match.metadata.mode,
-                    started_at: match.metadata.game_start,
+                    // CORREÇÃO DE DATA: Multiplica por 1000 para converter Segundos em Milissegundos
+                    started_at: match.metadata.game_start * 1000, 
                     score: scoreStr,
                     result: hasWon ? 'VITÓRIA' : 'DERROTA',
                     team_color: teamId,
