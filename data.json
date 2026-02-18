@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771427983996,
+  "updatedAt": 1771428345364,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -11,7 +11,7 @@
       "peakRank": "Diamond 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/18/smallicon.png",
-      "apiError": true
+      "apiError": false
     },
     {
       "riotId": "ALEGRIA#021",
@@ -31,10 +31,10 @@
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Mahoraga%23Chess/overview",
       "level": 188,
       "card": "https://media.valorant-api.com/playercards/c06e6a9b-4ba2-bbfd-b150-0c8a2a9dbc1e/smallart.png",
-      "currentRank": "Sem Rank",
-      "peakRank": "Sem Rank",
-      "currentRankIcon": "",
-      "peakRankIcon": "",
+      "currentRank": "Platinum 1",
+      "peakRank": "Platinum 1",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
+      "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "apiError": false
     },
     {
@@ -79,10 +79,10 @@
       "trackerLink": "https://tracker.gg/valorant/profile/riot/AMV%20Teteu%E3%83%86%2315733/overview",
       "level": 152,
       "card": "https://media.valorant-api.com/playercards/65cbcfd7-4eeb-d935-ee1b-889c669a9db1/smallart.png",
-      "currentRank": "Silver 1",
-      "peakRank": "Silver 3",
-      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/9/smallicon.png",
-      "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/11/smallicon.png",
+      "currentRank": "Sem Rank",
+      "peakRank": "Sem Rank",
+      "currentRankIcon": "",
+      "peakRankIcon": "",
       "apiError": false
     },
     {
@@ -95,7 +95,7 @@
       "peakRank": "Sem Rank",
       "currentRankIcon": "",
       "peakRankIcon": "",
-      "apiError": true
+      "apiError": false
     },
     {
       "riotId": "Major Tom#Salut",
