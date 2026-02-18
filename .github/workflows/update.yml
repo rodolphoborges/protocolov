@@ -1,16 +1,15 @@
-# .github/workflows/update.yml
 name: Atualiza Dados da Line-up
 
 on:
   schedule:
     - cron: '*/30 * * * *' # Roda a cada 30 minutos
-  workflow_dispatch: # Permite rodar manualmente clicando num botão no GitHub
+  workflow_dispatch:
 
 jobs:
   update-data:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Necessário para o bot poder fazer o commit do data.json
+      contents: write
 
     steps:
       - name: Checkout do repositório
@@ -21,15 +20,19 @@ jobs:
         with:
           node-version: '20'
 
+      # NOVO PASSO: Instalar csv-parse
+      - name: Instalar Dependências
+        run: npm install
+
       - name: Roda o script de extração e API
         run: node update-data.js
         env:
           HENRIK_API_KEY: ${{ secrets.HENRIK_API_KEY }}
+          # DEBUG_TARGET: "ousadia#013" # Descomente apenas se precisar debugar alguém específico
 
       - name: Faz o commit das mudanças se houver novos dados
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "action@github.com"
           git add data.json
-          # O comando abaixo verifica mudanças e faz o push autenticado usando o token do GitHub
           git diff --quiet && git diff --staged --quiet || (git commit -m "chore: Atualiza cache de jogadores (data.json)" && git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:main)
