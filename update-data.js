@@ -6,18 +6,27 @@ const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFrlbFvaPDuVahE
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const debugTarget = process.env.DEBUG_TARGET || 'ousadia';
 
-// --- CONFIGURAÇÃO ---
-const REQUEST_DELAY = 3500; 
+// --- CONFIGURAÇÃO DE SEGURANÇA EXTREMA ---
+// Aumentado para 5s para evitar erros 429 e respostas incompletas
+const REQUEST_DELAY = 5000; 
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-async function smartFetch(url, headers) {
+async function smartFetch(url, headers, retries = 1) {
     const start = Date.now();
     let response = null;
     let error = null;
 
     try {
         response = await fetch(url, { headers });
+        
+        // SISTEMA DE RETRY ANTI-429
+        if (response.status === 429 && retries > 0) {
+            console.log(`      ⚠️ Rate Limit (429). A esperar 10s para tentar de novo...`);
+            await delay(10000);
+            return smartFetch(url, headers, retries - 1);
+        }
+
     } catch (e) {
         error = e;
     }
@@ -35,7 +44,7 @@ async function smartFetch(url, headers) {
 
 async function run() {
     try {
-        console.log('--- PROTOCOLO V: DIAGNOSTIC MODE (VERBOSE) ---');
+        console.log('--- PROTOCOLO V: STABILITY MODE (ANTI-429) ---');
         
         // 1. CARREGAR CACHE
         let oldDataMap = new Map();
@@ -79,7 +88,7 @@ async function run() {
 
         // 3. LOOP DE DADOS
         for (const [index, p] of playersToFetch.entries()) {
-            console.log(`\n[${index + 1}/${playersToFetch.length}] 🔍 Analisando: ${p.riotId}`);
+            console.log(`\n[${index + 1}/${playersToFetch.length}] 🔍 A analisar: ${p.riotId}`);
             
             const [name, tag] = p.riotId.split('#');
             const safeName = encodeURIComponent(name.trim());
@@ -105,7 +114,7 @@ async function run() {
             let region = 'br'; 
 
             try {
-                // Busca 15 últimas (Bruto)
+                // Busca 15 últimas
                 let matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=15`, headers);
                 
                 if (matchesRes.status === 404) {
@@ -115,34 +124,36 @@ async function run() {
 
                 if (matchesRes.status === 200) {
                     const matchesData = await matchesRes.json();
-                    const totalMatches = matchesData.data ? matchesData.data.length : 0;
                     
-                    if (totalMatches === 0) {
-                        console.log(`   ⚠️ API retornou 0 partidas recentes.`);
-                    } else {
-                        // --- DEBUG DOS MODOS ---
-                        // Mostra os modos das 3 primeiras partidas encontradas para entendermos o que a API está mandando
-                        if (index < 3) { // Só para os 3 primeiros jogadores para não poluir demais
-                            console.log(`   📊 Debug Modos (Últimas 3):`);
-                            matchesData.data.slice(0, 3).forEach(m => {
-                                const modeRaw = m.metadata.mode;
-                                const isComp = modeRaw && modeRaw.toLowerCase() === 'competitive';
-                                console.log(`      -> Mapa: ${m.metadata.map} | Modo API: '${modeRaw}' | Aceito? ${isComp ? '✅' : '❌'}`);
-                            });
+                    if (matchesData.data && matchesData.data.length > 0) {
+                        
+                        // DEBUG PROFUNDO: Verifica se os dados dos jogadores estão vindo
+                        if (index < 3) {
+                             console.log(`   📊 Verificação de Integridade (Últimas 3):`);
+                             matchesData.data.slice(0, 3).forEach(m => {
+                                 const playerCount = m.players ? m.players.length : 0;
+                                 const mode = m.metadata.mode;
+                                 console.log(`      -> ${m.metadata.map} [${mode}] | Jogadores na lista: ${playerCount}/10`);
+                             });
                         }
-                        // -----------------------
 
-                        const validMatchForRank = matchesData.data.find(m => m.players && Array.isArray(m.players) && m.metadata.mode.toLowerCase() === 'competitive');
+                        // Filtro: Tem que ter jogadores E ser Competitive
+                        const validMatchForRank = matchesData.data.find(m => 
+                            m.players && 
+                            Array.isArray(m.players) && 
+                            m.players.length > 0 && // Garante que a lista não está vazia
+                            m.metadata.mode.trim().toLowerCase() === 'competitive'
+                        );
                         
                         if (validMatchForRank) {
                             const newMatchId = validMatchForRank.metadata.matchid;
                             
                             if (cachedPlayer && cachedPlayer.lastMatchId === newMatchId && cachedPlayer.currentRank !== 'Sem Rank') {
-                                console.log(`   ⚡ Cache válido. Sem novas competitivas.`);
+                                console.log(`   ⚡ Cache válido. Sem competitivas novas.`);
                                 needsFullUpdate = false; 
                                 playerData = { ...cachedPlayer, roleRaw: p.role };
                             } else {
-                                console.log(`   🔄 Atualizando dados (Rank/Nível)...`);
+                                console.log(`   🔄 Atualizando dados...`);
                                 playerData.lastMatchId = newMatchId;
                                 
                                 const playerInMatch = validMatchForRank.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
@@ -154,13 +165,14 @@ async function run() {
                                 }
                             }
                         } else {
-                            console.log(`   ❌ Nenhuma partida 'competitive' encontrada nas últimas 15.`);
+                            console.log(`   ❌ Nenhuma partida 'competitive' VÁLIDA (com jogadores) encontrada.`);
                         }
 
                         // COLETA PARA SINERGIA
                         matchesData.data.forEach(match => {
-                            const mode = match.metadata.mode ? match.metadata.mode.toLowerCase() : '';
-                            if (mode === 'competitive' && match.players && Array.isArray(match.players)) {
+                            const mode = match.metadata.mode ? match.metadata.mode.trim().toLowerCase() : '';
+                            // Só aceita se tiver lista de jogadores preenchida
+                            if (mode === 'competitive' && match.players && Array.isArray(match.players) && match.players.length > 0) {
                                 if (!allMatchesMap.has(match.metadata.matchid)) {
                                     allMatchesMap.set(match.metadata.matchid, match);
                                 }
@@ -169,9 +181,11 @@ async function run() {
                     }
                 } else {
                     console.log(`   ❌ Erro API: Status ${matchesRes.status}`);
+                    playerData.apiError = true;
                 }
 
                 if (needsFullUpdate) {
+                    // Adicionei retry aqui também
                     const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
                     if (accRes.status === 200) {
                         const accData = await accRes.json();
@@ -213,12 +227,6 @@ async function run() {
                 const fullName = `${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '');
                 return rosterMap.has(fullName);
             });
-
-            // DEBUG DE SQUAD
-            if (squadMembers.length > 0) {
-                 const names = squadMembers.map(m => m.name).join(', ');
-                 // console.log(`   > Match ${match.metadata.map}: Encontrados [${names}]`);
-            }
 
             if (squadMembers.length >= 2) {
                 const names = squadMembers.map(m => m.name).join(', ');
