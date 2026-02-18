@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771446254978,
+  "updatedAt": 1771446720293,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -116,7 +116,7 @@
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
       "peakRankIcon": "",
       "lastMatchId": "4a7080df-8a84-46b4-9ec9-4b2302ed2d3d",
-      "apiError": false
+      "apiError": true
     },
     {
       "riotId": "Jjioz #8335",
