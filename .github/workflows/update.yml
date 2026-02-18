@@ -1,0 +1,34 @@
+# .github/workflows/update.yml
+name: Atualiza Dados da Line-up
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # Roda a cada 30 minutos
+  workflow_dispatch: # Permite rodar manualmente clicando num botão no GitHub
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Necessário para o bot poder fazer o commit do data.json
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Setup do Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Roda o script de extração e API
+        run: node update-data.js
+        env:
+          HENRIK_API_KEY: ${{ secrets.HENRIK_API_KEY }}
+
+      - name: Faz o commit das mudanças se houver novos dados
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "action@github.com"
+          git add data.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: Atualiza cache de jogadores (data.json)" && git push)
