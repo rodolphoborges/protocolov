@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771427467592,
+  "updatedAt": 1771427983996,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -11,7 +11,7 @@
       "peakRank": "Diamond 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/18/smallicon.png",
-      "apiError": false
+      "apiError": true
     },
     {
       "riotId": "ALEGRIA#021",
@@ -31,22 +31,22 @@
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Mahoraga%23Chess/overview",
       "level": 188,
       "card": "https://media.valorant-api.com/playercards/c06e6a9b-4ba2-bbfd-b150-0c8a2a9dbc1e/smallart.png",
-      "currentRank": "Platinum 1",
-      "peakRank": "Platinum 1",
-      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
-      "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
+      "currentRank": "Sem Rank",
+      "peakRank": "Sem Rank",
+      "currentRankIcon": "",
+      "peakRankIcon": "",
       "apiError": false
     },
     {
       "riotId": "PDL CH1TUZ#666",
       "roleRaw": "Flex",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/PDL%20CH1TUZ%23666/overview",
-      "level": 208,
-      "card": "https://media.valorant-api.com/playercards/a554887a-4833-6a19-1dfe-56b2277bf8bc/smallart.png",
-      "currentRank": "Gold 2",
-      "peakRank": "Gold 3",
-      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/13/smallicon.png",
-      "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/14/smallicon.png",
+      "level": "--",
+      "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
+      "currentRank": "Sem Rank",
+      "peakRank": "Sem Rank",
+      "currentRankIcon": "",
+      "peakRankIcon": "",
       "apiError": false
     },
     {
@@ -89,24 +89,24 @@
       "riotId": "Vduart#MEE",
       "roleRaw": "Flex",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Vduart%23MEE/overview",
-      "level": 458,
-      "card": "https://media.valorant-api.com/playercards/cb8ccea5-4f40-625f-e237-d3b1415e99d7/smallart.png",
-      "currentRank": "Gold 1",
-      "peakRank": "Platinum 3",
-      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
-      "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/17/smallicon.png",
-      "apiError": false
-    },
-    {
-      "riotId": "Major Tom#Salut",
-      "roleRaw": "Sentinela",
-      "trackerLink": "https://tracker.gg/valorant/profile/riot/Major%20Tom%23Salut/overview",
       "level": "--",
       "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
       "currentRank": "Sem Rank",
       "peakRank": "Sem Rank",
       "currentRankIcon": "",
       "peakRankIcon": "",
+      "apiError": true
+    },
+    {
+      "riotId": "Major Tom#Salut",
+      "roleRaw": "Sentinela",
+      "trackerLink": "https://tracker.gg/valorant/profile/riot/Major%20Tom%23Salut/overview",
+      "level": 235,
+      "card": "https://media.valorant-api.com/playercards/260c7a79-4d04-36d5-9b68-a097519459cd/smallart.png",
+      "currentRank": "Gold 1",
+      "peakRank": "Gold 1",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
+      "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
       "apiError": false
     },
     {
