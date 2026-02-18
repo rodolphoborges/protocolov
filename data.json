@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771448473251,
+  "updatedAt": 1771449857053,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -137,7 +137,7 @@
       "id": "b7168f25-f93f-43f1-ac44-4e18fca8928e",
       "map": "Abyss",
       "mode": "Competitive",
-      "started_at": 1771379682,
+      "started_at": 1771379682000,
       "score": "13-8",
       "result": "DERROTA",
       "team_color": "Red",
@@ -169,7 +169,7 @@
       "id": "75e0957d-0376-4ac7-ad87-18ae3e3dfaaf",
       "map": "Split",
       "mode": "Competitive",
-      "started_at": 1770687522,
+      "started_at": 1770687522000,
       "score": "16-14",
       "result": "VITÓRIA",
       "team_color": "Blue",
