@@ -6,31 +6,24 @@ const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFrlbFvaPDuVahE
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const debugTarget = process.env.DEBUG_TARGET || 'ousadia';
 
-// --- CONFIGURAÇÃO DE SEGURANÇA MÁXIMA ---
-// 10 segundos entre chamadas = 6 req/min. 
-// Lento, mas é a única forma de evitar o bloqueio 429/504 no estado atual da API.
+// --- CONFIGURAÇÃO ---
 const REQUEST_DELAY = 10000; 
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-async function smartFetch(url, headers, retries = 3) {
+async function smartFetch(url, headers, retries = 2) {
     const start = Date.now();
     let response = null;
     let error = null;
 
     try {
         response = await fetch(url, { headers });
-        
-        // Tratamento Agressivo de Erros de Servidor
-        if ((response.status === 429 || response.status >= 500) && retries > 0) {
-            console.log(`      ⛔ Instabilidade API (${response.status}). Pausa longa de 45s...`);
+        if (response.status === 429 && retries > 0) {
+            console.log(`      ⛔ 429 Detectado. Pausa de 45s...`);
             await delay(45000); 
             return smartFetch(url, headers, retries - 1);
         }
-
-    } catch (e) {
-        error = e;
-    }
+    } catch (e) { error = e; }
 
     const elapsed = Date.now() - start;
     const remainingDelay = Math.max(0, REQUEST_DELAY - elapsed);
@@ -42,18 +35,16 @@ async function smartFetch(url, headers, retries = 3) {
 
 async function run() {
     try {
-        console.log('--- PROTOCOLO V: RESILIENT MODE (MULTI-TRY) ---');
+        console.log('--- PROTOCOLO V: V2 FALLBACK MODE ---');
         
-        // 1. CARREGAR CACHE
         let oldDataMap = new Map();
         try {
             if (fs.existsSync('data.json')) {
                 const jsonOld = JSON.parse(fs.readFileSync('data.json'));
                 (Array.isArray(jsonOld) ? jsonOld : (jsonOld.players || [])).forEach(p => oldDataMap.set(p.riotId, p));
             }
-        } catch (e) { console.log('   Nenhum cache válido encontrado.'); }
+        } catch (e) { }
 
-        // 2. LER CSV
         console.log('   A descarregar planilha...');
         const response = await fetch(csvUrl);
         const records = parse(await response.text(), { columns: true, skip_empty_lines: true, trim: true });
@@ -62,7 +53,7 @@ async function run() {
         const roleKey = keys.find(k => k.toLowerCase().includes('fun'));
         const riotIdKey = keys.find(k => k.toLowerCase().includes('riot'));
 
-        if (!roleKey || !riotIdKey) throw new Error('Colunas obrigatórias não encontradas.');
+        if (!roleKey || !riotIdKey) throw new Error('Colunas CSV inválidas.');
 
         let playersToFetch = [];
         let rosterMap = new Set(); 
@@ -78,7 +69,6 @@ async function run() {
         let allMatchesMap = new Map(); 
         const headers = { 'Authorization': henrikApiKey };
 
-        // 3. LOOP DE DADOS
         for (const [index, p] of playersToFetch.entries()) {
             console.log(`\n[${index + 1}/${playersToFetch.length}] 🔍 A analisar: ${p.riotId}`);
             
@@ -88,8 +78,7 @@ async function run() {
             const cachedPlayer = oldDataMap.get(p.riotId);
             
             let playerData = {
-                riotId: p.riotId,
-                roleRaw: p.role,
+                riotId: p.riotId, roleRaw: p.role,
                 trackerLink: `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
                 level: cachedPlayer?.level || '--',
                 card: cachedPlayer?.card || 'https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png',
@@ -105,66 +94,63 @@ async function run() {
             let region = 'br'; 
 
             try {
-                // ETAPA 1: Buscar LISTA
-                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=10`, headers);
+                // ETAPA 1: Buscar LISTA (v3 ainda é bom para listar IDs)
+                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=5`, headers);
                 
                 if (listRes.status === 404) {
-                     console.log('   ⚠️ Região BR não encontrada. Tentando NA...');
-                     listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?size=10`, headers);
+                     listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?size=5`, headers);
                 }
 
                 if (listRes.status === 200) {
                     const listData = await listRes.json();
-                    
-                    // PEGA AS 3 ÚLTIMAS COMPETITIVAS (Backup caso a primeira esteja quebrada/404)
-                    const recentCompMatches = listData.data 
-                        ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'competitive').slice(0, 3)
-                        : [];
+                    const recentCompMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'competitive') : [];
 
                     if (recentCompMatches.length > 0) {
-                        let validMatchFound = null;
+                        let bestMatch = null;
 
-                        // LOOP DE TENTATIVAS (Try 1 -> Try 2 -> Try 3)
                         for (const matchCandidate of recentCompMatches) {
                             const matchId = matchCandidate.metadata.matchid;
-                            
-                            // 1. Já temos baixado?
+
+                            // 1. Já temos no cache de equipa?
                             if (allMatchesMap.has(matchId)) {
-                                console.log(`   ✨ Partida ${matchId} recuperada da memória.`);
-                                validMatchFound = allMatchesMap.get(matchId);
-                                break; // Sucesso, sai do loop
+                                console.log(`   ✨ Detalhes recuperados do cache de equipa.`);
+                                bestMatch = allMatchesMap.get(matchId);
+                                break;
                             }
 
-                            // 2. Tentar baixar detalhes
-                            console.log(`   📥 Tentando baixar detalhes de ${matchId}...`);
-                            const detailRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/match/${matchId}`, headers);
+                            // 2. Tenta baixar detalhes usando V2 (A MUDANÇA ESTÁ AQUI)
+                            console.log(`   📥 Tentando baixar detalhes de ${matchId} (API v2)...`);
+                            const detailRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/match/${matchId}`, headers);
                             
                             if (detailRes.status === 200) {
                                 const detailData = await detailRes.json();
-                                validMatchFound = detailData.data;
-                                allMatchesMap.set(matchId, validMatchFound); // Salva para todos
-                                break; // Sucesso, sai do loop
+                                bestMatch = detailData.data;
+
+                                // --- CORREÇÃO DE COMPATIBILIDADE V2 ---
+                                // A v2 retorna { players: { all_players: [...] } } em vez de { players: [...] }
+                                if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) {
+                                    bestMatch.players = bestMatch.players.all_players;
+                                }
+                                // --------------------------------------
+
+                                allMatchesMap.set(matchId, bestMatch);
+                                break;
                             } else {
-                                console.log(`      ❌ Falha no ID ${matchId} (Status ${detailRes.status}). Tentando a próxima...`);
-                                // Não dá break, continua para a próxima partida do histórico
+                                console.log(`      ❌ Falha no ID ${matchId} (Status ${detailRes.status}).`);
                             }
                         }
 
-                        // SE ENCONTRAMOS ALGUMA PARTIDA VÁLIDA (Atual ou Anterior)
-                        if (validMatchFound) {
-                            // Atualiza Rank com base nessa partida válida
-                            const playerInMatch = validMatchFound.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
+                        if (bestMatch) {
+                            // Atualiza Rank
+                            const playerInMatch = bestMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
                             
-                            // Lógica de Cache Inteligente
-                            // Se o ID da partida válida for igual ao último salvo, mantemos o cache
-                            if (cachedPlayer && cachedPlayer.lastMatchId === validMatchFound.metadata.matchid && cachedPlayer.currentRank !== 'Sem Rank') {
-                                console.log(`   ⚡ Cache confirmado (Baseado na partida ${validMatchFound.metadata.matchid}).`);
+                            if (cachedPlayer && cachedPlayer.lastMatchId === bestMatch.metadata.matchid && cachedPlayer.currentRank !== 'Sem Rank') {
+                                console.log(`   ⚡ Rank mantido do cache.`);
                                 needsFullUpdate = false;
-                                playerData = { ...cachedPlayer, roleRaw: p.role, lastMatchId: validMatchFound.metadata.matchid };
+                                playerData = { ...cachedPlayer, roleRaw: p.role, lastMatchId: bestMatch.metadata.matchid };
                             } else {
-                                console.log(`   🔄 Atualizando Rank via partida ${validMatchFound.metadata.matchid}...`);
-                                playerData.lastMatchId = validMatchFound.metadata.matchid;
-                                
+                                console.log(`   🔄 Atualizando Rank via partida ${bestMatch.metadata.matchid}...`);
+                                playerData.lastMatchId = bestMatch.metadata.matchid;
                                 if (playerInMatch?.currenttier_patched) {
                                     playerData.currentRank = playerInMatch.currenttier_patched;
                                     if (playerInMatch.currenttier > 2) {
@@ -173,14 +159,13 @@ async function run() {
                                 }
                             }
                         } else {
-                            console.log(`   ⚠️ Todas as 3 últimas partidas competitivas deram erro na API.`);
+                            console.log(`   ⚠️ Não foi possível recuperar detalhes (v2 falhou também).`);
                         }
-
                     } else {
                         console.log(`   ℹ️ Nenhuma partida competitiva recente.`);
                     }
                 } else {
-                    console.log(`   ❌ Erro ao buscar lista: ${listRes.status}`);
+                    console.log(`   ❌ Erro lista: ${listRes.status}`);
                     playerData.apiError = true;
                 }
 
@@ -215,11 +200,11 @@ async function run() {
             finalPlayersData.push(playerData);
         }
 
-        // 4. SINERGIA
-        console.log(`\n⚙️ Processando Sinergia (${allMatchesMap.size} partidas únicas recuperadas)...`);
+        console.log(`\n⚙️ Processando Sinergia (${allMatchesMap.size} partidas únicas)...`);
         let operations = [];
 
         for (const [matchId, match] of allMatchesMap) {
+            // Garante que é array (graças à correção de compatibilidade v2 lá em cima)
             if (!match.players || !Array.isArray(match.players)) continue;
 
             const squadMembers = match.players.filter(player => {
@@ -232,6 +217,7 @@ async function run() {
                 console.log(`   ✅ SQUAD CONFIRMADO: ${names} (${match.metadata.map})`);
 
                 const teamId = squadMembers[0].team; 
+                // v2 e v3 têm estrutura de teams parecida, mas bom garantir
                 const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
                 const hasWon = teamData ? teamData.has_won : false;
                 const scoreStr = match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A';
