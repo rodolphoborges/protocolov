@@ -64,7 +64,12 @@ Para testar alterações no visual (`index.html`):
 1. Clone o repositório.
 2. Certifique-se de que existe um arquivo `data.json` na pasta (você pode baixá-lo do repositório principal ou rodar `node update-data.js` se tiver a chave configurada no seu `.env` local).
 3. Abra o `index.html` no navegador (ou use uma extensão como *Live Server*).
+## 💻 Como executar localmente
 
+1. Clone o repositório.
+2. Instale as dependências:
+   ```bash
+   npm install
 ---
 
 <p align="center">
