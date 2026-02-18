@@ -31,4 +31,5 @@ jobs:
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "action@github.com"
           git add data.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: Atualiza cache de jogadores (data.json)" && git push)
+          # O comando abaixo verifica mudanças e faz o push autenticado usando o token do GitHub
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: Atualiza cache de jogadores (data.json)" && git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:main)
