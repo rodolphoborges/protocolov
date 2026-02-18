@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771456216196,
+  "updatedAt": 1771457708540,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -11,7 +11,7 @@
       "peakRank": "Diamond 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "182da013-44b4-4aed-98f8-30d27a081bd1",
+      "lastMatchId": "2f78a246-3f6b-45d7-8af3-6ac43cdedba7",
       "apiError": false
     },
     {
@@ -37,7 +37,7 @@
       "peakRank": "Platinum 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "182da013-44b4-4aed-98f8-30d27a081bd1",
+      "lastMatchId": "2f78a246-3f6b-45d7-8af3-6ac43cdedba7",
       "apiError": false
     },
     {
@@ -128,7 +128,7 @@
       "peakRank": "Ascendant 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/20/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "422311b4-1398-413b-ae65-31f57be2b1bc",
+      "lastMatchId": "d967e6e7-a0b7-4472-bdee-35531dbf38cc",
       "apiError": false
     },
     {
@@ -143,30 +143,43 @@
       "peakRankIcon": "",
       "lastMatchId": "c2e54765-a5de-4b7e-bd00-11c3be66bf17",
       "apiError": false
+    },
+    {
+      "riotId": "resenhar#bct ( temporaria )",
+      "roleRaw": "Flex",
+      "trackerLink": "https://tracker.gg/valorant/profile/riot/resenhar%23bct%20(%20temporaria%20)/overview",
+      "level": "--",
+      "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
+      "currentRank": "Sem Rank",
+      "peakRank": "Sem Rank",
+      "currentRankIcon": "",
+      "peakRankIcon": "",
+      "lastMatchId": null,
+      "apiError": true
     }
   ],
   "operations": [
     {
-      "id": "182da013-44b4-4aed-98f8-30d27a081bd1",
-      "map": "Split",
+      "id": "2f78a246-3f6b-45d7-8af3-6ac43cdedba7",
+      "map": "Pearl",
       "mode": "Competitive",
-      "started_at": 1771452108000,
-      "score": "6-13",
-      "result": "VITÓRIA",
+      "started_at": 1771454148000,
+      "score": "13-10",
+      "result": "DERROTA",
       "team_color": "Red",
       "squad": [
         {
           "riotId": "OUSADIA#013",
-          "agent": "Fade",
-          "agentImg": "https://media.valorant-api.com/agents/dade69b4-4f5a-8528-247b-219e5a1facd6/displayicon.png",
-          "kda": "11/12/5",
-          "hs": 26
+          "agent": "Jett",
+          "agentImg": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png",
+          "kda": "15/17/4",
+          "hs": 25
         },
         {
           "riotId": "Mahoraga#Chess",
           "agent": "Brimstone",
           "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
-          "kda": "16/12/13",
+          "kda": "24/17/10",
           "hs": 19
         }
       ]
