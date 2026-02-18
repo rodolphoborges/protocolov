@@ -6,14 +6,14 @@ const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFrlbFvaPDuVahE
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const debugTarget = process.env.DEBUG_TARGET || 'ousadia';
 
-// --- CONFIGURAÇÃO DE SEGURANÇA ---
-// 6 segundos de intervalo = 10 requisições/minuto (Seguro contra 429)
-const REQUEST_DELAY = 6000; 
+// --- CONFIGURAÇÃO BLINDADA ---
+// Aumentei o intervalo para 10 segundos para garantir estabilidade total
+const REQUEST_DELAY = 10000; 
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-// Função de Fetch Inteligente com Retry Automático
-async function smartFetch(url, headers, retries = 2) {
+// Fetch com Retry Potente
+async function smartFetch(url, headers, retries = 3) {
     const start = Date.now();
     let response = null;
     let error = null;
@@ -21,10 +21,10 @@ async function smartFetch(url, headers, retries = 2) {
     try {
         response = await fetch(url, { headers });
         
-        // Se der Rate Limit (429), espera 30s e tenta de novo
+        // Se der Rate Limit (429), espera 40s (Penalidade máxima)
         if (response.status === 429 && retries > 0) {
-            console.log(`      ⛔ Rate Limit (429). Pausa tática de 30s...`);
-            await delay(30000); 
+            console.log(`      ⛔ Rate Limit (429). Pausa longa de 40s para resetar API...`);
+            await delay(40000); 
             return smartFetch(url, headers, retries - 1);
         }
 
@@ -42,7 +42,7 @@ async function smartFetch(url, headers, retries = 2) {
 
 async function run() {
     try {
-        console.log('--- PROTOCOLO V: SURGICAL MODE (LIST + DETAILS) ---');
+        console.log('--- PROTOCOLO V: TEAM CACHE MODE ---');
         
         // 1. CARREGAR CACHE
         let oldDataMap = new Map();
@@ -75,7 +75,7 @@ async function run() {
         }
 
         let finalPlayersData = [];
-        let allMatchesMap = new Map(); 
+        let allMatchesMap = new Map(); // Mapa compartilhado de partidas baixadas
         const headers = { 'Authorization': henrikApiKey };
 
         // 3. LOOP DE DADOS
@@ -105,8 +105,7 @@ async function run() {
             let region = 'br'; 
 
             try {
-                // ETAPA 1: Buscar LISTA de partidas (apenas para pegar o ID)
-                // Usamos size=10 para garantir que encontramos a última competitiva
+                // ETAPA 1: Buscar LISTA de partidas
                 let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=10`, headers);
                 
                 if (listRes.status === 404) {
@@ -116,41 +115,50 @@ async function run() {
 
                 if (listRes.status === 200) {
                     const listData = await listRes.json();
-                    
-                    // Encontra o ID da última partida COMPETITIVE (mesmo que venha sem jogadores)
                     const lastCompMatch = listData.data ? listData.data.find(m => m.metadata.mode.toLowerCase() === 'competitive') : null;
 
                     if (lastCompMatch) {
                         const matchId = lastCompMatch.metadata.matchid;
-                        
-                        // Verifica se já temos essa partida salva
-                        if (cachedPlayer && cachedPlayer.lastMatchId === matchId && cachedPlayer.currentRank !== 'Sem Rank') {
-                            console.log(`   ⚡ ID ${matchId} já processado. Usando Cache.`);
-                            needsFullUpdate = false;
-                            playerData = { ...cachedPlayer, roleRaw: p.role };
+                        let fullMatch = null;
+
+                        // OTIMIZAÇÃO DE EQUIPA:
+                        // Verifica se algum amigo JÁ baixou esta partida nesta execução
+                        if (allMatchesMap.has(matchId)) {
+                            console.log(`   ✨ Partida ${matchId} já baixada por um colega. Economizando API!`);
+                            fullMatch = allMatchesMap.get(matchId);
                         } else {
-                            console.log(`   📥 Novo ID detetado: ${matchId}. Buscando detalhes completos...`);
-                            playerData.lastMatchId = matchId;
-
-                            // ETAPA 2: Buscar DETALHES da partida (Obrigatório para ter os jogadores)
-                            const detailRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/match/${matchId}`, headers);
-                            
-                            if (detailRes.status === 200) {
-                                const detailData = await detailRes.json();
-                                const fullMatch = detailData.data;
-
-                                // Atualiza Rank usando a partida completa
-                                const playerInMatch = fullMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
-                                if (playerInMatch?.currenttier_patched) {
-                                    playerData.currentRank = playerInMatch.currenttier_patched;
-                                    if (playerInMatch.currenttier > 2) {
-                                        playerData.currentRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${playerInMatch.currenttier}/smallicon.png`;
-                                    }
-                                }
-
-                                // Guarda para Sinergia
-                                if (!allMatchesMap.has(matchId)) {
+                            // Se ninguém baixou, verifica se o cache do jogador já tem esse ID
+                            if (cachedPlayer && cachedPlayer.lastMatchId === matchId && cachedPlayer.currentRank !== 'Sem Rank') {
+                                console.log(`   ⚡ ID ${matchId} já processado anteriormente. Usando Cache.`);
+                                needsFullUpdate = false;
+                                playerData = { ...cachedPlayer, roleRaw: p.role };
+                            } else {
+                                console.log(`   📥 Novo ID detetado: ${matchId}. Buscando detalhes...`);
+                                
+                                // ETAPA 2: Baixar Detalhes
+                                const detailRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/match/${matchId}`, headers);
+                                
+                                if (detailRes.status === 200) {
+                                    const detailData = await detailRes.json();
+                                    fullMatch = detailData.data;
+                                    // SALVA NO MAPA COMPARTILHADO IMEDIATAMENTE
                                     allMatchesMap.set(matchId, fullMatch);
+                                    console.log(`      ✅ Detalhes baixados e compartilhados com o time.`);
+                                } else {
+                                    console.log(`      ❌ Falha ao baixar detalhes: Status ${detailRes.status}`);
+                                }
+                            }
+                        }
+
+                        // Se temos a partida completa (seja via API ou via Colega)
+                        if (fullMatch) {
+                            playerData.lastMatchId = matchId;
+                            // Atualiza Rank
+                            const playerInMatch = fullMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
+                            if (playerInMatch?.currenttier_patched) {
+                                playerData.currentRank = playerInMatch.currenttier_patched;
+                                if (playerInMatch.currenttier > 2) {
+                                    playerData.currentRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${playerInMatch.currenttier}/smallicon.png`;
                                 }
                             }
                         }
@@ -194,11 +202,10 @@ async function run() {
         }
 
         // 4. SINERGIA
-        console.log(`\n⚙️ Processando Sinergia (${allMatchesMap.size} partidas)...`);
+        console.log(`\n⚙️ Processando Sinergia (${allMatchesMap.size} partidas únicas)...`);
         let operations = [];
 
         for (const [matchId, match] of allMatchesMap) {
-            // Garante que temos jogadores na lista
             if (!match.players || !Array.isArray(match.players)) continue;
 
             const squadMembers = match.players.filter(player => {
@@ -237,6 +244,8 @@ async function run() {
         operations.sort((a, b) => b.started_at - a.started_at);
 
         const finalOutput = { updatedAt: Date.now(), players: finalPlayersData, operations: operations };
+        
+        // Escrita Segura
         fs.writeFileSync('data.temp.json', JSON.stringify(finalOutput, null, 2));
         fs.renameSync('data.temp.json', 'data.json');
         
