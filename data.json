@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771454211560,
+  "updatedAt": 1771455277315,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -11,7 +11,7 @@
       "peakRank": "Diamond 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "b7168f25-f93f-43f1-ac44-4e18fca8928e",
+      "lastMatchId": "182da013-44b4-4aed-98f8-30d27a081bd1",
       "apiError": false
     },
     {
@@ -37,7 +37,7 @@
       "peakRank": "Platinum 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "d05489ed-9f6d-4ac5-afbe-d695baab016c",
+      "lastMatchId": "182da013-44b4-4aed-98f8-30d27a081bd1",
       "apiError": false
     },
     {
@@ -130,9 +130,47 @@
       "peakRankIcon": "",
       "lastMatchId": "422311b4-1398-413b-ae65-31f57be2b1bc",
       "apiError": false
+    },
+    {
+      "riotId": "Fadinha Do FF #nobru",
+      "roleRaw": "Duelista",
+      "trackerLink": "https://tracker.gg/valorant/profile/riot/Fadinha%20Do%20FF%23nobru/overview",
+      "level": 307,
+      "card": "https://media.valorant-api.com/playercards/4ae57e72-4b7e-a3ab-1ece-1ebfa0504971/smallart.png",
+      "currentRank": "Silver 2",
+      "peakRank": "Platinum 2",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/10/smallicon.png",
+      "peakRankIcon": "",
+      "lastMatchId": "f187ec60-2ee5-4512-8c22-d62f5f5fd7e2",
+      "apiError": false
     }
   ],
   "operations": [
+    {
+      "id": "182da013-44b4-4aed-98f8-30d27a081bd1",
+      "map": "Split",
+      "mode": "Competitive",
+      "started_at": 1771452108000,
+      "score": "6-13",
+      "result": "VITÓRIA",
+      "team_color": "Red",
+      "squad": [
+        {
+          "riotId": "OUSADIA#013",
+          "agent": "Fade",
+          "agentImg": "https://media.valorant-api.com/agents/dade69b4-4f5a-8528-247b-219e5a1facd6/displayicon.png",
+          "kda": "11/12/5",
+          "hs": 26
+        },
+        {
+          "riotId": "Mahoraga#Chess",
+          "agent": "Brimstone",
+          "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
+          "kda": "16/12/13",
+          "hs": 19
+        }
+      ]
+    },
     {
       "id": "b7168f25-f93f-43f1-ac44-4e18fca8928e",
       "map": "Abyss",
