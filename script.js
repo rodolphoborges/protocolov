@@ -153,12 +153,24 @@ function renderRoles() {
     let fullHTML = '';
 
     for (const [role, data] of Object.entries(rolesConfig)) {
-        const isFull = data.current >= data.max;
+        const isMainFull = data.current >= data.max;
+        const isWaitlistFull = data.waitlist.length >= 4; // Limite de 4 reservas
         const formattedCurrent = String(data.current).padStart(2, '0');
         const formattedMax = String(data.max).padStart(2, '0');
 
+        // Lógica do Status (Badge)
+        let statusBadge = '';
+        if (!isMainFull) {
+            statusBadge = `<span class="slot-indicator fs-4">[ ${formattedCurrent} / ${formattedMax} ]</span>`;
+        } else if (!isWaitlistFull) {
+            statusBadge = `<span class="slot-indicator fs-5 text-warning">⚠ FILA DE RESERVA</span>`;
+        } else {
+            statusBadge = `<span class="slot-indicator fs-4 text-secondary text-decoration-line-through">LOTADO</span>`;
+        }
+
         let playersHTML = data.players.map(p => createPlayerCardHTML(p, false)).join('');
 
+        // Fila de Reserva (Mostra mensagem se estiver vazia mas aberta)
         let waitlistHTML = '';
         if (data.waitlist.length > 0) {
             let waitlistCardsHTML = data.waitlist.map(p => createPlayerCardHTML(p, true)).join('');
@@ -173,20 +185,25 @@ function renderRoles() {
                     </div>
                 </div>
             `;
+        } else if (isMainFull && !isWaitlistFull) {
+            // Se titulares cheios e reserva vazia, mostra convite para reserva
+            waitlistHTML = `
+                <div class="waitlist-section text-center py-3 opacity-50">
+                    <span class="small text-uppercase text-warning fw-bold">Vagas disponíveis na Reserva</span>
+                </div>
+            `;
         }
 
         fullHTML += `
-            <div class="row align-items-start role-row ${isFull ? 'role-full' : ''}">
+            <div class="row align-items-start role-row ${isMainFull ? 'role-full' : ''}">
                 <div class="col-md-3 mb-4 mb-md-0">
                     <h3 class="role-title">${role}</h3>
                     <p class="mb-0 text-muted small">${data.desc}</p>
                 </div>
                 <div class="col-md-9">
                     <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-3">
-                        <span class="text-uppercase text-muted small">Operadores Alocados</span>
-                        <span class="slot-indicator fs-4 ${isFull ? 'text-secondary' : ''}">
-                            ${isFull ? 'FECHADO' : `[ ${formattedCurrent} / ${formattedMax} ]`}
-                        </span>
+                        <span class="text-uppercase text-muted small">Status Operacional</span>
+                        ${statusBadge}
                     </div>
                     <div class="row g-3">
                         ${playersHTML}
