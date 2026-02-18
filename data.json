@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771428345364,
+  "updatedAt": 1771428615400,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -41,12 +41,12 @@
       "riotId": "PDL CH1TUZ#666",
       "roleRaw": "Flex",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/PDL%20CH1TUZ%23666/overview",
-      "level": "--",
-      "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
-      "currentRank": "Sem Rank",
-      "peakRank": "Sem Rank",
-      "currentRankIcon": "",
-      "peakRankIcon": "",
+      "level": 208,
+      "card": "https://media.valorant-api.com/playercards/a554887a-4833-6a19-1dfe-56b2277bf8bc/smallart.png",
+      "currentRank": "Gold 2",
+      "peakRank": "Gold 3",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/13/smallicon.png",
+      "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/14/smallicon.png",
       "apiError": false
     },
     {
@@ -79,22 +79,22 @@
       "trackerLink": "https://tracker.gg/valorant/profile/riot/AMV%20Teteu%E3%83%86%2315733/overview",
       "level": 152,
       "card": "https://media.valorant-api.com/playercards/65cbcfd7-4eeb-d935-ee1b-889c669a9db1/smallart.png",
-      "currentRank": "Sem Rank",
-      "peakRank": "Sem Rank",
-      "currentRankIcon": "",
-      "peakRankIcon": "",
+      "currentRank": "Silver 1",
+      "peakRank": "Silver 3",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/9/smallicon.png",
+      "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/11/smallicon.png",
       "apiError": false
     },
     {
       "riotId": "Vduart#MEE",
       "roleRaw": "Flex",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Vduart%23MEE/overview",
-      "level": "--",
-      "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
-      "currentRank": "Sem Rank",
-      "peakRank": "Sem Rank",
-      "currentRankIcon": "",
-      "peakRankIcon": "",
+      "level": 458,
+      "card": "https://media.valorant-api.com/playercards/cb8ccea5-4f40-625f-e237-d3b1415e99d7/smallart.png",
+      "currentRank": "Gold 1",
+      "peakRank": "Platinum 3",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
+      "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/17/smallicon.png",
       "apiError": false
     },
     {
