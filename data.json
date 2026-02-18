@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771447679898,
+  "updatedAt": 1771448137086,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -132,5 +132,63 @@
       "apiError": false
     }
   ],
-  "operations": []
+  "operations": [
+    {
+      "id": "b7168f25-f93f-43f1-ac44-4e18fca8928e",
+      "map": "Abyss",
+      "mode": "Competitive",
+      "started_at": 1771379682,
+      "score": "13-8",
+      "result": "DERROTA",
+      "team_color": "Red",
+      "squad": [
+        {
+          "riotId": "OUSADIA#013",
+          "agent": "Tejo",
+          "agentImg": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/displayicon.png",
+          "kda": "7/15/2",
+          "hs": 11
+        },
+        {
+          "riotId": "Mahoraga#Chess",
+          "agent": "Brimstone",
+          "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
+          "kda": "21/16/7",
+          "hs": 12
+        },
+        {
+          "riotId": "ALEGRIA#021",
+          "agent": "Sova",
+          "agentImg": "https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/displayicon.png",
+          "kda": "8/19/8",
+          "hs": 12
+        }
+      ]
+    },
+    {
+      "id": "75e0957d-0376-4ac7-ad87-18ae3e3dfaaf",
+      "map": "Split",
+      "mode": "Competitive",
+      "started_at": 1770687522,
+      "score": "16-14",
+      "result": "VITÓRIA",
+      "team_color": "Blue",
+      "squad": [
+        {
+          "riotId": "Vduart#MEE",
+          "agent": "Reyna",
+          "agentImg": "https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/displayicon.png",
+          "kda": "16/22/10",
+          "hs": 12
+        },
+        {
+          "riotId": "ALEGRIA#021",
+          "agent": "Skye",
+          "agentImg": "https://media.valorant-api.com/agents/6f2a04ca-43e0-be17-7f36-b3908627744d/displayicon.png",
+          "kda": "15/20/10",
+          "hs": 17
+        }
+      ]
+    }
+  ]
 }
