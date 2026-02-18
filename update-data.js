@@ -17,7 +17,6 @@ async function run() {
         const rows = csvData.split('\n');
         
         let playersToFetch = [];
-        // Set para verificação rápida de membros (case insensitive)
         let rosterMap = new Set(); 
         
         if (rows.length > 1) {
@@ -38,14 +37,13 @@ async function run() {
                 
                 if (role && riotId && riotId.includes('#')) {
                     playersToFetch.push({ role, riotId });
-                    // Adiciona ao mapa de membros para verificação de sinergia
                     rosterMap.add(riotId.toLowerCase().replace(/\s/g, ''));
                 }
             }
         }
 
         let finalPlayersData = [];
-        let allMatchesMap = new Map(); // Para armazenar partidas únicas e evitar duplicatas
+        let allMatchesMap = new Map(); 
         const headers = { 'Authorization': henrikApiKey };
 
         // 2. BUSCAR DADOS INDIVIDUAIS E HISTÓRICO
@@ -70,7 +68,7 @@ async function run() {
             let region = 'br';
 
             try {
-                // A. Conta (Região e Nível)
+                // A. Conta
                 await delay(200); 
                 const accRes = await fetch(`https://api.henrikdev.xyz/valorant/v1/account/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`, { headers });
                 const accData = await accRes.json();
@@ -81,7 +79,7 @@ async function run() {
                     region = accData.data.region;
                 }
 
-                // B. MMR (Rank Atual e Pico)
+                // B. MMR
                 await delay(200);
                 const mmrRes = await fetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`, { headers });
                 const mmrData = await mmrRes.json();
@@ -100,8 +98,7 @@ async function run() {
                     }
                 }
 
-                // C. HISTÓRICO DE PARTIDAS (Para Sinergia e Fallback)
-                // Buscamos as últimas 5 partidas competitivas de cada um
+                // C. HISTÓRICO
                 console.log(`Buscando registro de missões...`);
                 await delay(500); 
                 
@@ -109,22 +106,24 @@ async function run() {
                 const matchesData = await matchesRes.json();
 
                 if (matchesData.status === 200 && matchesData.data.length > 0) {
-                    // Fallback de Rank: Se ainda estiver sem rank, pega da última partida
+                    // Fallback de Rank
                     if (playerData.currentRank === 'Sem Rank' || playerData.currentRank === 'Unranked') {
                         const lastMatch = matchesData.data[0];
-                        const playerInMatch = lastMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
-                        if (playerInMatch?.currenttier_patched) {
-                            playerData.currentRank = playerInMatch.currenttier_patched;
-                            console.log(`>>> Rank recuperado via histórico: ${playerData.currentRank}`);
-                            if (playerInMatch.currenttier > 2) {
-                                playerData.currentRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${playerInMatch.currenttier}/smallicon.png`;
+                        // Verifica se players existe antes de tentar o find (Proteção Extra aqui também)
+                        if (lastMatch.players && Array.isArray(lastMatch.players)) {
+                            const playerInMatch = lastMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
+                            if (playerInMatch?.currenttier_patched) {
+                                playerData.currentRank = playerInMatch.currenttier_patched;
+                                console.log(`>>> Rank recuperado via histórico: ${playerData.currentRank}`);
+                                if (playerInMatch.currenttier > 2) {
+                                    playerData.currentRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${playerInMatch.currenttier}/smallicon.png`;
+                                }
                             }
                         }
                     }
 
-                    // Armazena partidas para análise de Sinergia
+                    // Armazena partidas
                     matchesData.data.forEach(match => {
-                        // Usa o ID da partida como chave única para não duplicar
                         if (!allMatchesMap.has(match.metadata.matchid)) {
                             allMatchesMap.set(match.metadata.matchid, match);
                         }
@@ -138,7 +137,6 @@ async function run() {
 
             finalPlayersData.push(playerData);
             
-            // Delay de segurança entre jogadores
             console.log(`Cooldown tático...`);
             await delay(2500); 
         }
@@ -150,25 +148,33 @@ async function run() {
         let operations = [];
 
         for (const [matchId, match] of allMatchesMap) {
+            // --- CORREÇÃO DO ERRO ---
+            // Verifica se a partida tem estrutura válida antes de tentar filtrar
+            if (!match.players || !Array.isArray(match.players)) {
+                console.warn(`⚠️ Partida ${matchId} ignorada: Dados de jogadores incompletos.`);
+                continue; // Pula para a próxima partida sem quebrar o script
+            }
+            // ------------------------
+
             // Filtra quem estava nessa partida que TAMBÉM faz parte do Protocolo V
             const squadMembers = match.players.filter(player => {
                 const fullName = `${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '');
                 return rosterMap.has(fullName);
             });
 
-            // Regra da Sinergia: Pelo menos 2 membros do clã na mesma partida
             if (squadMembers.length >= 2) {
-                // Identifica se ganharam ou perderam (checa o time do primeiro membro)
-                const teamId = squadMembers[0].team; // 'Red' ou 'Blue'
-                const teamData = match.teams[teamId.toLowerCase()];
-                const hasWon = teamData.has_won;
+                const teamId = squadMembers[0].team; 
+                const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
                 
-                // Formata os dados da operação
+                // Mais segurança caso dados de time falhem
+                const hasWon = teamData ? teamData.has_won : false;
+                const scoreStr = match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A';
+                
                 operations.push({
                     id: matchId,
                     map: match.metadata.map,
-                    started_at: match.metadata.game_start, // timestamp
-                    score: `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}`,
+                    started_at: match.metadata.game_start,
+                    score: scoreStr,
                     result: hasWon ? 'VITÓRIA' : 'DERROTA',
                     team_color: teamId,
                     squad: squadMembers.map(m => ({
@@ -182,10 +188,9 @@ async function run() {
             }
         }
 
-        // Ordena operações da mais recente para a mais antiga
         operations.sort((a, b) => b.started_at - a.started_at);
 
-        // 4. SALVAR DADOS ESTRUTURADOS
+        // 4. SALVAR
         const finalOutput = {
             updatedAt: Date.now(),
             players: finalPlayersData,
