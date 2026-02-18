@@ -9,49 +9,64 @@ O **Protocolo V** é uma plataforma web leve e automatizada, desenvolvida para g
 ## 🚀 Funcionalidades
 
 * **Recrutamento Automatizado:** O status da *line-up* atualiza dinamicamente as vagas de cada função com base nas respostas de um formulário externo.
-* **Integração Assíncrona com API:** Consulta em tempo real do Nível da Conta, Elo Atual e Rank Máximo através do Riot ID, usando processamento paralelo (`Promise.all`).
-* **Geração Automática de Links:** O sistema deduz e constrói o link do Tracker.gg de forma automática a partir do Riot ID, evitando links quebrados.
-* **Proteção contra Rate Limit:** Fila de processamento assíncrona nativa com *delay* para evitar bloqueios de API (Erro 429).
-* **Segurança Reforçada:** Sanitização de *inputs* via manipulação segura de DOM para prevenir ataques de *Cross-Site Scripting* (XSS) via formulário.
-* **UI/UX Polida:** Animações de entrada no *scroll* (Intersection Observer), design responsivo com Bootstrap 5 e Meta Tags Open Graph configuradas para compartilhamento em redes sociais.
+* **Carregamento Instantâneo:** Utiliza uma arquitetura de dados estáticos (`data.json`), eliminando o tempo de espera de APIs externas para o usuário final.
+* **Fila de Espera Inteligente:** Separação automática entre titulares e reservas com base na ordem de inscrição, com tratamento visual diferenciado.
+* **Proteção Total contra Rate Limit:** O processamento de dados ocorre no *backend* (GitHub Actions) a cada 30 minutos, blindando o site contra bloqueios de API (Erro 429), independente do número de visitantes.
+* **Segurança Reforçada:** A chave da API do Valorant fica protegida nos segredos do GitHub (Secrets), não sendo exposta no código-fonte do navegador.
+* **UI/UX Polida:** Animações de entrada no *scroll*, design responsivo com Bootstrap 5 e Meta Tags Open Graph configuradas.
 
 ---
 
-## ⚙️ Estrutura Técnica e JavaScript
+## ⚙️ Estrutura Técnica
 
-A aplicação foi projetada para ser **Serverless** (sem backend tradicional), rodando inteiramente no lado do cliente (Navegador) e consumindo dados como serviço.
+A aplicação evoluiu de um modelo *Client-Side* puro para uma arquitetura **Híbrida com Geração Estática**, mantendo-se 100% gratuita hospedada no GitHub Pages.
 
-### Fluxo de Execução do Script:
-1. `fetchAndProcessData()`: Contorna o cache do navegador injetando um *timestamp* na URL. Faz o fetch do CSV, faz o *parsing* manual considerando aspas duplas, sanitiza os dados de entrada, localiza as colunas de "Função" e "Riot ID" e distribui os jogadores no objeto `rolesConfig`.
-2. `renderRoles()`: Constrói a estrutura HTML principal (os blocos de funções e os *placeholders* de *loading* dos cards). Ele não chama a API diretamente; em vez disso, empilha as requisições em um array `apiCallsQueue`.
-3. `processQueue(queue)`: **O Coração do Rate Limiting.** Uma função assíncrona que itera sobre a fila de jogadores e dispara as requisições para a API com um `await delay(300)` (300 milissegundos) entre cada chamada, garantindo que a API não recuse as conexões por excesso de tráfego.
-4. `fetchPlayerAPI()`: Recebe o Riot ID fatiado (Nome e Tag) e dispara dois *fetches* simultâneos (`Account` e `MMR`) usando `Promise.all` para ganho de performance. Trata erros como contas privadas (403) ou jogadores sem rank (404) com *fallbacks* visuais elegantes.
+### Fluxo de Dados (Automação):
+1. **Cron Job (GitHub Actions):** Um fluxo de trabalho (`.github/workflows/update.yml`) é acionado automaticamente a cada 30 minutos.
+2. **Extração e Processamento (`update-data.js`):**
+   - O script Node.js baixa o CSV do Google Sheets.
+   - Identifica novos jogadores e suas funções.
+   - Consulta a API do HenrikDev (MMR e Account) para cada jogador, respeitando um *delay* de segurança.
+   - Consolida todas as informações (Elos, Ranks, Cards, Links) em um arquivo `data.json`.
+3. **Commit Automático:** O robô salva o arquivo `data.json` atualizado no repositório.
+4. **Renderização (`index.html`):** O navegador do usuário faz apenas uma única requisição leve para ler o `data.json` e renderiza a tela instantaneamente, sem depender de APIs de terceiros.
 
 ---
 
 ## 🛠️ Guia de Configuração (Deploy Próprio)
 
-Se você deseja fazer um *fork* deste projeto para a sua própria equipe, precisará configurar as duas variáveis principais no início da tag `<script>` no arquivo `index.html`:
+Se você deseja fazer um *fork* deste projeto para a sua própria equipe, siga estes passos para configurar a automação:
 
 ### 1. Configurando o Banco de Dados (Google Sheets)
-O sistema lê um arquivo CSV público. Para criar o seu:
 1. Crie um formulário no Google Forms pedindo "Riot ID" e "Função Principal".
-2. Na aba "Respostas", clique em "Vincular ao Planilhas".
-3. Na planilha do Google Sheets, vá em **Arquivo > Compartilhar > Publicar na Web**.
-4. Escolha publicar a **Página 1** no formato **Valores separados por vírgula (.csv)**.
-5. Copie o link gerado e cole na variável `csvUrl` (linha ~244 do `index.html`).
+2. Na planilha de respostas, vá em **Arquivo > Compartilhar > Publicar na Web**.
+3. Escolha publicar a **Página 1** no formato **CSV**.
+4. Copie o link gerado e cole na variável `csvUrl` dentro do arquivo `update-data.js` (na raiz do projeto).
 
-### 2. Configurando a Chave da API (HenrikDev)
-O projeto utiliza a excelente API não-oficial do [HenrikDev](https://github.com/Henrik-3/unofficial-valorant-api).
-1. Acesse o Discord do desenvolvedor ou o portal da API para gerar uma chave gratuita.
-2. Insira a sua chave na variável `henrikApiKey` (linha ~245 do `index.html`), mantendo o prefixo `HDEV-`.
+### 2. Configurando a Chave da API (Segurança)
+O projeto utiliza a API do [HenrikDev](https://github.com/Henrik-3/unofficial-valorant-api).
+1. Gere sua chave gratuita no portal do desenvolvedor da API.
+2. No seu repositório GitHub, vá em **Settings > Security > Secrets and variables > Actions**.
+3. Clique em **New repository secret**.
+4. **Name:** `HENRIK_API_KEY`
+5. **Secret:** Cole sua chave (ex: `HDEV-xe8...`).
+
+### 3. Ativando a Automação
+O arquivo `.github/workflows/update.yml` já está configurado para rodar a cada 30 minutos.
+- Para testar imediatamente, vá na aba **Actions** do GitHub, selecione o fluxo "Atualiza Dados da Line-up" e clique em **Run workflow**.
 
 ---
 
 ## 💻 Como executar localmente
 
-Para rodar, testar e modificar o projeto no seu ambiente de desenvolvimento:
+Para testar alterações no visual (`index.html`):
 
-1. Faça o clone deste repositório:
-   ```bash
-   git clone [https://github.com/rodolphoborges/protocolov.git](https://github.com/rodolphoborges/protocolov.git)
+1. Clone o repositório.
+2. Certifique-se de que existe um arquivo `data.json` na pasta (você pode baixá-lo do repositório principal ou rodar `node update-data.js` se tiver a chave configurada no seu `.env` local).
+3. Abra o `index.html` no navegador (ou use uma extensão como *Live Server*).
+
+---
+
+<p align="center">
+  <small>Desenvolvido para a comunidade. GLHF. 👊</small>
+</p>
