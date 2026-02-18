@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771444896423,
+  "updatedAt": 1771445780673,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -11,7 +11,7 @@
       "peakRank": "Diamond 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": null,
+      "lastMatchId": "b7168f25-f93f-43f1-ac44-4e18fca8928e",
       "apiError": false
     },
     {
@@ -24,7 +24,7 @@
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/13/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": null,
+      "lastMatchId": "b7168f25-f93f-43f1-ac44-4e18fca8928e",
       "apiError": false
     },
     {
@@ -37,8 +37,8 @@
       "peakRank": "Platinum 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": null,
-      "apiError": true
+      "lastMatchId": "b7168f25-f93f-43f1-ac44-4e18fca8928e",
+      "apiError": false
     },
     {
       "riotId": "PDL CH1TUZ#666",
@@ -50,7 +50,7 @@
       "peakRank": "Gold 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/13/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": null,
+      "lastMatchId": "e863c72a-0dac-4fe2-9a19-bce5a97d968d",
       "apiError": false
     },
     {
@@ -63,7 +63,7 @@
       "peakRank": "Diamond 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": null,
+      "lastMatchId": "18cae8ef-4c10-4ba6-90f6-356a7a5f0429",
       "apiError": false
     },
     {
@@ -76,8 +76,8 @@
       "peakRank": "Platinum 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/17/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": null,
-      "apiError": true
+      "lastMatchId": "a0a2374f-3a6d-4016-91ae-2a10c07d546b",
+      "apiError": false
     },
     {
       "riotId": "AMV Teteuテ#15733",
@@ -89,7 +89,7 @@
       "peakRank": "Silver 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/9/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": null,
+      "lastMatchId": "bf837efa-c0a8-467e-a4fe-f8a7a59f3c94",
       "apiError": false
     },
     {
@@ -98,11 +98,11 @@
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Vduart%23MEE/overview",
       "level": 458,
       "card": "https://media.valorant-api.com/playercards/cb8ccea5-4f40-625f-e237-d3b1415e99d7/smallart.png",
-      "currentRank": "Sem Rank",
-      "peakRank": "Sem Rank",
-      "currentRankIcon": "",
+      "currentRank": "Gold 1",
+      "peakRank": "Platinum 3",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": null,
+      "lastMatchId": "75e0957d-0376-4ac7-ad87-18ae3e3dfaaf",
       "apiError": false
     },
     {
@@ -115,7 +115,7 @@
       "peakRank": "Gold 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": null,
+      "lastMatchId": "4a7080df-8a84-46b4-9ec9-4b2302ed2d3d",
       "apiError": false
     },
     {
@@ -128,7 +128,7 @@
       "peakRank": "Ascendant 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/20/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": null,
+      "lastMatchId": "422311b4-1398-413b-ae65-31f57be2b1bc",
       "apiError": false
     }
   ],
