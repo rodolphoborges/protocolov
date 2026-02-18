@@ -4,22 +4,21 @@ const fs = require('fs');
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFrlbFvaPDuVahEtPUOJdt4EfIBzCJvHITDIR5cEDHcFCBTEofMe_-gG57bSh5KCuqD2dnzuaFn66p/pub?output=csv';
 const henrikApiKey = process.env.HENRIK_API_KEY;
 
-// Delay ultra seguro para API Gratuita
+// Delay de segurança
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function run() {
     try {
-        console.log('--- INICIANDO PROTOCOLO V: DATA UPDATE (TANK MODE) ---');
+        console.log('--- PROTOCOLO V: COMPETITIVE TRACKER (DIAGNOSTIC MODE) ---');
         
-        // 1. LER O CSV E MAPEAR MEMBROS
-        console.log('Lendo planilha de recrutamento...');
+        // 1. LER E MAPEAR MEMBROS DO SHEET
+        console.log('1. Carregando lista de Agentes...');
         const response = await fetch(csvUrl);
         const csvData = await response.text();
         const rows = csvData.split('\n');
         
         let playersToFetch = [];
         let rosterMap = new Set(); 
-        let debugNames = []; // Para logar quem o sistema reconheceu
         
         if (rows.length > 1) {
             const headers = rows[0].split(',');
@@ -39,29 +38,34 @@ async function run() {
                 
                 if (role && riotId && riotId.includes('#')) {
                     playersToFetch.push({ role, riotId });
-                    // Normaliza o nome para comparação (tudo minúsculo, sem espaços)
+                    
+                    // NORMALIZAÇÃO DE NOME: Tudo minúsculo, sem espaços
                     const cleanName = riotId.toLowerCase().replace(/\s/g, '');
                     rosterMap.add(cleanName);
-                    debugNames.push(`${riotId} -> ${cleanName}`);
+                    
+                    // Log para conferirmos como o sistema vê os nomes
+                    // console.log(`   > Cadastro reconhecido: ${cleanName}`);
                 }
             }
         }
-        
-        console.log(`Membros identificados na planilha: ${rosterMap.size}`);
+        console.log(`Total de Agentes cadastrados: ${rosterMap.size}`);
 
         let finalPlayersData = [];
         let allMatchesMap = new Map(); 
         const headers = { 'Authorization': henrikApiKey };
 
-        // 2. BUSCAR DADOS (Loop Lento)
+        // 2. BUSCAR DADOS (LOOP PRINCIPAL)
         for (const [index, p] of playersToFetch.entries()) {
-            console.log(`\n[${index + 1}/${playersToFetch.length}] Processando Agente: ${p.riotId}`);
+            console.log(`\n[${index + 1}/${playersToFetch.length}] Analisando Agente: ${p.riotId}`);
             const [name, tag] = p.riotId.split('#');
-            
+            const safeName = encodeURIComponent(name.trim());
+            const safeTag = encodeURIComponent(tag.trim());
+            const cleanID = p.riotId.toLowerCase().replace(/\s/g, '');
+
             let playerData = {
                 riotId: p.riotId,
                 roleRaw: p.role,
-                trackerLink: `https://tracker.gg/valorant/profile/riot/${encodeURIComponent(name.trim())}%23${encodeURIComponent(tag.trim())}/overview`,
+                trackerLink: `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
                 level: '--',
                 card: 'https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png',
                 currentRank: 'Sem Rank',
@@ -74,22 +78,27 @@ async function run() {
             let region = 'br';
 
             try {
-                // A. Conta (Delay inicial)
+                // A. CONTA
                 await delay(1000); 
-                const accRes = await fetch(`https://api.henrikdev.xyz/valorant/v1/account/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`, { headers });
+                const accRes = await fetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, { headers });
                 
                 if (accRes.status === 200) {
                     const accData = await accRes.json();
                     playerData.level = accData.data.account_level;
                     playerData.card = accData.data.card.small;
                     region = accData.data.region;
-                } else {
-                    console.warn(`⚠️ Erro Conta (${accRes.status}): ${p.riotId}`);
+                    
+                    // Correção forçada: Se a conta for antiga (NA/LATAM) mas joga no BR, forçamos a busca de partidas no BR
+                    // Isso resolve 90% dos casos de "Partida não encontrada"
+                    if (region === 'na' || region === 'latam') {
+                        console.log(`   ! Aviso: Conta marcada como '${region}'. Assumindo partidas no servidor 'br'.`);
+                        region = 'br';
+                    }
                 }
 
-                // B. MMR (Delay intermediário)
+                // B. MMR
                 await delay(1000);
-                const mmrRes = await fetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`, { headers });
+                const mmrRes = await fetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, { headers });
                 
                 if (mmrRes.status === 200) {
                     const mmrData = await mmrRes.json();
@@ -106,27 +115,43 @@ async function run() {
                     }
                 }
 
-                // C. HISTÓRICO EXPANDIDO (Últimas 10 partidas)
-                // Aumentamos para 10 para "pescar" a partida de ontem caso tenhas jogado muito hoje
-                console.log(`Buscando últimas 10 missões...`);
-                await delay(2000); 
+                // C. HISTÓRICO DE PARTIDAS (Filtro Competitivo ATIVADO)
+                // Aumentamos para 10 para ter margem de segurança
+                console.log(`   > Buscando últimas 10 partidas competitivas...`);
+                await delay(1500); 
                 
-                const matchesRes = await fetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}?mode=competitive&size=10`, { headers });
+                const matchesRes = await fetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?mode=competitive&size=10`, { headers });
                 
                 if (matchesRes.status === 200) {
                     const matchesData = await matchesRes.json();
+                    
                     if (matchesData.data && matchesData.data.length > 0) {
+                        
+                        // --- BLOCO DE DIAGNÓSTICO DO DETETIVE (SÓ PARA OUSADIA) ---
+                        // Se for você, vamos imprimir a última partida inteira para ver quem estava lá
+                        if (cleanID.includes('ousadia')) {
+                            const lastMatch = matchesData.data[0];
+                            console.log(`\n   🔍 [RAIO-X] Analisando última partida de Ousadia (Mapa: ${lastMatch.metadata.map}):`);
+                            console.log(`   Jogadores encontrados na API:`);
+                            lastMatch.players.forEach(pl => {
+                                const pName = `${pl.name}#${pl.tag}`.toLowerCase().replace(/\s/g, '');
+                                const isMember = rosterMap.has(pName);
+                                const status = isMember ? "✅ MEMBRO" : "❌ desconhecido";
+                                console.log(`      - ${pl.name}#${pl.tag} [ID Limpo: ${pName}] -> ${status}`);
+                            });
+                            console.log(`   --- Fim da Análise ---\n`);
+                        }
+                        // -----------------------------------------------------------
+
                         // Fallback de Rank
                         if (playerData.currentRank === 'Sem Rank' || playerData.currentRank === 'Unranked') {
                             const lastMatch = matchesData.data[0];
-                            if (lastMatch.players && Array.isArray(lastMatch.players)) {
-                                const playerInMatch = lastMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
-                                if (playerInMatch?.currenttier_patched) {
-                                    playerData.currentRank = playerInMatch.currenttier_patched;
-                                    console.log(`>>> Rank recuperado via histórico: ${playerData.currentRank}`);
-                                    if (playerInMatch.currenttier > 2) {
-                                        playerData.currentRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${playerInMatch.currenttier}/smallicon.png`;
-                                    }
+                            const playerInMatch = lastMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
+                            if (playerInMatch?.currenttier_patched) {
+                                playerData.currentRank = playerInMatch.currenttier_patched;
+                                console.log(`   >>> Rank recuperado via Partida: ${playerData.currentRank}`);
+                                if (playerInMatch.currenttier > 2) {
+                                    playerData.currentRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${playerInMatch.currenttier}/smallicon.png`;
                                 }
                             }
                         }
@@ -137,46 +162,41 @@ async function run() {
                                 allMatchesMap.set(match.metadata.matchid, match);
                             }
                         });
+                    } else {
+                        console.log(`   > Nenhuma partida competitiva encontrada recentemente.`);
                     }
-                } else {
-                    console.warn(`⚠️ Erro Partidas (${matchesRes.status}): ${p.riotId}`);
                 }
 
             } catch (err) {
-                console.error(`Erro ao processar ${p.riotId}`, err);
+                console.error(`   !!! Erro ao processar ${p.riotId}`, err.message);
                 playerData.apiError = true;
             }
 
             finalPlayersData.push(playerData);
             
-            // DELAY CRÍTICO: 15 Segundos entre jogadores
-            // Isso garante que nunca ultrapassamos o limite da API Gratuita
-            console.log(`...Respirando por 15s para evitar bloqueio...`);
-            await delay(15000); 
+            // DELAY ANTI-BLOQUEIO (12 segundos)
+            console.log(`   ...Aguardando 12s...`);
+            await delay(12000); 
         }
 
-        // 3. PROCESSAR SINERGIA (OPERAÇÕES)
+        // 3. CRUZAMENTO DE DADOS (SINERGIA)
         console.log(`\n--------------------------------`);
-        console.log(`Cruzando dados de ${allMatchesMap.size} partidas encontradas...`);
+        console.log(`3. Cruzando dados de ${allMatchesMap.size} partidas únicas...`);
         
         let operations = [];
 
         for (const [matchId, match] of allMatchesMap) {
-            // Proteção contra dados corrompidos
             if (!match.players || !Array.isArray(match.players)) continue;
 
-            // Filtra e Debuga quem estava na partida
             const squadMembers = match.players.filter(player => {
                 const fullName = `${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '');
-                const isMember = rosterMap.has(fullName);
-                return isMember;
+                return rosterMap.has(fullName);
             });
 
-            // Se encontrou 2 ou mais, é uma Operação
             if (squadMembers.length >= 2) {
-                // Log especial para debugarmos se ele encontrou a partida certa
+                // Log de Sucesso
                 const namesFound = squadMembers.map(m => `${m.name}#${m.tag}`).join(', ');
-                console.log(`>> OPERAÇÃO ENCONTRADA (${match.metadata.map}): ${namesFound}`);
+                console.log(`   ★ OPERAÇÃO CONFIRMADA (${match.metadata.map}): ${namesFound}`);
 
                 const teamId = squadMembers[0].team; 
                 const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
@@ -186,6 +206,7 @@ async function run() {
                 operations.push({
                     id: matchId,
                     map: match.metadata.map,
+                    mode: match.metadata.mode,
                     started_at: match.metadata.game_start,
                     score: scoreStr,
                     result: hasWon ? 'VITÓRIA' : 'DERROTA',
@@ -210,7 +231,10 @@ async function run() {
         };
 
         fs.writeFileSync('data.json', JSON.stringify(finalOutput, null, 2));
-        console.log(`\nSucesso Final! ${finalPlayersData.length} Jogadores e ${operations.length} Operações registradas.`);
+        console.log(`\n=== RELATÓRIO FINAL ===`);
+        console.log(`Jogadores Processados: ${finalPlayersData.length}`);
+        console.log(`Operações Encontradas: ${operations.length}`);
+        console.log(`Processo Concluído.`);
 
     } catch (error) {
         console.error('Erro fatal:', error);
