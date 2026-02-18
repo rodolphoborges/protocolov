@@ -7,21 +7,45 @@ const rolesConfig = {
     'Controlador': { max: 2, current: 0, desc: 'Smokes, ritmo e domínio de mapa.', players: [], waitlist: [] } 
 };
 
-// Busca os dados processados
+// LIMITE CONFIGURÁVEL DE OPERAÇÕES NO FEED (Ex: 4, 8, ou 'Infinity' para todas)
+const OPERATIONS_LIMIT = 4; 
+
+// SEGURANÇA: Função de sanitização básica para prevenir XSS
+function escapeHtml(unsafe) {
+    if (!unsafe) return "";
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
 async function fetchCachedData() {
     try {
         const response = await fetch('data.json?t=' + Date.now());
-        if (!response.ok) throw new Error('Ficheiro data.json não encontrado ou erro de rede.');
+        if (!response.ok) throw new Error('Erro ao carregar dados.');
         
         const data = await response.json();
         
-        // Suporte legado e novo formato
-        let playersData = Array.isArray(data) ? data : data.players;
-        let operationsData = Array.isArray(data) ? [] : data.operations;
+        if (data.updatedAt) {
+            const date = new Date(data.updatedAt);
+            const formatted = date.toLocaleDateString('pt-BR', { 
+                day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
+            });
+            const footer = document.getElementById('last-updated');
+            if(footer) footer.innerHTML = `Dados atualizados em: <strong>${formatted}</strong>`;
+        }
 
-        // Processa Jogadores
+        const playersData = Array.isArray(data) ? data : data.players;
+        const operationsData = Array.isArray(data) ? [] : data.operations;
+
         playersData.forEach(player => {
             let roleRaw = player.roleRaw.toLowerCase();
+            
+            // Sanitiza os dados que serão renderizados como texto
+            player.riotId = escapeHtml(player.riotId);
+            player.currentRank = escapeHtml(player.currentRank);
             
             for (let role in rolesConfig) {
                 const searchTerms = role === 'Controlador' ? ['controlador', 'smoker'] : [role.toLowerCase()];
@@ -39,22 +63,23 @@ async function fetchCachedData() {
         
         renderRoles();
         
-        // Processa Operações
         if (operationsData && operationsData.length > 0) {
             renderOperations(operationsData);
         }
 
     } catch (error) {
-        console.error('Falha ao obter os dados:', error);
+        console.error('Falha:', error);
         document.getElementById('roles-container').innerHTML = `
             <div class="alert alert-danger border-danger bg-transparent text-danger text-center">
-                Os dados táticos ainda estão a ser processados pelo sistema (GitHub Actions). Volte em alguns minutos.
+                Sistema offline temporariamente. Tente recarregar.
             </div>`;
     }
 }
 
 function createPlayerCardHTML(player, isWaiting = false) {
     const isWaitingClass = isWaiting ? 'is-waiting p-2' : 'p-2';
+    
+    // NOTA: player.riotId já foi sanitizado no loop principal
     
     if (player.apiError) {
         return `
@@ -112,16 +137,19 @@ function renderOperations(operations) {
     section.style.display = 'block';
     let html = '';
 
-    operations.slice(0, 4).forEach(op => { 
+    // Usa a constante para limitar (ou mostra todas se for 0/null)
+    const limit = OPERATIONS_LIMIT > 0 ? OPERATIONS_LIMIT : operations.length;
+
+    operations.slice(0, limit).forEach(op => { 
         const resultClass = op.result === 'VITÓRIA' ? 'win' : 'loss';
         const date = new Date(op.started_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         
         let squadHTML = op.squad.map(m => `
             <div class="squad-member">
-                <img src="${m.agentImg}" class="agent-icon" title="${m.agent}">
-                <span class="member-name text-truncate">${m.riotId.split('#')[0]}</span>
+                <img src="${m.agentImg}" class="agent-icon" title="${escapeHtml(m.agent)}">
+                <span class="member-name text-truncate">${escapeHtml(m.riotId.split('#')[0])}</span>
                 <div class="member-stats text-end">
-                    <div>${m.kda}</div>
+                    <div>${escapeHtml(m.kda)}</div>
                     <div class="small text-muted">${m.hs}% HS</div>
                 </div>
             </div>
@@ -132,10 +160,10 @@ function renderOperations(operations) {
                 <div class="op-card ${resultClass}">
                     <div class="op-header">
                         <div>
-                            <div class="op-map">${op.map}</div>
+                            <div class="op-map">${escapeHtml(op.map)}</div>
                             <div class="op-date">${date}</div>
                         </div>
-                        <div class="op-score ${resultClass}">${op.score}</div>
+                        <div class="op-score ${resultClass}">${escapeHtml(op.score)}</div>
                     </div>
                     <div class="op-squad">
                         ${squadHTML}
@@ -158,17 +186,14 @@ function renderRoles() {
         const formattedCurrent = String(data.current).padStart(2, '0');
         const formattedMax = String(data.max).padStart(2, '0');
 
-        // --- LÓGICA DO STATUS ATUALIZADA (Opção 1) ---
         let statusBadge = '';
         if (!isMainFull) {
             statusBadge = `<span class="slot-indicator fs-4">[ ${formattedCurrent} / ${formattedMax} ]</span>`;
         } else if (!isWaitlistFull) {
-            // Estilo Tático com barras /// e cor vermelha
             statusBadge = `<span class="slot-indicator fs-5 text-accent" style="letter-spacing: 1px; font-weight: 600;">/// VAGAS NA RESERVA</span>`;
         } else {
             statusBadge = `<span class="slot-indicator fs-4 text-secondary text-decoration-line-through">LOTADO</span>`;
         }
-        // ---------------------------------------------
 
         let playersHTML = data.players.map(p => createPlayerCardHTML(p, false)).join('');
 
