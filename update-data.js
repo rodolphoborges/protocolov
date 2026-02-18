@@ -50,17 +50,28 @@ async function run() {
             }
         } catch (e) { console.log('   Nenhum cache válido encontrado.'); }
 
-        // 2. LER CSV
+        // 2. LER CSV E VALIDAR
         console.log('   Baixando planilha...');
         const response = await fetch(csvUrl);
         const csvText = await response.text();
+        
+        if (!csvText || csvText.length < 10) {
+             throw new Error('CSV vazio ou inválido baixado do Google Sheets.');
+        }
+
         const records = parse(csvText, { columns: true, skip_empty_lines: true, trim: true });
+
+        if (records.length === 0) {
+            throw new Error('CSV parseado retornou 0 registros.');
+        }
 
         const keys = Object.keys(records[0]);
         const roleKey = keys.find(k => k.toLowerCase().includes('fun'));
         const riotIdKey = keys.find(k => k.toLowerCase().includes('riot'));
 
-        if (!roleKey || !riotIdKey) throw new Error('Colunas CSV não encontradas.');
+        if (!roleKey || !riotIdKey) {
+            throw new Error(`Colunas obrigatórias não encontradas. Colunas detectadas: ${keys.join(', ')}`);
+        }
 
         let playersToFetch = [];
         let rosterMap = new Set(); 
@@ -103,12 +114,13 @@ async function run() {
             };
 
             let needsFullUpdate = true;
-            let region = 'br';
+            let region = 'br'; // Default fallback
 
             try {
                 // CHAMADA 1: Histórico
                 let matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?mode=competitive&size=5`, headers);
                 
+                // Fallback simples se 404 na região padrão
                 if (matchesRes.status === 404) {
                      console.log('   ⚠️ Fallback de região (NA)...');
                      matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?mode=competitive&size=5`, headers);
@@ -161,7 +173,16 @@ async function run() {
                         const accData = await accRes.json();
                         playerData.level = accData.data.account_level;
                         playerData.card = accData.data.card.small;
-                        region = (accData.data.region === 'na' || accData.data.region === 'latam') ? 'br' : accData.data.region;
+                        
+                        // CORREÇÃO DE REGIÃO: Mapeia corretamente as regiões suportadas
+                        // A API retorna: na, eu, ap, kr, latam, br. 
+                        // Se vier algo estranho, cai para 'br'.
+                        const apiRegion = accData.data.region;
+                        if (['na', 'eu', 'ap', 'kr', 'latam', 'br'].includes(apiRegion)) {
+                            region = apiRegion;
+                        } else {
+                            region = 'br'; 
+                        }
                     }
 
                     const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
@@ -179,8 +200,12 @@ async function run() {
 
             } catch (err) {
                 console.error(`   ❌ Erro: ${err.message}`);
-                if (cachedPlayer) playerData = cachedPlayer;
-                else playerData.apiError = true;
+                if (cachedPlayer) {
+                    playerData = cachedPlayer;
+                    playerData.apiError = true; // Marca que houve erro na atualização recente
+                } else {
+                    playerData.apiError = true;
+                }
             }
 
             finalPlayersData.push(playerData);
@@ -229,7 +254,10 @@ async function run() {
             operations: operations
         };
 
-        fs.writeFileSync('data.json', JSON.stringify(finalOutput, null, 2));
+        // SEGURANÇA: Escrita Atômica
+        fs.writeFileSync('data.temp.json', JSON.stringify(finalOutput, null, 2));
+        fs.renameSync('data.temp.json', 'data.json');
+        
         console.log(`✅ Sucesso! Dados salvos.`);
 
     } catch (error) {
