@@ -7,16 +7,11 @@ const henrikApiKey = process.env.HENRIK_API_KEY;
 const debugTarget = process.env.DEBUG_TARGET || '';
 
 // --- CONFIGURAÇÃO DE SEGURANÇA ---
-// Limite da API: 30 req/min (1 a cada 2s).
-// Configuração: 1 req a cada 3.5s = ~17 req/min. (Margem de segurança de 40%)
+// Limite da API: 30 req/min. 1 req a cada 3.5s = ~17 req/min.
 const REQUEST_DELAY = 3500; 
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-/**
- * Função Wrapper para chamadas à API.
- * Garante que SEMPRE haverá um delay após a chamada, impedindo o estouro do limite.
- */
 async function smartFetch(url, headers) {
     const start = Date.now();
     let response = null;
@@ -28,7 +23,6 @@ async function smartFetch(url, headers) {
         error = e;
     }
 
-    // Calcula quanto tempo passou e força o delay restante
     const elapsed = Date.now() - start;
     const remainingDelay = Math.max(0, REQUEST_DELAY - elapsed);
     
@@ -42,8 +36,7 @@ async function smartFetch(url, headers) {
 
 async function run() {
     try {
-        console.log('--- PROTOCOLO V: SAFE MODE (ANTI-RATE LIMIT) ---');
-        console.log(`   Configuração: 1 chamada a cada ${REQUEST_DELAY}ms`);
+        console.log('--- PROTOCOLO V: SAFE MODE (OPTIMIZED) ---');
         
         // 1. CARREGAR CACHE
         let oldDataMap = new Map();
@@ -87,7 +80,6 @@ async function run() {
 
         // 3. LOOP SEGURO
         for (const [index, p] of playersToFetch.entries()) {
-            // Log de progresso claro
             console.log(`\n[${index + 1}/${playersToFetch.length}] 🔍 Analisando: ${p.riotId}`);
             
             const [name, tag] = p.riotId.split('#');
@@ -114,17 +106,17 @@ async function run() {
             let region = 'br';
 
             try {
-                // CHAMADA 1: Histórico (Consome 1 crédito de tempo)
+                // CHAMADA 1: Histórico
                 let matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?mode=competitive&size=5`, headers);
                 
-                // Fallback de região se 404 (Consome +1 crédito de tempo se falhar)
                 if (matchesRes.status === 404) {
-                     console.log('   ⚠️ Região BR não encontrada, tentando fallback...');
+                     console.log('   ⚠️ Fallback de região (NA)...');
                      matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?mode=competitive&size=5`, headers);
                 }
 
                 if (matchesRes.status === 200) {
                     const matchesData = await matchesRes.json();
+                    
                     if (matchesData.data && matchesData.data.length > 0) {
                         const validMatch = matchesData.data.find(m => m.players && Array.isArray(m.players));
                         
@@ -133,14 +125,13 @@ async function run() {
                             
                             // VERIFICAÇÃO DE CACHE
                             if (cachedPlayer && cachedPlayer.lastMatchId === newMatchId && cachedPlayer.currentRank !== 'Sem Rank') {
-                                console.log(`   ⚡ Sem partidas novas. Usando dados salvos.`);
+                                console.log(`   ⚡ Sem partidas novas. Usando cache.`);
                                 needsFullUpdate = false; 
                                 playerData = { ...cachedPlayer, roleRaw: p.role };
                             } else {
-                                console.log(`   🔄 Dados desatualizados. Buscando info completa...`);
+                                console.log(`   🔄 Dados novos detetados. Atualizando...`);
                                 playerData.lastMatchId = newMatchId;
                                 
-                                // Tenta pegar rank da partida para economizar
                                 const playerInMatch = validMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
                                 if (playerInMatch?.currenttier_patched) {
                                     playerData.currentRank = playerInMatch.currenttier_patched;
@@ -149,30 +140,30 @@ async function run() {
                                     }
                                 }
                             }
-
-                            // Salva partidas para sinergia
+                            
                             matchesData.data.forEach(match => {
                                 if (match.players && Array.isArray(match.players) && !allMatchesMap.has(match.metadata.matchid)) {
                                     allMatchesMap.set(match.metadata.matchid, match);
                                 }
                             });
                         }
+                    } else if (cachedPlayer) {
+                        // OTIMIZAÇÃO: Se não há histórico recente, assume inativo e usa cache
+                        console.log(`   💤 Sem histórico recente. Mantendo cache.`);
+                        needsFullUpdate = false;
+                        playerData = { ...cachedPlayer, roleRaw: p.role };
                     }
                 }
 
-                // SÓ FAZ ESSAS CHAMADAS SE REALMENTE PRECISAR
                 if (needsFullUpdate) {
-                    // CHAMADA 2: Conta (Consome +1 crédito de tempo)
                     const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
                     if (accRes.status === 200) {
                         const accData = await accRes.json();
                         playerData.level = accData.data.account_level;
                         playerData.card = accData.data.card.small;
-                        // Ajusta região para a próxima chamada
                         region = (accData.data.region === 'na' || accData.data.region === 'latam') ? 'br' : accData.data.region;
                     }
 
-                    // CHAMADA 3: MMR (Consome +1 crédito de tempo)
                     const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
                     if (mmrRes.status === 200) {
                         const mmrData = await mmrRes.json();
@@ -188,7 +179,6 @@ async function run() {
 
             } catch (err) {
                 console.error(`   ❌ Erro: ${err.message}`);
-                // Em caso de erro, tenta usar o que tem no cache para não quebrar o site
                 if (cachedPlayer) playerData = cachedPlayer;
                 else playerData.apiError = true;
             }
