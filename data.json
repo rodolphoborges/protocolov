@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771455277315,
+  "updatedAt": 1771456216196,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -141,7 +141,7 @@
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/10/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "f187ec60-2ee5-4512-8c22-d62f5f5fd7e2",
+      "lastMatchId": "c2e54765-a5de-4b7e-bd00-11c3be66bf17",
       "apiError": false
     }
   ],
