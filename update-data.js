@@ -4,9 +4,9 @@ const { parse } = require('csv-parse/sync');
 
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFrlbFvaPDuVahEtPUOJdt4EfIBzCJvHITDIR5cEDHcFCBTEofMe_-gG57bSh5KCuqD2dnzuaFn66p/pub?output=csv';
 const henrikApiKey = process.env.HENRIK_API_KEY;
-const debugTarget = process.env.DEBUG_TARGET || 'ousadia'; // Padrão para debug: ousadia
+const debugTarget = process.env.DEBUG_TARGET || 'ousadia';
 
-// --- CONFIGURAÇÃO DE SEGURANÇA ---
+// --- CONFIGURAÇÃO ---
 const REQUEST_DELAY = 3500; 
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -35,7 +35,7 @@ async function smartFetch(url, headers) {
 
 async function run() {
     try {
-        console.log('--- PROTOCOLO V: COMPETITIVE ONLY MODE ---');
+        console.log('--- PROTOCOLO V: DIAGNOSTIC MODE (VERBOSE) ---');
         
         // 1. CARREGAR CACHE
         let oldDataMap = new Map();
@@ -52,9 +52,6 @@ async function run() {
         console.log('   A descarregar planilha...');
         const response = await fetch(csvUrl);
         const csvText = await response.text();
-        
-        if (!csvText || csvText.length < 10) throw new Error('CSV inválido.');
-
         const records = parse(csvText, { columns: true, skip_empty_lines: true, trim: true });
         
         const keys = Object.keys(records[0]);
@@ -66,17 +63,13 @@ async function run() {
         let playersToFetch = [];
         let rosterMap = new Set(); 
         
-        console.log(`   📋 Membros na Planilha:`);
         for (const record of records) {
             const role = record[roleKey];
             const riotId = record[riotIdKey];
             if (role && riotId && riotId.includes('#')) {
                 playersToFetch.push({ role, riotId });
-                // Normaliza: minúsculo e sem espaços para garantir o match
                 const cleanID = riotId.toLowerCase().replace(/\s/g, '');
                 rosterMap.add(cleanID);
-                // Log para conferência de nomes
-                // console.log(`      - ${cleanID}`);
             }
         }
 
@@ -86,7 +79,7 @@ async function run() {
 
         // 3. LOOP DE DADOS
         for (const [index, p] of playersToFetch.entries()) {
-            console.log(`\n[${index + 1}/${playersToFetch.length}] 🔍 A analisar: ${p.riotId}`);
+            console.log(`\n[${index + 1}/${playersToFetch.length}] 🔍 Analisando: ${p.riotId}`);
             
             const [name, tag] = p.riotId.split('#');
             const safeName = encodeURIComponent(name.trim());
@@ -112,30 +105,44 @@ async function run() {
             let region = 'br'; 
 
             try {
-                // Busca 15 partidas de QUALQUER modo, mas vamos filtrar rigorosamente depois
+                // Busca 15 últimas (Bruto)
                 let matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=15`, headers);
                 
                 if (matchesRes.status === 404) {
-                     console.log('   ⚠️ Fallback de região (NA)...');
+                     console.log('   ⚠️ Região BR não encontrada. Tentando NA...');
                      matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?size=15`, headers);
                 }
 
                 if (matchesRes.status === 200) {
                     const matchesData = await matchesRes.json();
+                    const totalMatches = matchesData.data ? matchesData.data.length : 0;
                     
-                    if (matchesData.data && matchesData.data.length > 0) {
-                        // Para Rank: Busca a última COMPETITIVA válida
+                    if (totalMatches === 0) {
+                        console.log(`   ⚠️ API retornou 0 partidas recentes.`);
+                    } else {
+                        // --- DEBUG DOS MODOS ---
+                        // Mostra os modos das 3 primeiras partidas encontradas para entendermos o que a API está mandando
+                        if (index < 3) { // Só para os 3 primeiros jogadores para não poluir demais
+                            console.log(`   📊 Debug Modos (Últimas 3):`);
+                            matchesData.data.slice(0, 3).forEach(m => {
+                                const modeRaw = m.metadata.mode;
+                                const isComp = modeRaw && modeRaw.toLowerCase() === 'competitive';
+                                console.log(`      -> Mapa: ${m.metadata.map} | Modo API: '${modeRaw}' | Aceito? ${isComp ? '✅' : '❌'}`);
+                            });
+                        }
+                        // -----------------------
+
                         const validMatchForRank = matchesData.data.find(m => m.players && Array.isArray(m.players) && m.metadata.mode.toLowerCase() === 'competitive');
                         
                         if (validMatchForRank) {
                             const newMatchId = validMatchForRank.metadata.matchid;
                             
                             if (cachedPlayer && cachedPlayer.lastMatchId === newMatchId && cachedPlayer.currentRank !== 'Sem Rank') {
-                                console.log(`   ⚡ Sem competitivas novas. A usar cache.`);
+                                console.log(`   ⚡ Cache válido. Sem novas competitivas.`);
                                 needsFullUpdate = false; 
                                 playerData = { ...cachedPlayer, roleRaw: p.role };
                             } else {
-                                console.log(`   🔄 Nova competitiva detetada. A atualizar...`);
+                                console.log(`   🔄 Atualizando dados (Rank/Nível)...`);
                                 playerData.lastMatchId = newMatchId;
                                 
                                 const playerInMatch = validMatchForRank.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
@@ -146,13 +153,13 @@ async function run() {
                                     }
                                 }
                             }
+                        } else {
+                            console.log(`   ❌ Nenhuma partida 'competitive' encontrada nas últimas 15.`);
                         }
 
-                        // GUARDA AS PARTIDAS PARA A SINERGIA (FILTRO RIGOROSO: SÓ COMPETITIVE)
+                        // COLETA PARA SINERGIA
                         matchesData.data.forEach(match => {
                             const mode = match.metadata.mode ? match.metadata.mode.toLowerCase() : '';
-                            
-                            // AQUI ESTÁ A MUDANÇA: SÓ ACEITA 'competitive'
                             if (mode === 'competitive' && match.players && Array.isArray(match.players)) {
                                 if (!allMatchesMap.has(match.metadata.matchid)) {
                                     allMatchesMap.set(match.metadata.matchid, match);
@@ -160,6 +167,8 @@ async function run() {
                             }
                         });
                     }
+                } else {
+                    console.log(`   ❌ Erro API: Status ${matchesRes.status}`);
                 }
 
                 if (needsFullUpdate) {
@@ -187,7 +196,7 @@ async function run() {
                 }
 
             } catch (err) {
-                console.error(`   ❌ Erro: ${err.message}`);
+                console.error(`   ❌ Erro Crítico: ${err.message}`);
                 if (cachedPlayer) playerData = cachedPlayer;
                 else playerData.apiError = true;
             }
@@ -195,41 +204,25 @@ async function run() {
             finalPlayersData.push(playerData);
         }
 
-        // 4. SINERGIA (COM DEBUG DE RAIO-X)
-        console.log(`\n⚙️ A processar Sinergia em ${allMatchesMap.size} partidas competitivas...`);
+        // 4. SINERGIA
+        console.log(`\n⚙️ Analisando Sinergia em ${allMatchesMap.size} partidas competitivas válidas...`);
         let operations = [];
 
         for (const [matchId, match] of allMatchesMap) {
-            
-            // Verifica quem estava na partida
             const squadMembers = match.players.filter(player => {
                 const fullName = `${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '');
-                const isMember = rosterMap.has(fullName);
-                return isMember;
+                return rosterMap.has(fullName);
             });
 
-            // --- BLOCO DE DIAGNÓSTICO (RAIO-X) ---
-            // Se a partida tiver alguém com nome parecido com o "debugTarget" (ex: ousadia), mostra TUDO.
-            const playersNames = match.players.map(p => `${p.name}#${p.tag}`.toLowerCase());
-            if (debugTarget && playersNames.some(n => n.includes(debugTarget.toLowerCase()))) {
-                console.log(`\n   🔍 [RAIO-X] Partida ${match.metadata.map} (${match.metadata.mode}):`);
-                console.log(`      Jogadores encontrados na API (vs Planilha):`);
-                match.players.forEach(p => {
-                    const apiName = `${p.name}#${p.tag}`.toLowerCase().replace(/\s/g, '');
-                    const isInRoster = rosterMap.has(apiName);
-                    // Marca com CHECK quem é reconhecido
-                    const mark = isInRoster ? "✅" : "❌"; 
-                    if (isInRoster || apiName.includes('alegria') || apiName.includes('mahoraga')) {
-                         console.log(`      ${mark} ${p.name}#${p.tag} (ID: ${apiName})`);
-                    }
-                });
-                console.log(`      >> Membros Confirmados: ${squadMembers.length}`);
+            // DEBUG DE SQUAD
+            if (squadMembers.length > 0) {
+                 const names = squadMembers.map(m => m.name).join(', ');
+                 // console.log(`   > Match ${match.metadata.map}: Encontrados [${names}]`);
             }
-            // --------------------------------------
 
             if (squadMembers.length >= 2) {
                 const names = squadMembers.map(m => m.name).join(', ');
-                console.log(`   🚀 OPERAÇÃO CONFIRMADA: ${names}`);
+                console.log(`   ✅ OPERAÇÃO ENCONTRADA: ${names} no mapa ${match.metadata.map}`);
 
                 const teamId = squadMembers[0].team; 
                 const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
@@ -263,11 +256,10 @@ async function run() {
             operations: operations
         };
 
-        // Escrita Atômica
         fs.writeFileSync('data.temp.json', JSON.stringify(finalOutput, null, 2));
         fs.renameSync('data.temp.json', 'data.json');
         
-        console.log(`\n✅ Processo Finalizado. ${operations.length} Operações Guardadas.`);
+        console.log(`✅ Sucesso! ${operations.length} Operações guardadas.`);
 
     } catch (error) {
         console.error('🔥 Erro fatal:', error);
