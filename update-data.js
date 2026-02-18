@@ -7,7 +7,6 @@ const henrikApiKey = process.env.HENRIK_API_KEY;
 const debugTarget = process.env.DEBUG_TARGET || '';
 
 // --- CONFIGURAÇÃO DE SEGURANÇA ---
-// Limite da API: 30 req/min. 1 req a cada 3.5s = ~17 req/min.
 const REQUEST_DELAY = 3500; 
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -36,7 +35,7 @@ async function smartFetch(url, headers) {
 
 async function run() {
     try {
-        console.log('--- PROTOCOLO V: SAFE MODE (OPTIMIZED) ---');
+        console.log('--- PROTOCOLO V: DEEP SEARCH MODE ---');
         
         // 1. CARREGAR CACHE
         let oldDataMap = new Map();
@@ -46,32 +45,24 @@ async function run() {
                 const jsonOld = JSON.parse(rawOld);
                 const playersOld = Array.isArray(jsonOld) ? jsonOld : (jsonOld.players || []);
                 playersOld.forEach(p => oldDataMap.set(p.riotId, p));
-                console.log(`   Cache carregado: ${playersOld.length} registros.`);
             }
         } catch (e) { console.log('   Nenhum cache válido encontrado.'); }
 
-        // 2. LER CSV E VALIDAR
+        // 2. LER CSV
         console.log('   Baixando planilha...');
         const response = await fetch(csvUrl);
         const csvText = await response.text();
         
-        if (!csvText || csvText.length < 10) {
-             throw new Error('CSV vazio ou inválido baixado do Google Sheets.');
-        }
+        if (!csvText || csvText.length < 10) throw new Error('CSV inválido.');
 
         const records = parse(csvText, { columns: true, skip_empty_lines: true, trim: true });
-
-        if (records.length === 0) {
-            throw new Error('CSV parseado retornou 0 registros.');
-        }
+        if (records.length === 0) throw new Error('CSV vazio.');
 
         const keys = Object.keys(records[0]);
         const roleKey = keys.find(k => k.toLowerCase().includes('fun'));
         const riotIdKey = keys.find(k => k.toLowerCase().includes('riot'));
 
-        if (!roleKey || !riotIdKey) {
-            throw new Error(`Colunas obrigatórias não encontradas. Colunas detectadas: ${keys.join(', ')}`);
-        }
+        if (!roleKey || !riotIdKey) throw new Error('Colunas obrigatórias não encontradas.');
 
         let playersToFetch = [];
         let rosterMap = new Set(); 
@@ -81,6 +72,7 @@ async function run() {
             const riotId = record[riotIdKey];
             if (role && riotId && riotId.includes('#')) {
                 playersToFetch.push({ role, riotId });
+                // Normaliza o nome para comparação (remove espaços, tudo minúsculo)
                 rosterMap.add(riotId.toLowerCase().replace(/\s/g, ''));
             }
         }
@@ -89,7 +81,7 @@ async function run() {
         let allMatchesMap = new Map(); 
         const headers = { 'Authorization': henrikApiKey };
 
-        // 3. LOOP SEGURO
+        // 3. LOOP DE BUSCA
         for (const [index, p] of playersToFetch.entries()) {
             console.log(`\n[${index + 1}/${playersToFetch.length}] 🔍 Analisando: ${p.riotId}`);
             
@@ -114,37 +106,38 @@ async function run() {
             };
 
             let needsFullUpdate = true;
-            let region = 'br'; // Default fallback
+            let region = 'br';
 
             try {
-                // CHAMADA 1: Histórico
-                let matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?mode=competitive&size=5`, headers);
+                // CHAMADA 1: Histórico AMPLIADO (15 partidas, QUALQUER MODO)
+                // Removemos o filtro 'mode=competitive' para pegar Premier/Unrated
+                let matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=15`, headers);
                 
-                // Fallback simples se 404 na região padrão
                 if (matchesRes.status === 404) {
                      console.log('   ⚠️ Fallback de região (NA)...');
-                     matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?mode=competitive&size=5`, headers);
+                     matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?size=15`, headers);
                 }
 
                 if (matchesRes.status === 200) {
                     const matchesData = await matchesRes.json();
                     
                     if (matchesData.data && matchesData.data.length > 0) {
-                        const validMatch = matchesData.data.find(m => m.players && Array.isArray(m.players));
+                        // Filtra para encontrar a última partida "Real" para usar de referência de Rank
+                        // Ignoramos Deathmatch para definir o Rank, mas guardamos para histórico geral
+                        const validMatchForRank = matchesData.data.find(m => m.players && Array.isArray(m.players) && m.metadata.mode !== 'Deathmatch');
                         
-                        if (validMatch) {
-                            const newMatchId = validMatch.metadata.matchid;
+                        if (validMatchForRank) {
+                            const newMatchId = validMatchForRank.metadata.matchid;
                             
-                            // VERIFICAÇÃO DE CACHE
                             if (cachedPlayer && cachedPlayer.lastMatchId === newMatchId && cachedPlayer.currentRank !== 'Sem Rank') {
-                                console.log(`   ⚡ Sem partidas novas. Usando cache.`);
+                                console.log(`   ⚡ Sem partidas 'reais' novas. Usando cache.`);
                                 needsFullUpdate = false; 
                                 playerData = { ...cachedPlayer, roleRaw: p.role };
                             } else {
-                                console.log(`   🔄 Dados novos detetados. Atualizando...`);
+                                console.log(`   🔄 Dados novos. Atualizando...`);
                                 playerData.lastMatchId = newMatchId;
                                 
-                                const playerInMatch = validMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
+                                const playerInMatch = validMatchForRank.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
                                 if (playerInMatch?.currenttier_patched) {
                                     playerData.currentRank = playerInMatch.currenttier_patched;
                                     if (playerInMatch.currenttier > 2) {
@@ -152,18 +145,20 @@ async function run() {
                                     }
                                 }
                             }
+                        }
+
+                        // GUARDA AS PARTIDAS PARA A SINERGIA
+                        // Aqui está o segredo: Guardamos TUDO que não for Deathmatch/Treino
+                        matchesData.data.forEach(match => {
+                            const mode = match.metadata.mode.toLowerCase();
+                            const ignoredModes = ['deathmatch', 'onboarding', 'practice', 'snowball fight'];
                             
-                            matchesData.data.forEach(match => {
-                                if (match.players && Array.isArray(match.players) && !allMatchesMap.has(match.metadata.matchid)) {
+                            if (!ignoredModes.includes(mode) && match.players && Array.isArray(match.players)) {
+                                if (!allMatchesMap.has(match.metadata.matchid)) {
                                     allMatchesMap.set(match.metadata.matchid, match);
                                 }
-                            });
-                        }
-                    } else if (cachedPlayer) {
-                        // OTIMIZAÇÃO: Se não há histórico recente, assume inativo e usa cache
-                        console.log(`   💤 Sem histórico recente. Mantendo cache.`);
-                        needsFullUpdate = false;
-                        playerData = { ...cachedPlayer, roleRaw: p.role };
+                            }
+                        });
                     }
                 }
 
@@ -174,15 +169,8 @@ async function run() {
                         playerData.level = accData.data.account_level;
                         playerData.card = accData.data.card.small;
                         
-                        // CORREÇÃO DE REGIÃO: Mapeia corretamente as regiões suportadas
-                        // A API retorna: na, eu, ap, kr, latam, br. 
-                        // Se vier algo estranho, cai para 'br'.
                         const apiRegion = accData.data.region;
-                        if (['na', 'eu', 'ap', 'kr', 'latam', 'br'].includes(apiRegion)) {
-                            region = apiRegion;
-                        } else {
-                            region = 'br'; 
-                        }
+                        region = ['na', 'eu', 'ap', 'kr', 'latam', 'br'].includes(apiRegion) ? apiRegion : 'br';
                     }
 
                     const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
@@ -202,7 +190,7 @@ async function run() {
                 console.error(`   ❌ Erro: ${err.message}`);
                 if (cachedPlayer) {
                     playerData = cachedPlayer;
-                    playerData.apiError = true; // Marca que houve erro na atualização recente
+                    playerData.apiError = true; 
                 } else {
                     playerData.apiError = true;
                 }
@@ -211,15 +199,28 @@ async function run() {
             finalPlayersData.push(playerData);
         }
 
-        // 4. SINERGIA
-        console.log(`\n⚙️ Processando Sinergia (${allMatchesMap.size} partidas)...`);
+        // 4. SINERGIA (COM DEBUG DETALHADO)
+        console.log(`\n⚙️ Processando Sinergia em ${allMatchesMap.size} partidas candidatas...`);
         let operations = [];
 
         for (const [matchId, match] of allMatchesMap) {
+            // Verifica quem estava na partida
             const squadMembers = match.players.filter(player => {
                 const fullName = `${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '');
-                return rosterMap.has(fullName);
+                const isMember = rosterMap.has(fullName);
+                return isMember;
             });
+
+            // LOG DE DIAGNÓSTICO: Mostra o que encontrou
+            if (squadMembers.length > 0) {
+                const names = squadMembers.map(m => m.name).join(', ');
+                // Se encontrar 2 ou mais, é sucesso. Se for só 1, mostra que achou só 1.
+                if (squadMembers.length >= 2) {
+                    console.log(`   ✅ MATCH! ${match.metadata.map} (${match.metadata.mode}): ${names}`);
+                } else {
+                    // console.log(`   (Ignorado) Solo Q: ${names} em ${match.metadata.map}`);
+                }
+            }
 
             if (squadMembers.length >= 2) {
                 const teamId = squadMembers[0].team; 
@@ -254,11 +255,11 @@ async function run() {
             operations: operations
         };
 
-        // SEGURANÇA: Escrita Atômica
+        // Escrita Atômica
         fs.writeFileSync('data.temp.json', JSON.stringify(finalOutput, null, 2));
         fs.renameSync('data.temp.json', 'data.json');
         
-        console.log(`✅ Sucesso! Dados salvos.`);
+        console.log(`✅ Sucesso! ${operations.length} Operações conjuntas encontradas.`);
 
     } catch (error) {
         console.error('🔥 Erro fatal:', error);
