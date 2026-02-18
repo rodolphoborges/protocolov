@@ -7,12 +7,11 @@ const henrikApiKey = process.env.HENRIK_API_KEY;
 const debugTarget = process.env.DEBUG_TARGET || 'ousadia';
 
 // --- CONFIGURAÇÃO BLINDADA ---
-// Aumentei o intervalo para 10 segundos para garantir estabilidade total
-const REQUEST_DELAY = 10000; 
+// 8 segundos = Segurança total contra 429
+const REQUEST_DELAY = 8000; 
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-// Fetch com Retry Potente
 async function smartFetch(url, headers, retries = 3) {
     const start = Date.now();
     let response = null;
@@ -21,9 +20,8 @@ async function smartFetch(url, headers, retries = 3) {
     try {
         response = await fetch(url, { headers });
         
-        // Se der Rate Limit (429), espera 40s (Penalidade máxima)
         if (response.status === 429 && retries > 0) {
-            console.log(`      ⛔ Rate Limit (429). Pausa longa de 40s para resetar API...`);
+            console.log(`      ⛔ Rate Limit (429). Pausa longa de 40s...`);
             await delay(40000); 
             return smartFetch(url, headers, retries - 1);
         }
@@ -42,7 +40,7 @@ async function smartFetch(url, headers, retries = 3) {
 
 async function run() {
     try {
-        console.log('--- PROTOCOLO V: TEAM CACHE MODE ---');
+        console.log('--- PROTOCOLO V: SYNERGY PRIORITY MODE ---');
         
         // 1. CARREGAR CACHE
         let oldDataMap = new Map();
@@ -75,7 +73,7 @@ async function run() {
         }
 
         let finalPlayersData = [];
-        let allMatchesMap = new Map(); // Mapa compartilhado de partidas baixadas
+        let allMatchesMap = new Map(); // Mapa crucial para a Sinergia
         const headers = { 'Authorization': henrikApiKey };
 
         // 3. LOOP DE DADOS
@@ -105,7 +103,7 @@ async function run() {
             let region = 'br'; 
 
             try {
-                // ETAPA 1: Buscar LISTA de partidas
+                // ETAPA 1: Buscar ID da última partida
                 let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=10`, headers);
                 
                 if (listRes.status === 404) {
@@ -121,44 +119,45 @@ async function run() {
                         const matchId = lastCompMatch.metadata.matchid;
                         let fullMatch = null;
 
-                        // OTIMIZAÇÃO DE EQUIPA:
-                        // Verifica se algum amigo JÁ baixou esta partida nesta execução
+                        // --- LÓGICA DE SINERGIA (PRIORIDADE MÁXIMA) ---
+                        // Verifica se já temos os DETALHES desta partida na memória RAM (de outro jogador)
                         if (allMatchesMap.has(matchId)) {
-                            console.log(`   ✨ Partida ${matchId} já baixada por um colega. Economizando API!`);
+                            console.log(`   ✨ Detalhes da partida recuperados da memória (Otimização de Equipa).`);
                             fullMatch = allMatchesMap.get(matchId);
                         } else {
-                            // Se ninguém baixou, verifica se o cache do jogador já tem esse ID
-                            if (cachedPlayer && cachedPlayer.lastMatchId === matchId && cachedPlayer.currentRank !== 'Sem Rank') {
-                                console.log(`   ⚡ ID ${matchId} já processado anteriormente. Usando Cache.`);
-                                needsFullUpdate = false;
-                                playerData = { ...cachedPlayer, roleRaw: p.role };
+                            // Se não temos na memória, PRECISAMOS baixar, mesmo que o jogador esteja em cache.
+                            // Caso contrário, a sinergia não funciona.
+                            console.log(`   📥 Baixando detalhes da partida para Sinergia...`);
+                            const detailRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/match/${matchId}`, headers);
+                            
+                            if (detailRes.status === 200) {
+                                const detailData = await detailRes.json();
+                                fullMatch = detailData.data;
+                                allMatchesMap.set(matchId, fullMatch); // Salva para os próximos amigos
                             } else {
-                                console.log(`   📥 Novo ID detetado: ${matchId}. Buscando detalhes...`);
-                                
-                                // ETAPA 2: Baixar Detalhes
-                                const detailRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/match/${matchId}`, headers);
-                                
-                                if (detailRes.status === 200) {
-                                    const detailData = await detailRes.json();
-                                    fullMatch = detailData.data;
-                                    // SALVA NO MAPA COMPARTILHADO IMEDIATAMENTE
-                                    allMatchesMap.set(matchId, fullMatch);
-                                    console.log(`      ✅ Detalhes baixados e compartilhados com o time.`);
-                                } else {
-                                    console.log(`      ❌ Falha ao baixar detalhes: Status ${detailRes.status}`);
-                                }
+                                console.log(`      ❌ Falha ao baixar detalhes: ${detailRes.status}`);
                             }
                         }
 
-                        // Se temos a partida completa (seja via API ou via Colega)
-                        if (fullMatch) {
-                            playerData.lastMatchId = matchId;
-                            // Atualiza Rank
-                            const playerInMatch = fullMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
-                            if (playerInMatch?.currenttier_patched) {
-                                playerData.currentRank = playerInMatch.currenttier_patched;
-                                if (playerInMatch.currenttier > 2) {
-                                    playerData.currentRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${playerInMatch.currenttier}/smallicon.png`;
+                        // --- LÓGICA DE CACHE DE JOGADOR ---
+                        // Agora verificamos se precisamos atualizar o RANK/NÍVEL do jogador
+                        playerData.lastMatchId = matchId;
+                        
+                        // Se o ID é o mesmo do cache E o Rank está válido...
+                        if (cachedPlayer && cachedPlayer.lastMatchId === matchId && cachedPlayer.currentRank !== 'Sem Rank') {
+                            console.log(`   ⚡ Status do Jogador (Rank/Nível) mantidos do Cache.`);
+                            needsFullUpdate = false;
+                            playerData = { ...cachedPlayer, roleRaw: p.role, lastMatchId: matchId };
+                            // Nota: Não retornamos cedo aqui porque precisávamos garantir o download da partida acima!
+                        } else {
+                            // Se não está em cache, atualizamos os dados usando a partida que acabamos de garantir
+                            if (fullMatch) {
+                                const playerInMatch = fullMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
+                                if (playerInMatch?.currenttier_patched) {
+                                    playerData.currentRank = playerInMatch.currenttier_patched;
+                                    if (playerInMatch.currenttier > 2) {
+                                        playerData.currentRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${playerInMatch.currenttier}/smallicon.png`;
+                                    }
                                 }
                             }
                         }
@@ -166,10 +165,11 @@ async function run() {
                         console.log(`   ℹ️ Nenhuma partida competitiva recente.`);
                     }
                 } else {
-                    console.log(`   ❌ Erro ao buscar lista: ${listRes.status}`);
+                    console.log(`   ❌ Erro na lista de partidas: ${listRes.status}`);
                     playerData.apiError = true;
                 }
 
+                // Apenas busca conta/MMR se realmente precisarmos (não estava em cache)
                 if (needsFullUpdate) {
                     const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
                     if (accRes.status === 200) {
@@ -245,7 +245,6 @@ async function run() {
 
         const finalOutput = { updatedAt: Date.now(), players: finalPlayersData, operations: operations };
         
-        // Escrita Segura
         fs.writeFileSync('data.temp.json', JSON.stringify(finalOutput, null, 2));
         fs.renameSync('data.temp.json', 'data.json');
         
