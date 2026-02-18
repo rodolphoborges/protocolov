@@ -154,23 +154,24 @@ function renderRoles() {
 
     for (const [role, data] of Object.entries(rolesConfig)) {
         const isMainFull = data.current >= data.max;
-        const isWaitlistFull = data.waitlist.length >= 4; // Limite de 4 reservas
+        const isWaitlistFull = data.waitlist.length >= 4; 
         const formattedCurrent = String(data.current).padStart(2, '0');
         const formattedMax = String(data.max).padStart(2, '0');
 
-        // Lógica do Status (Badge)
+        // --- LÓGICA DO STATUS ATUALIZADA (Opção 1) ---
         let statusBadge = '';
         if (!isMainFull) {
             statusBadge = `<span class="slot-indicator fs-4">[ ${formattedCurrent} / ${formattedMax} ]</span>`;
         } else if (!isWaitlistFull) {
-            statusBadge = `<span class="slot-indicator fs-5 text-warning">⚠ FILA DE RESERVA</span>`;
+            // Estilo Tático com barras /// e cor vermelha
+            statusBadge = `<span class="slot-indicator fs-5 text-accent" style="letter-spacing: 1px; font-weight: 600;">/// VAGAS NA RESERVA</span>`;
         } else {
             statusBadge = `<span class="slot-indicator fs-4 text-secondary text-decoration-line-through">LOTADO</span>`;
         }
+        // ---------------------------------------------
 
         let playersHTML = data.players.map(p => createPlayerCardHTML(p, false)).join('');
 
-        // Fila de Reserva (Mostra mensagem se estiver vazia mas aberta)
         let waitlistHTML = '';
         if (data.waitlist.length > 0) {
             let waitlistCardsHTML = data.waitlist.map(p => createPlayerCardHTML(p, true)).join('');
@@ -186,10 +187,9 @@ function renderRoles() {
                 </div>
             `;
         } else if (isMainFull && !isWaitlistFull) {
-            // Se titulares cheios e reserva vazia, mostra convite para reserva
             waitlistHTML = `
                 <div class="waitlist-section text-center py-3 opacity-50">
-                    <span class="small text-uppercase text-warning fw-bold">Vagas disponíveis na Reserva</span>
+                    <span class="small text-uppercase text-muted fw-bold">Vagas disponíveis na Reserva</span>
                 </div>
             `;
         }
