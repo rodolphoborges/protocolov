@@ -89,10 +89,10 @@
     "trackerLink": "https://tracker.gg/valorant/profile/riot/Vduart%23MEE/overview",
     "level": 458,
     "card": "https://media.valorant-api.com/playercards/cb8ccea5-4f40-625f-e237-d3b1415e99d7/smallart.png",
-    "currentRank": "Sem Rank",
-    "peakRank": "Sem Rank",
-    "currentRankIcon": "",
-    "peakRankIcon": "",
+    "currentRank": "Gold 1",
+    "peakRank": "Platinum 3",
+    "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
+    "peakRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/17/smallicon.png",
     "apiError": false
   }
 ]
