@@ -8,7 +8,7 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function run() {
     try {
-        console.log('--- INICIANDO PROTOCOLO V: DATA UPDATE ---');
+        console.log('--- INICIANDO PROTOCOLO V: DATA UPDATE (SAFE MODE) ---');
         
         // 1. LER O CSV E MAPEAR MEMBROS
         console.log('Lendo planilha de recrutamento...');
@@ -68,8 +68,8 @@ async function run() {
             let region = 'br';
 
             try {
-                // A. Conta
-                await delay(200); 
+                // A. Conta (Aumentado delay para 1s)
+                await delay(1000); 
                 const accRes = await fetch(`https://api.henrikdev.xyz/valorant/v1/account/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`, { headers });
                 const accData = await accRes.json();
 
@@ -77,10 +77,12 @@ async function run() {
                     playerData.level = accData.data.account_level;
                     playerData.card = accData.data.card.small;
                     region = accData.data.region;
+                } else {
+                    console.warn(`⚠️ Erro Conta (${accData.status}): ${p.riotId}`);
                 }
 
-                // B. MMR
-                await delay(200);
+                // B. MMR (Aumentado delay para 1s)
+                await delay(1000);
                 const mmrRes = await fetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`, { headers });
                 const mmrData = await mmrRes.json();
 
@@ -98,9 +100,9 @@ async function run() {
                     }
                 }
 
-                // C. HISTÓRICO
+                // C. HISTÓRICO (Aumentado delay para 2s antes da chamada pesada)
                 console.log(`Buscando registro de missões...`);
-                await delay(500); 
+                await delay(2000); 
                 
                 const matchesRes = await fetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}?mode=competitive&size=5`, { headers });
                 const matchesData = await matchesRes.json();
@@ -109,7 +111,6 @@ async function run() {
                     // Fallback de Rank
                     if (playerData.currentRank === 'Sem Rank' || playerData.currentRank === 'Unranked') {
                         const lastMatch = matchesData.data[0];
-                        // Verifica se players existe antes de tentar o find (Proteção Extra aqui também)
                         if (lastMatch.players && Array.isArray(lastMatch.players)) {
                             const playerInMatch = lastMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
                             if (playerInMatch?.currenttier_patched) {
@@ -128,6 +129,8 @@ async function run() {
                             allMatchesMap.set(match.metadata.matchid, match);
                         }
                     });
+                } else if (matchesData.status !== 200) {
+                    console.warn(`⚠️ Erro Partidas (${matchesData.status}): ${p.riotId}`);
                 }
 
             } catch (err) {
@@ -137,8 +140,9 @@ async function run() {
 
             finalPlayersData.push(playerData);
             
-            console.log(`Cooldown tático...`);
-            await delay(2500); 
+            // DELAY CRÍTICO: 6 Segundos entre jogadores para resetar o rate limit
+            console.log(`Cooldown tático longo (6s)...`);
+            await delay(6000); 
         }
 
         // 3. PROCESSAR SINERGIA (OPERAÇÕES)
@@ -148,15 +152,12 @@ async function run() {
         let operations = [];
 
         for (const [matchId, match] of allMatchesMap) {
-            // --- CORREÇÃO DO ERRO ---
-            // Verifica se a partida tem estrutura válida antes de tentar filtrar
+            // Proteção contra dados corrompidos
             if (!match.players || !Array.isArray(match.players)) {
-                console.warn(`⚠️ Partida ${matchId} ignorada: Dados de jogadores incompletos.`);
-                continue; // Pula para a próxima partida sem quebrar o script
+                console.warn(`⚠️ Partida ${matchId} ignorada: Dados incompletos.`);
+                continue;
             }
-            // ------------------------
 
-            // Filtra quem estava nessa partida que TAMBÉM faz parte do Protocolo V
             const squadMembers = match.players.filter(player => {
                 const fullName = `${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '');
                 return rosterMap.has(fullName);
@@ -165,8 +166,6 @@ async function run() {
             if (squadMembers.length >= 2) {
                 const teamId = squadMembers[0].team; 
                 const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
-                
-                // Mais segurança caso dados de time falhem
                 const hasWon = teamData ? teamData.has_won : false;
                 const scoreStr = match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A';
                 
@@ -190,7 +189,6 @@ async function run() {
 
         operations.sort((a, b) => b.started_at - a.started_at);
 
-        // 4. SALVAR
         const finalOutput = {
             updatedAt: Date.now(),
             players: finalPlayersData,
