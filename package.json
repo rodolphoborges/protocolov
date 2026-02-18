@@ -1,0 +1,15 @@
+{
+  "name": "protocolov-tracker",
+  "version": "1.0.0",
+  "description": "Rastreador automático de line-up e operações do Protocolo V",
+  "main": "update-data.js",
+  "scripts": {
+    "start": "node update-data.js"
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
