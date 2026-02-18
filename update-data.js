@@ -41,6 +41,7 @@ async function run() {
         const headers = { 'Authorization': henrikApiKey };
 
         for (const p of playersToFetch) {
+            console.log(`--------------------------------`);
             console.log(`Processando: ${p.riotId}`);
             const [name, tag] = p.riotId.split('#');
             
@@ -59,6 +60,8 @@ async function run() {
 
             try {
                 // 1. Descobre a Região da Conta
+                // Aumentei o delay inicial para garantir fôlego
+                await delay(200); 
                 const accRes = await fetch(`https://api.henrikdev.xyz/valorant/v1/account/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`, { headers });
                 const accData = await accRes.json();
 
@@ -68,9 +71,12 @@ async function run() {
                     playerData.level = accData.data.account_level;
                     playerData.card = accData.data.card.small;
                     region = accData.data.region;
+                } else {
+                    console.warn(`⚠️ Falha na Conta (${accData.status}): ${p.riotId}`);
                 }
 
                 // 2. Tenta buscar MMR Oficial
+                await delay(200);
                 const mmrRes = await fetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`, { headers });
                 const mmrData = await mmrRes.json();
 
@@ -88,12 +94,11 @@ async function run() {
                     }
                 }
 
-                // 3. FALLBACK: Busca especificamente a última partida COMPETITIVA
+                // 3. FALLBACK: Busca última partida COMPETITIVA
                 if (playerData.currentRank === 'Sem Rank' || playerData.currentRank === 'Unranked') {
-                    console.log(`Rank ausente. Buscando última partida COMPETITIVA de ${p.riotId}...`);
-                    await delay(200);
+                    console.log(`Rank ausente. Buscando histórico...`);
+                    await delay(500); // Mais tempo antes da chamada pesada
                     
-                    // ADICIONADO: &mode=competitive para ignorar Deathmatch/Spike Rush
                     const matchesRes = await fetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}?mode=competitive&size=1`, { headers });
                     const matchesData = await matchesRes.json();
 
@@ -112,18 +117,22 @@ async function run() {
                                 playerData.currentRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${playerInMatch.currenttier}/smallicon.png`;
                             }
                         }
-                    } else {
-                        console.log("Nenhuma partida competitiva recente encontrada.");
+                    } else if (matchesData.status !== 200) {
+                        console.warn(`⚠️ Falha no Histórico (${matchesData.status})`);
                     }
                 }
 
             } catch (err) {
-                console.error(`Erro na API para ${p.riotId}`, err);
+                console.error(`Erro crítico para ${p.riotId}`, err);
                 playerData.apiError = true;
             }
 
             finalData.push(playerData);
-            await delay(500); 
+            
+            // AUMENTO DRÁSTICO DO DELAY ENTRE JOGADORES (3 Segundos)
+            // Isso previne o erro 429 nas contas do final da lista
+            console.log(`Aguardando cooldown...`);
+            await delay(3000); 
         }
 
         fs.writeFileSync('data.json', JSON.stringify(finalData, null, 2));
