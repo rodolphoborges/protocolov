@@ -10,7 +10,7 @@ const rolesConfig = {
 // LIMITE CONFIGURÁVEL DE OPERAÇÕES NO FEED (Ex: 4, 8, ou 'Infinity' para todas)
 const OPERATIONS_LIMIT = 4; 
 
-// SEGURANÇA: Função de sanitização básica para prevenir XSS
+// SEGURANÇA: Função de sanitização básica
 function escapeHtml(unsafe) {
     if (!unsafe) return "";
     return unsafe
@@ -19,6 +19,14 @@ function escapeHtml(unsafe) {
          .replace(/>/g, "&gt;")
          .replace(/"/g, "&quot;")
          .replace(/'/g, "&#039;");
+}
+
+// SEGURANÇA: Validação de URL
+function safeUrl(url, fallback) {
+    if (url && typeof url === 'string' && url.startsWith('https://')) {
+        return url;
+    }
+    return fallback;
 }
 
 async function fetchCachedData() {
@@ -43,7 +51,7 @@ async function fetchCachedData() {
         playersData.forEach(player => {
             let roleRaw = player.roleRaw.toLowerCase();
             
-            // Sanitiza os dados que serão renderizados como texto
+            // Sanitiza os dados
             player.riotId = escapeHtml(player.riotId);
             player.currentRank = escapeHtml(player.currentRank);
             
@@ -79,9 +87,20 @@ async function fetchCachedData() {
 function createPlayerCardHTML(player, isWaiting = false) {
     const isWaitingClass = isWaiting ? 'is-waiting p-2' : 'p-2';
     
-    // NOTA: player.riotId já foi sanitizado no loop principal
-    
+    // SEGURANÇA: Sanitiza URLs
+    const safeCard = safeUrl(player.card, 'https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png');
+    const safeTracker = safeUrl(player.trackerLink, '#');
+    const safeRankIcon = safeUrl(player.currentRankIcon, '');
+    const safePeakIcon = safeUrl(player.peakRankIcon, '');
+
+    // UX: Se houver erro de API, mostra badge de aviso, mas tenta renderizar o resto
+    let warningBadge = '';
     if (player.apiError) {
+        warningBadge = `<span class="badge bg-warning text-dark ms-2" title="Falha na atualização recente">⚠️ Desatualizado</span>`;
+    }
+
+    // Se nem o nível temos, é porque falhou totalmente (sem cache útil)
+    if (player.apiError && player.level === '--') {
         return `
             <div class="col-md-6">
                 <div class="player-card ${isWaitingClass} border-warning">
@@ -90,21 +109,23 @@ function createPlayerCardHTML(player, isWaiting = false) {
             </div>`;
     }
 
-    const eloHTML = player.currentRankIcon 
-        ? `<img src="${player.currentRankIcon}" alt="${player.currentRank}" style="width: 20px; height: 20px; object-fit: contain;"> ${player.currentRank}`
+    const eloHTML = safeRankIcon 
+        ? `<img src="${safeRankIcon}" alt="${player.currentRank}" style="width: 20px; height: 20px; object-fit: contain;"> ${player.currentRank}`
         : player.currentRank;
 
-    const peakHTML = player.peakRankIcon
-        ? `<img src="${player.peakRankIcon}" alt="${player.peakRank}" style="width: 20px; height: 20px; object-fit: contain;"> ${player.peakRank}`
+    const peakHTML = safePeakIcon
+        ? `<img src="${safePeakIcon}" alt="${player.peakRank}" style="width: 20px; height: 20px; object-fit: contain;"> ${player.peakRank}`
         : player.peakRank;
 
     return `
         <div class="col-md-6">
             <div class="player-card ${isWaitingClass}">
-                <img src="${player.card}" alt="Card" class="player-avatar">
+                <img src="${safeCard}" alt="Card" class="player-avatar">
                 <div class="flex-grow-1">
                     <div class="fw-bold text-white mb-2" style="font-size: 1rem; line-height: 1;">
-                        ${player.riotId} <span class="badge bg-secondary ms-1" style="font-size: 0.6rem;">LVL ${player.level}</span>
+                        ${player.riotId} 
+                        <span class="badge bg-secondary ms-1" style="font-size: 0.6rem;">LVL ${player.level}</span>
+                        ${warningBadge}
                     </div>
                     <div class="d-flex gap-4">
                         <div>
@@ -118,7 +139,7 @@ function createPlayerCardHTML(player, isWaiting = false) {
                     </div>
                 </div>
                 <div class="ms-auto pe-2">
-                    <a href="${player.trackerLink}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Tracker.gg" style="border-radius: 0;">
+                    <a href="${safeTracker}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Tracker.gg" style="border-radius: 0;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                           <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
                           <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
@@ -137,7 +158,6 @@ function renderOperations(operations) {
     section.style.display = 'block';
     let html = '';
 
-    // Usa a constante para limitar (ou mostra todas se for 0/null)
     const limit = OPERATIONS_LIMIT > 0 ? OPERATIONS_LIMIT : operations.length;
 
     operations.slice(0, limit).forEach(op => { 
@@ -146,7 +166,7 @@ function renderOperations(operations) {
         
         let squadHTML = op.squad.map(m => `
             <div class="squad-member">
-                <img src="${m.agentImg}" class="agent-icon" title="${escapeHtml(m.agent)}">
+                <img src="${safeUrl(m.agentImg, '')}" class="agent-icon" title="${escapeHtml(m.agent)}">
                 <span class="member-name text-truncate">${escapeHtml(m.riotId.split('#')[0])}</span>
                 <div class="member-stats text-end">
                     <div>${escapeHtml(m.kda)}</div>
