@@ -6,33 +6,59 @@ const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFrlbFvaPDuVahE
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const debugTarget = process.env.DEBUG_TARGET || '';
 
-// Delay reduzido porque agora faremos menos chamadas!
+// --- CONFIGURAÇÃO DE SEGURANÇA ---
+// Limite da API: 30 req/min (1 a cada 2s).
+// Configuração: 1 req a cada 3.5s = ~17 req/min. (Margem de segurança de 40%)
+const REQUEST_DELAY = 3500; 
+
 const delay = ms => new Promise(res => setTimeout(res, ms));
+
+/**
+ * Função Wrapper para chamadas à API.
+ * Garante que SEMPRE haverá um delay após a chamada, impedindo o estouro do limite.
+ */
+async function smartFetch(url, headers) {
+    const start = Date.now();
+    let response = null;
+    let error = null;
+
+    try {
+        response = await fetch(url, { headers });
+    } catch (e) {
+        error = e;
+    }
+
+    // Calcula quanto tempo passou e força o delay restante
+    const elapsed = Date.now() - start;
+    const remainingDelay = Math.max(0, REQUEST_DELAY - elapsed);
+    
+    if (remainingDelay > 0) {
+        await delay(remainingDelay);
+    }
+
+    if (error) throw error;
+    return response;
+}
 
 async function run() {
     try {
-        console.log('--- PROTOCOLO V: SMART UPDATE SYSTEM ---');
+        console.log('--- PROTOCOLO V: SAFE MODE (ANTI-RATE LIMIT) ---');
+        console.log(`   Configuração: 1 chamada a cada ${REQUEST_DELAY}ms`);
         
-        // 1. CARREGAR CACHE ANTERIOR (Para comparar)
+        // 1. CARREGAR CACHE
         let oldDataMap = new Map();
         try {
             if (fs.existsSync('data.json')) {
                 const rawOld = fs.readFileSync('data.json');
                 const jsonOld = JSON.parse(rawOld);
                 const playersOld = Array.isArray(jsonOld) ? jsonOld : (jsonOld.players || []);
-                
-                playersOld.forEach(p => {
-                    // Mapeia pelo Riot ID para fácil acesso
-                    oldDataMap.set(p.riotId, p);
-                });
-                console.log(`Cache anterior carregado: ${playersOld.length} jogadores.`);
+                playersOld.forEach(p => oldDataMap.set(p.riotId, p));
+                console.log(`   Cache carregado: ${playersOld.length} registros.`);
             }
-        } catch (e) {
-            console.log('Nenhum cache anterior válido encontrado. Começando do zero.');
-        }
+        } catch (e) { console.log('   Nenhum cache válido encontrado.'); }
 
         // 2. LER CSV
-        console.log('Baixando planilha...');
+        console.log('   Baixando planilha...');
         const response = await fetch(csvUrl);
         const csvText = await response.text();
         const records = parse(csvText, { columns: true, skip_empty_lines: true, trim: true });
@@ -59,14 +85,15 @@ async function run() {
         let allMatchesMap = new Map(); 
         const headers = { 'Authorization': henrikApiKey };
 
-        // 3. LOOP INTELIGENTE
+        // 3. LOOP SEGURO
         for (const [index, p] of playersToFetch.entries()) {
-            console.log(`[${index + 1}/${playersToFetch.length}] Verificando: ${p.riotId}`);
+            // Log de progresso claro
+            console.log(`\n[${index + 1}/${playersToFetch.length}] 🔍 Analisando: ${p.riotId}`);
+            
             const [name, tag] = p.riotId.split('#');
             const safeName = encodeURIComponent(name.trim());
             const safeTag = encodeURIComponent(tag.trim());
 
-            // Recupera dados antigos se existirem
             const cachedPlayer = oldDataMap.get(p.riotId);
             
             let playerData = {
@@ -79,23 +106,21 @@ async function run() {
                 peakRank: cachedPlayer?.peakRank || 'Sem Rank',
                 currentRankIcon: cachedPlayer?.currentRankIcon || '',
                 peakRankIcon: cachedPlayer?.peakRankIcon || '',
-                lastMatchId: cachedPlayer?.lastMatchId || null, // Novo campo para controle
+                lastMatchId: cachedPlayer?.lastMatchId || null,
                 apiError: false
             };
 
-            let needsFullUpdate = true; // Por padrão, atualizamos tudo
+            let needsFullUpdate = true;
             let region = 'br';
 
             try {
-                // PASSO 1: Buscar APENAS o histórico primeiro (1 chamada)
-                // Usamos delay pequeno pois é só uma chamada inicial
-                await delay(1500); 
+                // CHAMADA 1: Histórico (Consome 1 crédito de tempo)
+                let matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?mode=competitive&size=5`, headers);
                 
-                let matchesRes = await fetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?mode=competitive&size=5`, { headers });
-                
-                // Fallback de região se 404
+                // Fallback de região se 404 (Consome +1 crédito de tempo se falhar)
                 if (matchesRes.status === 404) {
-                     matchesRes = await fetch(`https://api.henrikdev.xyz/valorant/v3/matches/br/${safeName}/${safeTag}?mode=competitive&size=5`, { headers });
+                     console.log('   ⚠️ Região BR não encontrada, tentando fallback...');
+                     matchesRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?mode=competitive&size=5`, headers);
                 }
 
                 if (matchesRes.status === 200) {
@@ -106,17 +131,16 @@ async function run() {
                         if (validMatch) {
                             const newMatchId = validMatch.metadata.matchid;
                             
-                            // AQUI ESTÁ A MÁGICA:
-                            // Se o último match ID for igual ao que já temos, NÃO ATUALIZAMOS O RESTO!
+                            // VERIFICAÇÃO DE CACHE
                             if (cachedPlayer && cachedPlayer.lastMatchId === newMatchId && cachedPlayer.currentRank !== 'Sem Rank') {
-                                console.log(`   ⚡ Sem novidades. Usando cache.`);
+                                console.log(`   ⚡ Sem partidas novas. Usando dados salvos.`);
                                 needsFullUpdate = false; 
-                                playerData = { ...cachedPlayer, roleRaw: p.role }; // Mantém dados, atualiza só a role se mudou no CSV
+                                playerData = { ...cachedPlayer, roleRaw: p.role };
                             } else {
-                                console.log(`   🔄 Nova partida detetada (ou cache vazio). Atualizando tudo...`);
+                                console.log(`   🔄 Dados desatualizados. Buscando info completa...`);
                                 playerData.lastMatchId = newMatchId;
                                 
-                                // Fallback de Rank via Histórico (já que já temos os dados na mão)
+                                // Tenta pegar rank da partida para economizar
                                 const playerInMatch = validMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
                                 if (playerInMatch?.currenttier_patched) {
                                     playerData.currentRank = playerInMatch.currenttier_patched;
@@ -126,7 +150,7 @@ async function run() {
                                 }
                             }
 
-                            // Sempre guardamos as partidas para a Sinergia
+                            // Salva partidas para sinergia
                             matchesData.data.forEach(match => {
                                 if (match.players && Array.isArray(match.players) && !allMatchesMap.has(match.metadata.matchid)) {
                                     allMatchesMap.set(match.metadata.matchid, match);
@@ -136,19 +160,20 @@ async function run() {
                     }
                 }
 
-                // PASSO 2: Buscar Conta e MMR (SÓ SE NECESSÁRIO)
+                // SÓ FAZ ESSAS CHAMADAS SE REALMENTE PRECISAR
                 if (needsFullUpdate) {
-                    await delay(1000); 
-                    const accRes = await fetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, { headers });
+                    // CHAMADA 2: Conta (Consome +1 crédito de tempo)
+                    const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
                     if (accRes.status === 200) {
                         const accData = await accRes.json();
                         playerData.level = accData.data.account_level;
                         playerData.card = accData.data.card.small;
-                        region = accData.data.region === 'na' || accData.data.region === 'latam' ? 'br' : accData.data.region;
+                        // Ajusta região para a próxima chamada
+                        region = (accData.data.region === 'na' || accData.data.region === 'latam') ? 'br' : accData.data.region;
                     }
 
-                    await delay(1000);
-                    const mmrRes = await fetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, { headers });
+                    // CHAMADA 3: MMR (Consome +1 crédito de tempo)
+                    const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
                     if (mmrRes.status === 200) {
                         const mmrData = await mmrRes.json();
                         if (mmrData.data.current_data?.currenttierpatched) {
@@ -162,21 +187,17 @@ async function run() {
                 }
 
             } catch (err) {
-                console.error(`   ! Erro: ${err.message}`);
-                // Em caso de erro, tenta manter os dados antigos
+                console.error(`   ❌ Erro: ${err.message}`);
+                // Em caso de erro, tenta usar o que tem no cache para não quebrar o site
                 if (cachedPlayer) playerData = cachedPlayer;
                 else playerData.apiError = true;
             }
 
             finalPlayersData.push(playerData);
-            
-            // Se usou cache, o delay pode ser menor. Se fez full update, delay maior.
-            if (needsFullUpdate) await delay(5000); 
-            else await delay(500); // Super rápido se for cache
         }
 
         // 4. SINERGIA
-        console.log(`\nProcessando Sinergia (${allMatchesMap.size} partidas)...`);
+        console.log(`\n⚙️ Processando Sinergia (${allMatchesMap.size} partidas)...`);
         let operations = [];
 
         for (const [matchId, match] of allMatchesMap) {
@@ -219,10 +240,10 @@ async function run() {
         };
 
         fs.writeFileSync('data.json', JSON.stringify(finalOutput, null, 2));
-        console.log(`Sucesso!`);
+        console.log(`✅ Sucesso! Dados salvos.`);
 
     } catch (error) {
-        console.error('Erro fatal:', error);
+        console.error('🔥 Erro fatal:', error);
         process.exit(1);
     }
 }
