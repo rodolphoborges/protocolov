@@ -4,10 +4,9 @@ const { parse } = require('csv-parse/sync');
 
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFrlbFvaPDuVahEtPUOJdt4EfIBzCJvHITDIR5cEDHcFCBTEofMe_-gG57bSh5KCuqD2dnzuaFn66p/pub?output=csv';
 const henrikApiKey = process.env.HENRIK_API_KEY;
-const debugTarget = process.env.DEBUG_TARGET || 'ousadia';
 
 // --- CONFIGURAÇÃO ---
-const REQUEST_DELAY = 10000; 
+const REQUEST_DELAY = 8000; // 8s de intervalo para estabilidade total
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -19,7 +18,7 @@ async function smartFetch(url, headers, retries = 2) {
     try {
         response = await fetch(url, { headers });
         if (response.status === 429 && retries > 0) {
-            console.log(`      ⛔ 429 Detectado. Pausa de 45s...`);
+            console.log(`      ⛔ Rate Limit (429). Pausa de 45s...`);
             await delay(45000); 
             return smartFetch(url, headers, retries - 1);
         }
@@ -35,7 +34,7 @@ async function smartFetch(url, headers, retries = 2) {
 
 async function run() {
     try {
-        console.log('--- PROTOCOLO V: V2 FALLBACK MODE ---');
+        console.log('--- PROTOCOLO V: SYNC SYSTEM ONLINE ---');
         
         let oldDataMap = new Map();
         try {
@@ -45,7 +44,7 @@ async function run() {
             }
         } catch (e) { }
 
-        console.log('   A descarregar planilha...');
+        console.log('1. A processar lista de agentes...');
         const response = await fetch(csvUrl);
         const records = parse(await response.text(), { columns: true, skip_empty_lines: true, trim: true });
         
@@ -69,9 +68,9 @@ async function run() {
         let allMatchesMap = new Map(); 
         const headers = { 'Authorization': henrikApiKey };
 
+        console.log(`2. A sincronizar dados de ${playersToFetch.length} agentes...`);
+
         for (const [index, p] of playersToFetch.entries()) {
-            console.log(`\n[${index + 1}/${playersToFetch.length}] 🔍 A analisar: ${p.riotId}`);
-            
             const [name, tag] = p.riotId.split('#');
             const safeName = encodeURIComponent(name.trim());
             const safeTag = encodeURIComponent(tag.trim());
@@ -94,7 +93,7 @@ async function run() {
             let region = 'br'; 
 
             try {
-                // ETAPA 1: Buscar LISTA (v3 ainda é bom para listar IDs)
+                // ETAPA 1: Lista de partidas (v3)
                 let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=5`, headers);
                 
                 if (listRes.status === 404) {
@@ -111,45 +110,36 @@ async function run() {
                         for (const matchCandidate of recentCompMatches) {
                             const matchId = matchCandidate.metadata.matchid;
 
-                            // 1. Já temos no cache de equipa?
+                            // Verifica Cache de Equipa
                             if (allMatchesMap.has(matchId)) {
-                                console.log(`   ✨ Detalhes recuperados do cache de equipa.`);
                                 bestMatch = allMatchesMap.get(matchId);
                                 break;
                             }
 
-                            // 2. Tenta baixar detalhes usando V2 (A MUDANÇA ESTÁ AQUI)
-                            console.log(`   📥 Tentando baixar detalhes de ${matchId} (API v2)...`);
+                            // ETAPA 2: Detalhes da partida (v2 - Mais estável)
                             const detailRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/match/${matchId}`, headers);
                             
                             if (detailRes.status === 200) {
                                 const detailData = await detailRes.json();
                                 bestMatch = detailData.data;
 
-                                // --- CORREÇÃO DE COMPATIBILIDADE V2 ---
-                                // A v2 retorna { players: { all_players: [...] } } em vez de { players: [...] }
+                                // Compatibilidade v2 -> v3 structure
                                 if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) {
                                     bestMatch.players = bestMatch.players.all_players;
                                 }
-                                // --------------------------------------
 
                                 allMatchesMap.set(matchId, bestMatch);
                                 break;
-                            } else {
-                                console.log(`      ❌ Falha no ID ${matchId} (Status ${detailRes.status}).`);
                             }
                         }
 
                         if (bestMatch) {
-                            // Atualiza Rank
                             const playerInMatch = bestMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
                             
                             if (cachedPlayer && cachedPlayer.lastMatchId === bestMatch.metadata.matchid && cachedPlayer.currentRank !== 'Sem Rank') {
-                                console.log(`   ⚡ Rank mantido do cache.`);
                                 needsFullUpdate = false;
                                 playerData = { ...cachedPlayer, roleRaw: p.role, lastMatchId: bestMatch.metadata.matchid };
                             } else {
-                                console.log(`   🔄 Atualizando Rank via partida ${bestMatch.metadata.matchid}...`);
                                 playerData.lastMatchId = bestMatch.metadata.matchid;
                                 if (playerInMatch?.currenttier_patched) {
                                     playerData.currentRank = playerInMatch.currenttier_patched;
@@ -158,14 +148,10 @@ async function run() {
                                     }
                                 }
                             }
-                        } else {
-                            console.log(`   ⚠️ Não foi possível recuperar detalhes (v2 falhou também).`);
                         }
-                    } else {
-                        console.log(`   ℹ️ Nenhuma partida competitiva recente.`);
                     }
                 } else {
-                    console.log(`   ❌ Erro lista: ${listRes.status}`);
+                    console.log(`   [${p.riotId}] Erro API Lista: ${listRes.status}`);
                     playerData.apiError = true;
                 }
 
@@ -192,19 +178,20 @@ async function run() {
                 }
 
             } catch (err) {
-                console.error(`   ❌ Erro: ${err.message}`);
+                console.error(`   [${p.riotId}] Falha: ${err.message}`);
                 if (cachedPlayer) playerData = cachedPlayer;
                 else playerData.apiError = true;
             }
 
             finalPlayersData.push(playerData);
+            // Log de progresso simples
+            if ((index + 1) % 5 === 0) console.log(`   ... ${index + 1}/${playersToFetch.length} processados.`);
         }
 
-        console.log(`\n⚙️ Processando Sinergia (${allMatchesMap.size} partidas únicas)...`);
+        console.log(`3. A calcular sinergia (${allMatchesMap.size} partidas únicas)...`);
         let operations = [];
 
         for (const [matchId, match] of allMatchesMap) {
-            // Garante que é array (graças à correção de compatibilidade v2 lá em cima)
             if (!match.players || !Array.isArray(match.players)) continue;
 
             const squadMembers = match.players.filter(player => {
@@ -213,11 +200,7 @@ async function run() {
             });
 
             if (squadMembers.length >= 2) {
-                const names = squadMembers.map(m => m.name).join(', ');
-                console.log(`   ✅ SQUAD CONFIRMADO: ${names} (${match.metadata.map})`);
-
                 const teamId = squadMembers[0].team; 
-                // v2 e v3 têm estrutura de teams parecida, mas bom garantir
                 const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
                 const hasWon = teamData ? teamData.has_won : false;
                 const scoreStr = match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A';
@@ -248,7 +231,7 @@ async function run() {
         fs.writeFileSync('data.temp.json', JSON.stringify(finalOutput, null, 2));
         fs.renameSync('data.temp.json', 'data.json');
         
-        console.log(`✅ Sucesso! ${operations.length} Operações salvas.`);
+        console.log(`✅ SUCESSO! ${finalPlayersData.length} Agentes | ${operations.length} Operações.`);
 
     } catch (error) {
         console.error('🔥 Erro fatal:', error);
