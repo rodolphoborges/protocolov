@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771444463547,
+  "updatedAt": 1771444896423,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -38,7 +38,7 @@
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
       "lastMatchId": null,
-      "apiError": false
+      "apiError": true
     },
     {
       "riotId": "PDL CH1TUZ#666",
@@ -57,11 +57,11 @@
       "riotId": "TDAH IsNotAlex#REN",
       "roleRaw": "Iniciador",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/TDAH%20IsNotAlex%23REN/overview",
-      "level": "--",
-      "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
-      "currentRank": "Sem Rank",
-      "peakRank": "Sem Rank",
-      "currentRankIcon": "",
+      "level": 465,
+      "card": "https://media.valorant-api.com/playercards/cd87781f-4d21-cde6-959c-28b61b882fa3/smallart.png",
+      "currentRank": "Platinum 1",
+      "peakRank": "Diamond 3",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
       "lastMatchId": null,
       "apiError": false
@@ -70,14 +70,14 @@
       "riotId": "RedeGamer#9x19m",
       "roleRaw": "Iniciador",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/RedeGamer%239x19m/overview",
-      "level": "--",
-      "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
+      "level": 173,
+      "card": "https://media.valorant-api.com/playercards/99bdfb9b-4ee9-a057-5b62-b2ae6309abf8/smallart.png",
       "currentRank": "Platinum 3",
       "peakRank": "Platinum 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/17/smallicon.png",
       "peakRankIcon": "",
       "lastMatchId": null,
-      "apiError": false
+      "apiError": true
     },
     {
       "riotId": "AMV Teteuテ#15733",
@@ -109,11 +109,11 @@
       "riotId": "Major Tom#Salut",
       "roleRaw": "Sentinela",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Major%20Tom%23Salut/overview",
-      "level": "--",
-      "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
-      "currentRank": "Sem Rank",
-      "peakRank": "Sem Rank",
-      "currentRankIcon": "",
+      "level": 235,
+      "card": "https://media.valorant-api.com/playercards/260c7a79-4d04-36d5-9b68-a097519459cd/smallart.png",
+      "currentRank": "Gold 1",
+      "peakRank": "Gold 1",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
       "peakRankIcon": "",
       "lastMatchId": null,
       "apiError": false
@@ -122,11 +122,11 @@
       "riotId": "Jjioz #8335",
       "roleRaw": "Duelista",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Jjioz%238335/overview",
-      "level": "--",
-      "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
-      "currentRank": "Sem Rank",
-      "peakRank": "Sem Rank",
-      "currentRankIcon": "",
+      "level": 259,
+      "card": "https://media.valorant-api.com/playercards/b5314b3f-4532-9e41-bc1f-13954a4c6829/smallart.png",
+      "currentRank": "Diamond 3",
+      "peakRank": "Ascendant 2",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/20/smallicon.png",
       "peakRankIcon": "",
       "lastMatchId": null,
       "apiError": false
