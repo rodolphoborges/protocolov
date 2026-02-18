@@ -9,7 +9,7 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function run() {
     try {
-        console.log('--- PROTOCOLO V: COMPETITIVE TRACKER (DIAGNOSTIC MODE) ---');
+        console.log('--- PROTOCOLO V: ANTI-GHOST MATCH SYSTEM ---');
         
         // 1. LER E MAPEAR MEMBROS DO SHEET
         console.log('1. Carregando lista de Agentes...');
@@ -38,17 +38,12 @@ async function run() {
                 
                 if (role && riotId && riotId.includes('#')) {
                     playersToFetch.push({ role, riotId });
-                    
-                    // NORMALIZAÇÃO DE NOME: Tudo minúsculo, sem espaços
                     const cleanName = riotId.toLowerCase().replace(/\s/g, '');
                     rosterMap.add(cleanName);
-                    
-                    // Log para conferirmos como o sistema vê os nomes
-                    // console.log(`   > Cadastro reconhecido: ${cleanName}`);
                 }
             }
         }
-        console.log(`Total de Agentes cadastrados: ${rosterMap.size}`);
+        console.log(`Total de Agentes: ${rosterMap.size}`);
 
         let finalPlayersData = [];
         let allMatchesMap = new Map(); 
@@ -88,10 +83,8 @@ async function run() {
                     playerData.card = accData.data.card.small;
                     region = accData.data.region;
                     
-                    // Correção forçada: Se a conta for antiga (NA/LATAM) mas joga no BR, forçamos a busca de partidas no BR
-                    // Isso resolve 90% dos casos de "Partida não encontrada"
                     if (region === 'na' || region === 'latam') {
-                        console.log(`   ! Aviso: Conta marcada como '${region}'. Assumindo partidas no servidor 'br'.`);
+                        console.log(`   ! Aviso: Conta '${region}'. Forçando busca no servidor 'br'.`);
                         region = 'br';
                     }
                 }
@@ -115,8 +108,7 @@ async function run() {
                     }
                 }
 
-                // C. HISTÓRICO DE PARTIDAS (Filtro Competitivo ATIVADO)
-                // Aumentamos para 10 para ter margem de segurança
+                // C. HISTÓRICO DE PARTIDAS
                 console.log(`   > Buscando últimas 10 partidas competitivas...`);
                 await delay(1500); 
                 
@@ -127,43 +119,48 @@ async function run() {
                     
                     if (matchesData.data && matchesData.data.length > 0) {
                         
-                        // --- BLOCO DE DIAGNÓSTICO DO DETETIVE (SÓ PARA OUSADIA) ---
-                        // Se for você, vamos imprimir a última partida inteira para ver quem estava lá
+                        // CORREÇÃO: Encontra a primeira partida VÁLIDA (com lista de jogadores)
+                        // Se a partida 'Abyss' vier quebrada, ele pega a próxima da lista
+                        const validMatch = matchesData.data.find(m => m.players && Array.isArray(m.players) && m.players.length > 0);
+
+                        // --- BLOCO DE DIAGNÓSTICO (SÓ PARA OUSADIA) ---
                         if (cleanID.includes('ousadia')) {
-                            const lastMatch = matchesData.data[0];
-                            console.log(`\n   🔍 [RAIO-X] Analisando última partida de Ousadia (Mapa: ${lastMatch.metadata.map}):`);
-                            console.log(`   Jogadores encontrados na API:`);
-                            lastMatch.players.forEach(pl => {
-                                const pName = `${pl.name}#${pl.tag}`.toLowerCase().replace(/\s/g, '');
-                                const isMember = rosterMap.has(pName);
-                                const status = isMember ? "✅ MEMBRO" : "❌ desconhecido";
-                                console.log(`      - ${pl.name}#${pl.tag} [ID Limpo: ${pName}] -> ${status}`);
-                            });
-                            console.log(`   --- Fim da Análise ---\n`);
+                            if (validMatch) {
+                                console.log(`\n   🔍 [RAIO-X] Analisando partida válida (Mapa: ${validMatch.metadata.map}):`);
+                                validMatch.players.forEach(pl => {
+                                    const pName = `${pl.name}#${pl.tag}`.toLowerCase().replace(/\s/g, '');
+                                    const isMember = rosterMap.has(pName);
+                                    const status = isMember ? "✅ MEMBRO" : "❌ random";
+                                    // Só loga membros para não poluir demais, ou loga todos se quiser debugar profundo
+                                    if (isMember) console.log(`      - ${pl.name}#${pl.tag} -> ${status}`);
+                                });
+                                console.log(`   --- Fim da Análise ---\n`);
+                            } else {
+                                console.log(`   ⚠️ AVISO: Nenhuma das últimas 10 partidas contém dados de jogadores válidos.`);
+                            }
                         }
                         // -----------------------------------------------------------
 
-                        // Fallback de Rank
-                        if (playerData.currentRank === 'Sem Rank' || playerData.currentRank === 'Unranked') {
-                            const lastMatch = matchesData.data[0];
-                            const playerInMatch = lastMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
+                        // Fallback de Rank usando a partida VÁLIDA encontrada
+                        if ((playerData.currentRank === 'Sem Rank' || playerData.currentRank === 'Unranked') && validMatch) {
+                            const playerInMatch = validMatch.players.find(pl => pl.name.toLowerCase() === name.trim().toLowerCase() && pl.tag.toLowerCase() === tag.trim().toLowerCase());
                             if (playerInMatch?.currenttier_patched) {
                                 playerData.currentRank = playerInMatch.currenttier_patched;
-                                console.log(`   >>> Rank recuperado via Partida: ${playerData.currentRank}`);
+                                console.log(`   >>> Rank recuperado via Histórico: ${playerData.currentRank}`);
                                 if (playerInMatch.currenttier > 2) {
                                     playerData.currentRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${playerInMatch.currenttier}/smallicon.png`;
                                 }
                             }
                         }
 
-                        // Armazena partidas
+                        // Armazena partidas (apenas as que têm jogadores)
                         matchesData.data.forEach(match => {
-                            if (!allMatchesMap.has(match.metadata.matchid)) {
+                            if (match.players && Array.isArray(match.players) && !allMatchesMap.has(match.metadata.matchid)) {
                                 allMatchesMap.set(match.metadata.matchid, match);
                             }
                         });
                     } else {
-                        console.log(`   > Nenhuma partida competitiva encontrada recentemente.`);
+                        console.log(`   > Nenhuma partida encontrada.`);
                     }
                 }
 
@@ -174,18 +171,18 @@ async function run() {
 
             finalPlayersData.push(playerData);
             
-            // DELAY ANTI-BLOQUEIO (12 segundos)
             console.log(`   ...Aguardando 12s...`);
             await delay(12000); 
         }
 
         // 3. CRUZAMENTO DE DADOS (SINERGIA)
         console.log(`\n--------------------------------`);
-        console.log(`3. Cruzando dados de ${allMatchesMap.size} partidas únicas...`);
+        console.log(`3. Cruzando dados de ${allMatchesMap.size} partidas válidas...`);
         
         let operations = [];
 
         for (const [matchId, match] of allMatchesMap) {
+            // Verificação redundante de segurança
             if (!match.players || !Array.isArray(match.players)) continue;
 
             const squadMembers = match.players.filter(player => {
@@ -194,7 +191,6 @@ async function run() {
             });
 
             if (squadMembers.length >= 2) {
-                // Log de Sucesso
                 const namesFound = squadMembers.map(m => `${m.name}#${m.tag}`).join(', ');
                 console.log(`   ★ OPERAÇÃO CONFIRMADA (${match.metadata.map}): ${namesFound}`);
 
@@ -232,9 +228,8 @@ async function run() {
 
         fs.writeFileSync('data.json', JSON.stringify(finalOutput, null, 2));
         console.log(`\n=== RELATÓRIO FINAL ===`);
-        console.log(`Jogadores Processados: ${finalPlayersData.length}`);
-        console.log(`Operações Encontradas: ${operations.length}`);
-        console.log(`Processo Concluído.`);
+        console.log(`Jogadores: ${finalPlayersData.length}`);
+        console.log(`Operações: ${operations.length}`);
 
     } catch (error) {
         console.error('Erro fatal:', error);
