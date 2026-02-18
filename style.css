@@ -102,3 +102,8 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 
 .text-warning { color: #ffce56 !important; }
 .border-warning { border-color: #ffce56 !important; }
+
+/* FIX DE VISIBILIDADE: Garante que textos secundários fiquem claros no fundo escuro */
+.bg-dark-section .text-muted {
+    color: rgba(236, 232, 225, 0.75) !important;
+}
