@@ -88,19 +88,17 @@ async function run() {
                     }
                 }
 
-                // 3. FALLBACK: Se ainda estiver "Sem Rank", tenta buscar na última partida jogada
-                // Isso resolve casos onde o MMR está bugado mas o Tracker.gg funciona
+                // 3. FALLBACK: Busca especificamente a última partida COMPETITIVA
                 if (playerData.currentRank === 'Sem Rank' || playerData.currentRank === 'Unranked') {
-                    console.log(`Rank não encontrado no MMR. Tentando buscar na última partida de ${p.riotId}...`);
-                    await delay(200); // Pequena pausa extra
+                    console.log(`Rank ausente. Buscando última partida COMPETITIVA de ${p.riotId}...`);
+                    await delay(200);
                     
-                    // Busca a última partida (size=1)
-                    const matchesRes = await fetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}?size=1`, { headers });
+                    // ADICIONADO: &mode=competitive para ignorar Deathmatch/Spike Rush
+                    const matchesRes = await fetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}?mode=competitive&size=1`, { headers });
                     const matchesData = await matchesRes.json();
 
                     if (matchesData.status === 200 && matchesData.data.length > 0) {
                         const match = matchesData.data[0];
-                        // Procura o jogador dentro da partida
                         const playerInMatch = match.players.find(pl => 
                             pl.name.toLowerCase() === name.trim().toLowerCase() && 
                             pl.tag.toLowerCase() === tag.trim().toLowerCase()
@@ -108,13 +106,14 @@ async function run() {
 
                         if (playerInMatch && playerInMatch.currenttier_patched) {
                             playerData.currentRank = playerInMatch.currenttier_patched;
-                            console.log(`>>> Recuperado via Partida: ${playerData.currentRank}`);
+                            console.log(`>>> Recuperado via Competitivo: ${playerData.currentRank}`);
                             
-                            // Reconstrói o ícone manualmente
                             if (playerInMatch.currenttier > 2) {
                                 playerData.currentRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${playerInMatch.currenttier}/smallicon.png`;
                             }
                         }
+                    } else {
+                        console.log("Nenhuma partida competitiva recente encontrada.");
                     }
                 }
 
@@ -124,7 +123,7 @@ async function run() {
             }
 
             finalData.push(playerData);
-            await delay(500); // Aumentei um pouco o delay para segurança (são mais chamadas agora)
+            await delay(500); 
         }
 
         fs.writeFileSync('data.json', JSON.stringify(finalData, null, 2));
