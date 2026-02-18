@@ -94,5 +94,29 @@
     "currentRankIcon": "",
     "peakRankIcon": "",
     "apiError": false
+  },
+  {
+    "riotId": "Major Tom#Salut",
+    "roleRaw": "Sentinela",
+    "trackerLink": "https://tracker.gg/valorant/profile/riot/Major%20Tom%23Salut/overview",
+    "level": "--",
+    "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
+    "currentRank": "Sem Rank",
+    "peakRank": "Sem Rank",
+    "currentRankIcon": "",
+    "peakRankIcon": "",
+    "apiError": false
+  },
+  {
+    "riotId": "Jjioz #8335",
+    "roleRaw": "Duelista",
+    "trackerLink": "https://tracker.gg/valorant/profile/riot/Jjioz%238335/overview",
+    "level": "--",
+    "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
+    "currentRank": "Sem Rank",
+    "peakRank": "Sem Rank",
+    "currentRankIcon": "",
+    "peakRankIcon": "",
+    "apiError": false
   }
 ]
