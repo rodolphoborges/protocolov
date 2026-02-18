@@ -99,3 +99,6 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 .req-box { background-color: rgba(15, 25, 35, 0.05); border-left: 4px solid var(--val-red); padding: 15px 20px; text-align: left; margin: 0 auto 30px auto; max-width: 500px; }
 .icon-svg { width: 20px; height: 20px; fill: var(--val-red); margin-right: 10px; flex-shrink: 0;}
 .rule-item { display: flex; align-items: start; margin-bottom: 15px; }
+
+.text-warning { color: #ffce56 !important; }
+.border-warning { border-color: #ffce56 !important; }
