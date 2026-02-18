@@ -8,7 +8,6 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function run() {
     try {
-        // 1. Busca os dados do Google Sheets
         console.log('Lendo planilha...');
         const response = await fetch(csvUrl);
         const csvData = await response.text();
@@ -41,7 +40,6 @@ async function run() {
         let finalData = [];
         const headers = { 'Authorization': henrikApiKey };
 
-        // 2. Busca dados (Sequencial para descobrir a região correta primeiro)
         for (const p of playersToFetch) {
             console.log(`Processando: ${p.riotId}`);
             const [name, tag] = p.riotId.split('#');
@@ -60,30 +58,27 @@ async function run() {
             };
 
             try {
-                // Passo A: Busca a conta para descobrir a Região (br, na, latam, etc)
+                // 1. Descobre a Região da Conta
                 const accRes = await fetch(`https://api.henrikdev.xyz/valorant/v1/account/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`, { headers });
                 const accData = await accRes.json();
 
-                let region = 'br'; // Fallback padrão
+                let region = 'br'; 
 
                 if (accData.status === 200) {
                     playerData.level = accData.data.account_level;
                     playerData.card = accData.data.card.small;
-                    region = accData.data.region; // Pega a região correta da conta
+                    region = accData.data.region;
                 }
 
-                // Passo B: Busca o MMR usando a região correta descoberta acima
+                // 2. Tenta buscar MMR Oficial
                 const mmrRes = await fetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`, { headers });
                 const mmrData = await mmrRes.json();
 
                 if (mmrData.status === 200) {
-                    // Tenta pegar o rank atual. Se for null (unranked), mantém o padrão 'Sem Rank'
                     if (mmrData.data.current_data && mmrData.data.current_data.currenttierpatched) {
                         playerData.currentRank = mmrData.data.current_data.currenttierpatched;
                         playerData.currentRankIcon = mmrData.data.current_data.images.small;
                     }
-
-                    // Tenta pegar o rank máximo
                     if (mmrData.data.highest_rank && mmrData.data.highest_rank.patched_tier) {
                         playerData.peakRank = mmrData.data.highest_rank.patched_tier;
                         const peakTier = mmrData.data.highest_rank.tier;
@@ -91,9 +86,36 @@ async function run() {
                             playerData.peakRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
                         }
                     }
-                } else {
-                     // Se der erro 404 no MMR, pode ser que o jogador nunca tenha jogado ranked
-                    console.warn(`MMR não encontrado na região ${region} para ${p.riotId}`);
+                }
+
+                // 3. FALLBACK: Se ainda estiver "Sem Rank", tenta buscar na última partida jogada
+                // Isso resolve casos onde o MMR está bugado mas o Tracker.gg funciona
+                if (playerData.currentRank === 'Sem Rank' || playerData.currentRank === 'Unranked') {
+                    console.log(`Rank não encontrado no MMR. Tentando buscar na última partida de ${p.riotId}...`);
+                    await delay(200); // Pequena pausa extra
+                    
+                    // Busca a última partida (size=1)
+                    const matchesRes = await fetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}?size=1`, { headers });
+                    const matchesData = await matchesRes.json();
+
+                    if (matchesData.status === 200 && matchesData.data.length > 0) {
+                        const match = matchesData.data[0];
+                        // Procura o jogador dentro da partida
+                        const playerInMatch = match.players.find(pl => 
+                            pl.name.toLowerCase() === name.trim().toLowerCase() && 
+                            pl.tag.toLowerCase() === tag.trim().toLowerCase()
+                        );
+
+                        if (playerInMatch && playerInMatch.currenttier_patched) {
+                            playerData.currentRank = playerInMatch.currenttier_patched;
+                            console.log(`>>> Recuperado via Partida: ${playerData.currentRank}`);
+                            
+                            // Reconstrói o ícone manualmente
+                            if (playerInMatch.currenttier > 2) {
+                                playerData.currentRankIcon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${playerInMatch.currenttier}/smallicon.png`;
+                            }
+                        }
+                    }
                 }
 
             } catch (err) {
@@ -102,10 +124,9 @@ async function run() {
             }
 
             finalData.push(playerData);
-            await delay(400); // Delay para respeitar o rate limit
+            await delay(500); // Aumentei um pouco o delay para segurança (são mais chamadas agora)
         }
 
-        // 3. Salva
         fs.writeFileSync('data.json', JSON.stringify(finalData, null, 2));
         console.log('Sucesso! data.json atualizado.');
 
