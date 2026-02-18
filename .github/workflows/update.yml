@@ -20,7 +20,6 @@ jobs:
         with:
           node-version: '20'
 
-      # NOVO PASSO: Instalar csv-parse
       - name: Instalar Dependências
         run: npm install
 
@@ -28,11 +27,10 @@ jobs:
         run: node update-data.js
         env:
           HENRIK_API_KEY: ${{ secrets.HENRIK_API_KEY }}
-          # DEBUG_TARGET: "ousadia#013" # Descomente apenas se precisar debugar alguém específico
 
-      - name: Faz o commit das mudanças se houver novos dados
+      - name: Commit das mudanças
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "action@github.com"
-          git add data.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: Atualiza cache de jogadores (data.json)" && git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:main)
+          git add data.json package-lock.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: Atualiza dados e dependências" && git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:main)
