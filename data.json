@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771540644720,
+  "updatedAt": 1771544135233,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -63,7 +63,7 @@
       "peakRank": "Diamond 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "21666093-f837-4268-b61d-bc0897ee2af6",
+      "lastMatchId": "b4749742-b529-4c7e-848e-6c2602232bce",
       "apiError": false
     },
     {
@@ -76,7 +76,7 @@
       "peakRank": "Platinum 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/17/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "a0a2374f-3a6d-4016-91ae-2a10c07d546b",
+      "lastMatchId": "52ae33a3-f938-4073-b643-e310882e6db5",
       "apiError": false
     },
     {
@@ -122,13 +122,13 @@
       "riotId": "Jjioz #8335",
       "roleRaw": "Duelista",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Jjioz%238335/overview",
-      "level": 259,
-      "card": "https://media.valorant-api.com/playercards/d41e6237-4414-0723-e125-36be35a3e842/smallart.png",
+      "level": 260,
+      "card": "https://media.valorant-api.com/playercards/c7e58b09-4b1f-ca2a-5ab6-daa6cab2fa6c/smallart.png",
       "currentRank": "Diamond 3",
       "peakRank": "Ascendant 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/20/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "66ef39b4-4073-4081-981a-fcb6a0f26b63",
+      "lastMatchId": "b9fe1554-898d-4c23-a9e0-d80de92dbe5c",
       "apiError": false
     },
     {
@@ -141,7 +141,7 @@
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/10/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "29b565a2-f426-4c1f-b2fd-800cebbe2f2a",
+      "lastMatchId": "2b09b029-bfda-4c07-aa83-40084c6e4fed",
       "apiError": false
     },
     {
