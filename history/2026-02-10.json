@@ -1,0 +1,27 @@
+[
+  {
+    "id": "75e0957d-0376-4ac7-ad87-18ae3e3dfaaf",
+    "map": "Split",
+    "mode": "Competitive",
+    "started_at": 1770687522000,
+    "score": "16-14",
+    "result": "VITÓRIA",
+    "team_color": "Blue",
+    "squad": [
+      {
+        "riotId": "Vduart#MEE",
+        "agent": "Reyna",
+        "agentImg": "https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/displayicon.png",
+        "kda": "16/22/10",
+        "hs": 12
+      },
+      {
+        "riotId": "ALEGRIA#021",
+        "agent": "Skye",
+        "agentImg": "https://media.valorant-api.com/agents/6f2a04ca-43e0-be17-7f36-b3908627744d/displayicon.png",
+        "kda": "15/20/10",
+        "hs": 17
+      }
+    ]
+  }
+]

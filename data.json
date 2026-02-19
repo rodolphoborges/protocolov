@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771467452334,
+  "updatedAt": 1771470382159,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -128,7 +128,7 @@
       "peakRank": "Ascendant 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/20/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "f4841701-6861-4aa9-bf8d-b46eaf07a46c",
+      "lastMatchId": "66ef39b4-4073-4081-981a-fcb6a0f26b63",
       "apiError": false
     },
     {
@@ -222,5 +222,9 @@
         }
       ]
     }
+  ],
+  "availableDates": [
+    "2026-02-19",
+    "2026-02-10"
   ]
 }
