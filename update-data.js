@@ -184,7 +184,6 @@ async function run() {
             }
 
             finalPlayersData.push(playerData);
-            // Log de progresso simples
             if ((index + 1) % 5 === 0) console.log(`   ... ${index + 1}/${playersToFetch.length} processados.`);
         }
 
@@ -209,7 +208,6 @@ async function run() {
                     id: matchId,
                     map: match.metadata.map,
                     mode: match.metadata.mode,
-                    // CORREÇÃO DE DATA: Multiplica por 1000 para converter Segundos em Milissegundos
                     started_at: match.metadata.game_start * 1000, 
                     score: scoreStr,
                     result: hasWon ? 'VITÓRIA' : 'DERROTA',
@@ -225,14 +223,80 @@ async function run() {
             }
         }
 
-        operations.sort((a, b) => b.started_at - a.started_at);
+        // --- NOVO SISTEMA DE HISTÓRICO POR DATA ---
+        
+        // 1. Garantir que a pasta history existe
+        const historyDir = './history';
+        if (!fs.existsSync(historyDir)) {
+            fs.mkdirSync(historyDir);
+        }
 
-        const finalOutput = { updatedAt: Date.now(), players: finalPlayersData, operations: operations };
+        // 2. Agrupar as novas operações lidas da API pela data (YYYY-MM-DD)
+        const newOpsByDate = {};
+        for (const op of operations) {
+            const dateObj = new Date(op.started_at);
+            const dateStr = dateObj.toISOString().split('T')[0];
+            
+            if (!newOpsByDate[dateStr]) newOpsByDate[dateStr] = [];
+            newOpsByDate[dateStr].push(op);
+        }
+
+        // 3. Mesclar as novas operações com os arquivos de histórico existentes (Deduplicação)
+        for (const [dateStr, ops] of Object.entries(newOpsByDate)) {
+            const filePath = `${historyDir}/${dateStr}.json`;
+            let dailyOps = [];
+            
+            if (fs.existsSync(filePath)) {
+                dailyOps = JSON.parse(fs.readFileSync(filePath));
+            }
+            
+            const existingIds = new Set(dailyOps.map(o => o.id));
+            let addedNew = false;
+            
+            for (const op of ops) {
+                if (!existingIds.has(op.id)) {
+                    dailyOps.push(op);
+                    addedNew = true;
+                }
+            }
+            
+            // Se adicionou algo novo, ordena por data decrescente e salva o arquivo do dia
+            if (addedNew) {
+                dailyOps.sort((a, b) => b.started_at - a.started_at);
+                fs.writeFileSync(filePath, JSON.stringify(dailyOps, null, 2));
+            }
+        }
+
+        // 4. Ler todos os dias disponíveis na pasta history
+        let availableDates = [];
+        if (fs.existsSync(historyDir)) {
+            availableDates = fs.readdirSync(historyDir)
+                .filter(f => f.endsWith('.json'))
+                .map(f => f.replace('.json', ''))
+                .sort((a, b) => b.localeCompare(a)); // Ordena do mais recente para o mais antigo
+        }
+
+        // 5. Pegar apenas as 4 partidas mais recentes de todos os tempos para a página inicial
+        let recentOperations = [];
+        for (const dateStr of availableDates) {
+            const dailyOps = JSON.parse(fs.readFileSync(`${historyDir}/${dateStr}.json`));
+            recentOperations.push(...dailyOps);
+            if (recentOperations.length >= 4) break;
+        }
+        recentOperations = recentOperations.slice(0, 4);
+
+        // 6. Gerar o data.json final
+        const finalOutput = { 
+            updatedAt: Date.now(), 
+            players: finalPlayersData, 
+            operations: recentOperations,
+            availableDates: availableDates // Enviado para o script do Frontend criar os botões
+        };
         
         fs.writeFileSync('data.temp.json', JSON.stringify(finalOutput, null, 2));
         fs.renameSync('data.temp.json', 'data.json');
         
-        console.log(`✅ SUCESSO! ${finalPlayersData.length} Agentes | ${operations.length} Operações.`);
+        console.log(`✅ SUCESSO! ${finalPlayersData.length} Agentes | Histórico atualizado em cache diário.`);
 
     } catch (error) {
         console.error('🔥 Erro fatal:', error);
