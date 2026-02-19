@@ -75,6 +75,11 @@ async function fetchCachedData() {
             renderOperations(operationsData);
         }
 
+        // Renderiza os botões de histórico
+        if (data.availableDates && data.availableDates.length > 0) {
+            renderHistoryButtons(data.availableDates);
+        }
+
     } catch (error) {
         console.error('Falha:', error);
         document.getElementById('roles-container').innerHTML = `
@@ -151,14 +156,14 @@ function createPlayerCardHTML(player, isWaiting = false) {
     `;
 }
 
-function renderOperations(operations) {
+function renderOperations(operations, customLimit = null) {
     const section = document.getElementById('operations-section');
     const container = document.getElementById('operations-container');
     
     section.style.display = 'block';
     let html = '';
 
-    const limit = OPERATIONS_LIMIT > 0 ? OPERATIONS_LIMIT : operations.length;
+    const limit = customLimit !== null ? customLimit : (OPERATIONS_LIMIT > 0 ? OPERATIONS_LIMIT : operations.length);
 
     operations.slice(0, limit).forEach(op => { 
         const resultClass = op.result === 'VITÓRIA' ? 'win' : 'loss';
@@ -194,6 +199,74 @@ function renderOperations(operations) {
     });
     
     container.innerHTML = html;
+}
+
+// Funções do Histórico
+function renderHistoryButtons(dates) {
+    const historySection = document.getElementById('history-section');
+    const container = document.getElementById('history-dates-container');
+    if (!container || !historySection) return;
+
+    historySection.style.display = 'block';
+
+    let buttonsHTML = dates.map(dateStr => {
+        // Formata YYYY-MM-DD para DD/MM/YYYY
+        const [year, month, day] = dateStr.split('-');
+        const formattedDate = `${day}/${month}/${year}`;
+        
+        return `<button class="btn btn-outline-secondary btn-sm history-btn" data-date="${dateStr}">
+                    ${formattedDate}
+                </button>`;
+    }).join('');
+
+    container.innerHTML = buttonsHTML;
+
+    // Adiciona o evento de clique
+    document.querySelectorAll('.history-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const selectedDate = e.target.getAttribute('data-date');
+            await loadDailyHistory(selectedDate, e.target);
+        });
+    });
+}
+
+async function loadDailyHistory(dateStr, btnElement) {
+    const originalText = btnElement.innerHTML;
+    btnElement.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+    btnElement.disabled = true;
+
+    try {
+        const response = await fetch(`history/${dateStr}.json?t=${Date.now()}`);
+        if (!response.ok) throw new Error('Falha ao buscar histórico');
+        
+        const dailyOperations = await response.json();
+        
+        // Altera o título da seção para mostrar qual dia estamos vendo
+        const header = document.getElementById('operations-header');
+        if(header) {
+            const [y, m, d] = dateStr.split('-');
+            header.innerHTML = `Operações: <span class="text-accent">${d}/${m}/${y}</span>`;
+        }
+
+        // Renderiza ignorando o limite
+        renderOperations(dailyOperations, dailyOperations.length);
+
+        // Atualiza a UI dos botões
+        document.querySelectorAll('.history-btn').forEach(b => {
+            b.classList.remove('btn-secondary', 'text-white');
+            b.classList.add('btn-outline-secondary');
+            b.disabled = false;
+        });
+        
+        btnElement.classList.remove('btn-outline-secondary');
+        btnElement.classList.add('btn-secondary', 'text-white');
+
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Não foi possível carregar as partidas deste dia.');
+    } finally {
+        btnElement.innerHTML = originalText;
+    }
 }
 
 function renderRoles() {
