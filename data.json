@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771577111794,
+  "updatedAt": 1771580761957,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -169,6 +169,19 @@
       "peakRankIcon": "",
       "lastMatchId": "1b0e71d3-27fc-4452-9c16-d19631e084b5",
       "apiError": false
+    },
+    {
+      "riotId": "Steak#7505",
+      "roleRaw": "Controlador",
+      "trackerLink": "https://tracker.gg/valorant/profile/riot/Steak%237505/overview",
+      "level": "--",
+      "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
+      "currentRank": "Sem Rank",
+      "peakRank": "Sem Rank",
+      "currentRankIcon": "",
+      "peakRankIcon": "",
+      "lastMatchId": null,
+      "apiError": true
     }
   ],
   "operations": [
