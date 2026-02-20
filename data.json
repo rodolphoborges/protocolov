@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771615025991,
+  "updatedAt": 1771617472386,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -24,7 +24,7 @@
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/13/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "03654820-0b40-4437-8e52-f3b62df27a00",
+      "lastMatchId": "b14f2c09-c3dc-4af9-af47-c58a6a610619",
       "apiError": false
     },
     {
@@ -63,7 +63,7 @@
       "peakRank": "Diamond 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/14/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "7b5e8ad1-9840-4e5e-b0f0-da78e1bdf204",
+      "lastMatchId": "8856b9c9-0587-48da-8692-afaea4776f8a",
       "apiError": false
     },
     {
