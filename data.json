@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771624483323,
+  "updatedAt": 1771626744752,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -141,7 +141,7 @@
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/10/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "8ee52525-0c4f-42f1-a0dd-1f6bc2903805",
+      "lastMatchId": "1e5a1d32-20da-4938-963b-e3c9f91e8a58",
       "apiError": false
     },
     {
@@ -174,14 +174,14 @@
       "riotId": "Steak#7505",
       "roleRaw": "Controlador",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Steak%237505/overview",
-      "level": "--",
-      "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
-      "currentRank": "Sem Rank",
-      "peakRank": "Sem Rank",
-      "currentRankIcon": "",
+      "level": 276,
+      "card": "https://media.valorant-api.com/playercards/d839e6e0-48fe-602b-cdf5-d4b3fb91618f/smallart.png",
+      "currentRank": "Ascendant 1",
+      "peakRank": "Immortal 1",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/21/smallicon.png",
       "peakRankIcon": "",
       "lastMatchId": null,
-      "apiError": true
+      "apiError": false
     }
   ],
   "operations": [
