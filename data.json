@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771544135233,
+  "updatedAt": 1771553613442,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -37,7 +37,7 @@
       "peakRank": "Platinum 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "6f5e9916-2b5d-4ce3-b180-415d6949793b",
+      "lastMatchId": "5296116a-f7f3-4840-a71a-1936f97a698f",
       "apiError": false
     },
     {
@@ -63,7 +63,7 @@
       "peakRank": "Diamond 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "b4749742-b529-4c7e-848e-6c2602232bce",
+      "lastMatchId": "28d6b9fe-8e97-40e8-a3ed-ab72418ef3c5",
       "apiError": false
     },
     {
@@ -76,7 +76,7 @@
       "peakRank": "Platinum 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/17/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "52ae33a3-f938-4073-b643-e310882e6db5",
+      "lastMatchId": "41cd442c-e9b0-4da2-b094-a84f14247fec",
       "apiError": false
     },
     {
@@ -124,24 +124,24 @@
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Jjioz%238335/overview",
       "level": 260,
       "card": "https://media.valorant-api.com/playercards/c7e58b09-4b1f-ca2a-5ab6-daa6cab2fa6c/smallart.png",
-      "currentRank": "Diamond 3",
+      "currentRank": "Diamond 2",
       "peakRank": "Ascendant 2",
-      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/20/smallicon.png",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/19/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "b9fe1554-898d-4c23-a9e0-d80de92dbe5c",
+      "lastMatchId": "141852ea-2c27-4abf-9673-e464cca99f9f",
       "apiError": false
     },
     {
       "riotId": "Fadinha Do FF #nobru",
       "roleRaw": "Duelista",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Fadinha%20Do%20FF%23nobru/overview",
-      "level": 308,
+      "level": 309,
       "card": "https://media.valorant-api.com/playercards/4ae57e72-4b7e-a3ab-1ece-1ebfa0504971/smallart.png",
       "currentRank": "Silver 2",
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/10/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "2b09b029-bfda-4c07-aa83-40084c6e4fed",
+      "lastMatchId": "cb78f403-2cf7-4009-aee7-d6963352dcc3",
       "apiError": false
     },
     {
