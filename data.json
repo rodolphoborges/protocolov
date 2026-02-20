@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771610829189,
+  "updatedAt": 1771615025991,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -24,7 +24,7 @@
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/13/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "2b0784f5-20d9-4d2f-b57d-226ddaf58339",
+      "lastMatchId": "03654820-0b40-4437-8e52-f3b62df27a00",
       "apiError": false
     },
     {
@@ -50,20 +50,20 @@
       "peakRank": "Gold 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/13/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "3babae25-1331-4c37-8e42-0d13fa5ad6e8",
+      "lastMatchId": "6a645ec0-4da0-4721-a087-be7b68136184",
       "apiError": false
     },
     {
       "riotId": "TDAH IsNotAlex#REN",
       "roleRaw": "Iniciador",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/TDAH%20IsNotAlex%23REN/overview",
-      "level": 465,
+      "level": 466,
       "card": "https://media.valorant-api.com/playercards/cd87781f-4d21-cde6-959c-28b61b882fa3/smallart.png",
-      "currentRank": "Platinum 1",
+      "currentRank": "Gold 3",
       "peakRank": "Diamond 3",
-      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/14/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "28d6b9fe-8e97-40e8-a3ed-ab72418ef3c5",
+      "lastMatchId": "7b5e8ad1-9840-4e5e-b0f0-da78e1bdf204",
       "apiError": false
     },
     {
