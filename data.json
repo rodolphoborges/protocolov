@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771553613442,
+  "updatedAt": 1771561863863,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -24,7 +24,7 @@
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/13/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "58734dc5-89aa-4f4e-ba9f-35669e279b5e",
+      "lastMatchId": "2b0784f5-20d9-4d2f-b57d-226ddaf58339",
       "apiError": false
     },
     {
@@ -33,11 +33,11 @@
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Mahoraga%23Chess/overview",
       "level": 189,
       "card": "https://media.valorant-api.com/playercards/c06e6a9b-4ba2-bbfd-b150-0c8a2a9dbc1e/smallart.png",
-      "currentRank": "Platinum 1",
-      "peakRank": "Platinum 1",
-      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
+      "currentRank": "Platinum 2",
+      "peakRank": "Platinum 2",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/16/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "5296116a-f7f3-4840-a71a-1936f97a698f",
+      "lastMatchId": "da3ae460-dd0b-472c-9c57-773e60816747",
       "apiError": false
     },
     {
@@ -123,12 +123,12 @@
       "roleRaw": "Duelista",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Jjioz%238335/overview",
       "level": 260,
-      "card": "https://media.valorant-api.com/playercards/c7e58b09-4b1f-ca2a-5ab6-daa6cab2fa6c/smallart.png",
+      "card": "https://media.valorant-api.com/playercards/7b6a7b87-4c88-97af-2506-7784d35df022/smallart.png",
       "currentRank": "Diamond 2",
       "peakRank": "Ascendant 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/19/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "141852ea-2c27-4abf-9673-e464cca99f9f",
+      "lastMatchId": "050914b6-e09c-48ea-8d05-8ddaadd8d0b2",
       "apiError": false
     },
     {
