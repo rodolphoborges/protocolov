@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771623046826,
+  "updatedAt": 1771624483323,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -129,7 +129,7 @@
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/19/smallicon.png",
       "peakRankIcon": "",
       "lastMatchId": "252e16b9-0445-4580-92d7-de4748dbbefe",
-      "apiError": false
+      "apiError": true
     },
     {
       "riotId": "Fadinha Do FF #nobru",
