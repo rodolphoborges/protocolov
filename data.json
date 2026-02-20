@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771617472386,
+  "updatedAt": 1771619875185,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -18,13 +18,13 @@
       "riotId": "ALEGRIA#021",
       "roleRaw": "Controlador",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/ALEGRIA%23021/overview",
-      "level": 483,
+      "level": 484,
       "card": "https://media.valorant-api.com/playercards/62ec8878-45d9-aefe-ac50-ba8e3d8c2a0f/smallart.png",
       "currentRank": "Gold 2",
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/13/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "b14f2c09-c3dc-4af9-af47-c58a6a610619",
+      "lastMatchId": "6346d389-406f-484b-b685-b31123c0136f",
       "apiError": false
     },
     {
