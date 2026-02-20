@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771626744752,
+  "updatedAt": 1771628522454,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -70,13 +70,13 @@
       "riotId": "RedeGamer#9x19m",
       "roleRaw": "Iniciador",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/RedeGamer%239x19m/overview",
-      "level": 173,
+      "level": 174,
       "card": "https://media.valorant-api.com/playercards/99bdfb9b-4ee9-a057-5b62-b2ae6309abf8/smallart.png",
-      "currentRank": "Platinum 3",
+      "currentRank": "Platinum 2",
       "peakRank": "Platinum 3",
-      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/17/smallicon.png",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/16/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "41cd442c-e9b0-4da2-b094-a84f14247fec",
+      "lastMatchId": "2466a56c-647a-49ae-bcce-fb91dff449a5",
       "apiError": false
     },
     {
@@ -141,7 +141,7 @@
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/10/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "1e5a1d32-20da-4938-963b-e3c9f91e8a58",
+      "lastMatchId": "fb9e4dcf-dffa-437f-b719-fdd637a2f35a",
       "apiError": false
     },
     {
@@ -161,8 +161,8 @@
       "riotId": "strawberry#c4ke",
       "roleRaw": "Flex",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/strawberry%23c4ke/overview",
-      "level": 223,
-      "card": "https://media.valorant-api.com/playercards/dc9f1429-4f65-b77d-65a7-5f85dda4687c/smallart.png",
+      "level": 224,
+      "card": "https://media.valorant-api.com/playercards/d6dbc61e-49f4-c28e-baa2-79b23cdb6499/smallart.png",
       "currentRank": "Bronze 3",
       "peakRank": "Gold 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/8/smallicon.png",
