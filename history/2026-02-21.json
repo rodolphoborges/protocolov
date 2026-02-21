@@ -1,0 +1,34 @@
+[
+  {
+    "id": "e799ab28-2c5b-4161-9472-919835e8de67",
+    "map": "Pearl",
+    "mode": "Competitive",
+    "started_at": 1771645194000,
+    "score": "9-3",
+    "result": "VITÓRIA",
+    "team_color": "Blue",
+    "squad": [
+      {
+        "riotId": "ALEGRIA#021",
+        "agent": "Tejo",
+        "agentImg": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/displayicon.png",
+        "kda": "4/5/1",
+        "hs": 7
+      },
+      {
+        "riotId": "Mahoraga#Chess",
+        "agent": "Brimstone",
+        "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
+        "kda": "14/6/7",
+        "hs": 14
+      },
+      {
+        "riotId": "OUSADIA#013",
+        "agent": "Jett",
+        "agentImg": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png",
+        "kda": "5/7/2",
+        "hs": 38
+      }
+    ]
+  }
+]
