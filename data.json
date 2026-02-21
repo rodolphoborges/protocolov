@@ -1,17 +1,17 @@
 {
-  "updatedAt": 1771696531896,
+  "updatedAt": 1771699295514,
   "players": [
     {
       "riotId": "ousadia#013",
       "roleRaw": "Duelista",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/ousadia%23013/overview",
-      "level": 613,
+      "level": 614,
       "card": "https://media.valorant-api.com/playercards/fd4d518f-4760-33b8-7265-9794ceadba16/smallart.png",
       "currentRank": "Platinum 1",
       "peakRank": "Diamond 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "24b06db0-dbb9-43d8-99c8-dd0de41be3ee",
+      "lastMatchId": "efa228c5-44ea-4ea9-9ddc-4b78265b9ab9",
       "apiError": false
     },
     {
@@ -20,11 +20,11 @@
       "trackerLink": "https://tracker.gg/valorant/profile/riot/ALEGRIA%23021/overview",
       "level": 484,
       "card": "https://media.valorant-api.com/playercards/62ec8878-45d9-aefe-ac50-ba8e3d8c2a0f/smallart.png",
-      "currentRank": "Gold 2",
+      "currentRank": "Gold 1",
       "peakRank": "Platinum 2",
-      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/13/smallicon.png",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "e799ab28-2c5b-4161-9472-919835e8de67",
+      "lastMatchId": "efa228c5-44ea-4ea9-9ddc-4b78265b9ab9",
       "apiError": false
     },
     {
@@ -45,12 +45,12 @@
       "roleRaw": "Flex",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/PDL%20CH1TUZ%23666/overview",
       "level": 208,
-      "card": "https://media.valorant-api.com/playercards/a554887a-4833-6a19-1dfe-56b2277bf8bc/smallart.png",
+      "card": "https://media.valorant-api.com/playercards/33f3c143-4da0-b595-5f70-faa2ab7eba3e/smallart.png",
       "currentRank": "Gold 2",
       "peakRank": "Gold 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/13/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "6a645ec0-4da0-4721-a087-be7b68136184",
+      "lastMatchId": "da3ac52f-f8a3-441b-aeff-9b5d760dc714",
       "apiError": false
     },
     {
@@ -186,6 +186,31 @@
   ],
   "operations": [
     {
+      "id": "efa228c5-44ea-4ea9-9ddc-4b78265b9ab9",
+      "map": "Corrode",
+      "mode": "Competitive",
+      "started_at": 1771696548000,
+      "score": "13-7",
+      "result": "DERROTA",
+      "team_color": "Red",
+      "squad": [
+        {
+          "riotId": "OUSADIA#013",
+          "agent": "Astra",
+          "agentImg": "https://media.valorant-api.com/agents/41fb69c1-4189-7b37-f117-bcaf1e96f1bf/displayicon.png",
+          "kda": "22/15/3",
+          "hs": 11
+        },
+        {
+          "riotId": "ALEGRIA#021",
+          "agent": "Omen",
+          "agentImg": "https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/displayicon.png",
+          "kda": "14/16/5",
+          "hs": 22
+        }
+      ]
+    },
+    {
       "id": "24b06db0-dbb9-43d8-99c8-dd0de41be3ee",
       "map": "Haven",
       "mode": "Competitive",
@@ -257,38 +282,6 @@
           "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
           "kda": "12/18/17",
           "hs": 25
-        }
-      ]
-    },
-    {
-      "id": "e799ab28-2c5b-4161-9472-919835e8de67",
-      "map": "Pearl",
-      "mode": "Competitive",
-      "started_at": 1771645194000,
-      "score": "9-3",
-      "result": "VITÓRIA",
-      "team_color": "Blue",
-      "squad": [
-        {
-          "riotId": "ALEGRIA#021",
-          "agent": "Tejo",
-          "agentImg": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/displayicon.png",
-          "kda": "4/5/1",
-          "hs": 7
-        },
-        {
-          "riotId": "Mahoraga#Chess",
-          "agent": "Brimstone",
-          "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
-          "kda": "14/6/7",
-          "hs": 14
-        },
-        {
-          "riotId": "OUSADIA#013",
-          "agent": "Jett",
-          "agentImg": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png",
-          "kda": "5/7/2",
-          "hs": 38
         }
       ]
     }
