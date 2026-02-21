@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771703414361,
+  "updatedAt": 1771705867303,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -44,13 +44,13 @@
       "riotId": "PDL CH1TUZ#666",
       "roleRaw": "Flex",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/PDL%20CH1TUZ%23666/overview",
-      "level": 208,
+      "level": 209,
       "card": "https://media.valorant-api.com/playercards/33f3c143-4da0-b595-5f70-faa2ab7eba3e/smallart.png",
       "currentRank": "Gold 2",
       "peakRank": "Gold 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/13/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "6437301e-6456-4027-8817-5a57e471c27f",
+      "lastMatchId": "07467598-cbe9-4769-8eec-54df75f76bde",
       "apiError": false
     },
     {
