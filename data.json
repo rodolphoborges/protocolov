@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771651907656,
+  "updatedAt": 1771654076514,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -11,7 +11,7 @@
       "peakRank": "Diamond 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/15/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "298d33cc-55b6-49f3-8697-9aeec9201227",
+      "lastMatchId": "59682fb0-f34c-43b8-9d51-b9bbfc743e64",
       "apiError": false
     },
     {
@@ -37,7 +37,7 @@
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/16/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "298d33cc-55b6-49f3-8697-9aeec9201227",
+      "lastMatchId": "59682fb0-f34c-43b8-9d51-b9bbfc743e64",
       "apiError": false
     },
     {
@@ -186,6 +186,31 @@
   ],
   "operations": [
     {
+      "id": "59682fb0-f34c-43b8-9d51-b9bbfc743e64",
+      "map": "Abyss",
+      "mode": "Competitive",
+      "started_at": 1771649401000,
+      "score": "10-13",
+      "result": "DERROTA",
+      "team_color": "Blue",
+      "squad": [
+        {
+          "riotId": "OUSADIA#013",
+          "agent": "Jett",
+          "agentImg": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png",
+          "kda": "17/20/5",
+          "hs": 22
+        },
+        {
+          "riotId": "Mahoraga#Chess",
+          "agent": "Brimstone",
+          "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
+          "kda": "13/16/11",
+          "hs": 29
+        }
+      ]
+    },
+    {
       "id": "298d33cc-55b6-49f3-8697-9aeec9201227",
       "map": "Haven",
       "mode": "Competitive",
@@ -264,31 +289,6 @@
           "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
           "kda": "28/15/5",
           "hs": 27
-        }
-      ]
-    },
-    {
-      "id": "75e0957d-0376-4ac7-ad87-18ae3e3dfaaf",
-      "map": "Split",
-      "mode": "Competitive",
-      "started_at": 1770687522000,
-      "score": "16-14",
-      "result": "VITÓRIA",
-      "team_color": "Blue",
-      "squad": [
-        {
-          "riotId": "Vduart#MEE",
-          "agent": "Reyna",
-          "agentImg": "https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/displayicon.png",
-          "kda": "16/22/10",
-          "hs": 12
-        },
-        {
-          "riotId": "ALEGRIA#021",
-          "agent": "Skye",
-          "agentImg": "https://media.valorant-api.com/agents/6f2a04ca-43e0-be17-7f36-b3908627744d/displayicon.png",
-          "kda": "15/20/10",
-          "hs": 17
         }
       ]
     }
