@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771691712378,
+  "updatedAt": 1771695058164,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -63,7 +63,7 @@
       "peakRank": "Diamond 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/14/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "d4dd508e-3606-43bb-a5ea-f26e4b326710",
+      "lastMatchId": "e73cce11-cd9c-4a4c-987f-32c300391fc7",
       "apiError": false
     },
     {
@@ -76,7 +76,7 @@
       "peakRank": "Platinum 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/16/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "dccb3aee-1aac-4eb6-99c5-d6f55712cc0d",
+      "lastMatchId": "0d171929-d79d-4cbe-a5bb-5b697c6e9159",
       "apiError": false
     },
     {
@@ -137,11 +137,11 @@
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Fadinha%20Do%20FF%23nobru/overview",
       "level": 309,
       "card": "https://media.valorant-api.com/playercards/41244f42-43f5-f795-9be8-d2b9edba458a/smallart.png",
-      "currentRank": "Silver 2",
+      "currentRank": "Silver 3",
       "peakRank": "Platinum 2",
-      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/10/smallicon.png",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/11/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "c37043ab-6f82-47bd-b237-c049b9f61eb5",
+      "lastMatchId": "a730f6c9-a994-4b74-bee7-e25409a1ed36",
       "apiError": false
     },
     {
