@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771710710956,
+  "updatedAt": 1771713000875,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -135,13 +135,13 @@
       "riotId": "Fadinha Do FF #nobru",
       "roleRaw": "Duelista",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Fadinha%20Do%20FF%23nobru/overview",
-      "level": 309,
+      "level": 310,
       "card": "https://media.valorant-api.com/playercards/41244f42-43f5-f795-9be8-d2b9edba458a/smallart.png",
       "currentRank": "Silver 3",
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/11/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "a730f6c9-a994-4b74-bee7-e25409a1ed36",
+      "lastMatchId": "1631d7da-c462-43e8-bc9c-dc25fb3a1b94",
       "apiError": false
     },
     {
