@@ -1,5 +1,30 @@
 [
   {
+    "id": "efa228c5-44ea-4ea9-9ddc-4b78265b9ab9",
+    "map": "Corrode",
+    "mode": "Competitive",
+    "started_at": 1771696548000,
+    "score": "13-7",
+    "result": "DERROTA",
+    "team_color": "Red",
+    "squad": [
+      {
+        "riotId": "OUSADIA#013",
+        "agent": "Astra",
+        "agentImg": "https://media.valorant-api.com/agents/41fb69c1-4189-7b37-f117-bcaf1e96f1bf/displayicon.png",
+        "kda": "22/15/3",
+        "hs": 11
+      },
+      {
+        "riotId": "ALEGRIA#021",
+        "agent": "Omen",
+        "agentImg": "https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/displayicon.png",
+        "kda": "14/16/5",
+        "hs": 22
+      }
+    ]
+  },
+  {
     "id": "24b06db0-dbb9-43d8-99c8-dd0de41be3ee",
     "map": "Haven",
     "mode": "Competitive",
