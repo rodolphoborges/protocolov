@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771734882123,
+  "updatedAt": 1771738950989,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -11,20 +11,20 @@
       "peakRank": "Diamond 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/14/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "af663d39-a687-43d4-976c-0b2507c7d523",
+      "lastMatchId": "64579208-13ee-40fe-94db-11ad29523aaa",
       "apiError": false
     },
     {
       "riotId": "ALEGRIA#021",
       "roleRaw": "Controlador",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/ALEGRIA%23021/overview",
-      "level": 484,
+      "level": 485,
       "card": "https://media.valorant-api.com/playercards/62ec8878-45d9-aefe-ac50-ba8e3d8c2a0f/smallart.png",
       "currentRank": "Gold 1",
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "af663d39-a687-43d4-976c-0b2507c7d523",
+      "lastMatchId": "64579208-13ee-40fe-94db-11ad29523aaa",
       "apiError": false
     },
     {
@@ -37,7 +37,7 @@
       "peakRank": "Platinum 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/17/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "af663d39-a687-43d4-976c-0b2507c7d523",
+      "lastMatchId": "64579208-13ee-40fe-94db-11ad29523aaa",
       "apiError": false
     },
     {
@@ -136,12 +136,12 @@
       "roleRaw": "Duelista",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Fadinha%20Do%20FF%23nobru/overview",
       "level": 310,
-      "card": "https://media.valorant-api.com/playercards/41244f42-43f5-f795-9be8-d2b9edba458a/smallart.png",
+      "card": "https://media.valorant-api.com/playercards/5b338357-4ee4-b112-a050-bcbf542ad9ba/smallart.png",
       "currentRank": "Silver 3",
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/11/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "2fccefbe-00b1-4a83-8fcb-f58e151e978e",
+      "lastMatchId": "439e2b66-c00f-45f1-a866-e24c867d3e55",
       "apiError": false
     },
     {
@@ -185,6 +185,38 @@
     }
   ],
   "operations": [
+    {
+      "id": "64579208-13ee-40fe-94db-11ad29523aaa",
+      "map": "Pearl",
+      "mode": "Competitive",
+      "started_at": 1771733823000,
+      "score": "16-14",
+      "result": "VITÓRIA",
+      "team_color": "Blue",
+      "squad": [
+        {
+          "riotId": "ALEGRIA#021",
+          "agent": "Sage",
+          "agentImg": "https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/displayicon.png",
+          "kda": "11/20/14",
+          "hs": 17
+        },
+        {
+          "riotId": "Mahoraga#Chess",
+          "agent": "Brimstone",
+          "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
+          "kda": "18/20/16",
+          "hs": 12
+        },
+        {
+          "riotId": "OUSADIA#013",
+          "agent": "Tejo",
+          "agentImg": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/displayicon.png",
+          "kda": "18/17/14",
+          "hs": 13
+        }
+      ]
+    },
     {
       "id": "af663d39-a687-43d4-976c-0b2507c7d523",
       "map": "Split",
@@ -264,31 +296,6 @@
           "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
           "kda": "14/16/10",
           "hs": 14
-        }
-      ]
-    },
-    {
-      "id": "59682fb0-f34c-43b8-9d51-b9bbfc743e64",
-      "map": "Abyss",
-      "mode": "Competitive",
-      "started_at": 1771649401000,
-      "score": "10-13",
-      "result": "DERROTA",
-      "team_color": "Blue",
-      "squad": [
-        {
-          "riotId": "OUSADIA#013",
-          "agent": "Jett",
-          "agentImg": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png",
-          "kda": "17/20/5",
-          "hs": 22
-        },
-        {
-          "riotId": "Mahoraga#Chess",
-          "agent": "Brimstone",
-          "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
-          "kda": "13/16/11",
-          "hs": 29
         }
       ]
     }
