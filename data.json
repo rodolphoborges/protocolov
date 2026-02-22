@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771764943466,
+  "updatedAt": 1771768048176,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -124,11 +124,11 @@
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Fadinha%20Do%20FF%23nobru/overview",
       "level": 311,
       "card": "https://media.valorant-api.com/playercards/5b338357-4ee4-b112-a050-bcbf542ad9ba/smallart.png",
-      "currentRank": "Silver 3",
+      "currentRank": "Silver 2",
       "peakRank": "Platinum 2",
-      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/11/smallicon.png",
+      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/10/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "64dad4ce-6ae6-4f95-9f45-0e62eeec69c7",
+      "lastMatchId": "d25cef48-0003-423e-a039-3dda7eee0eec",
       "apiError": false
     },
     {
