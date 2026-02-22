@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771800949093,
+  "updatedAt": 1771803043218,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -31,13 +31,13 @@
       "riotId": "Mahoraga#Chess",
       "roleRaw": "Controlador",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Mahoraga%23Chess/overview",
-      "level": 190,
+      "level": 191,
       "card": "https://media.valorant-api.com/playercards/c06e6a9b-4ba2-bbfd-b150-0c8a2a9dbc1e/smallart.png",
       "currentRank": "Platinum 3",
       "peakRank": "Platinum 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/17/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "64579208-13ee-40fe-94db-11ad29523aaa",
+      "lastMatchId": "e3c037b2-b171-41d6-9587-b7c350421c0f",
       "apiError": false
     },
     {
