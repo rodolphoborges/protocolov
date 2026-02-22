@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771738950989,
+  "updatedAt": 1771740653282,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -11,7 +11,7 @@
       "peakRank": "Diamond 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/14/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "64579208-13ee-40fe-94db-11ad29523aaa",
+      "lastMatchId": "6f81ee20-0056-4e1a-8adf-8672cf82dc5e",
       "apiError": false
     },
     {
@@ -24,7 +24,7 @@
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "64579208-13ee-40fe-94db-11ad29523aaa",
+      "lastMatchId": "6f81ee20-0056-4e1a-8adf-8672cf82dc5e",
       "apiError": false
     },
     {
@@ -186,6 +186,31 @@
   ],
   "operations": [
     {
+      "id": "6f81ee20-0056-4e1a-8adf-8672cf82dc5e",
+      "map": "Breeze",
+      "mode": "Competitive",
+      "started_at": 1771737843000,
+      "score": "13-11",
+      "result": "DERROTA",
+      "team_color": "Red",
+      "squad": [
+        {
+          "riotId": "ALEGRIA#021",
+          "agent": "Sage",
+          "agentImg": "https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/displayicon.png",
+          "kda": "16/14/10",
+          "hs": 21
+        },
+        {
+          "riotId": "OUSADIA#013",
+          "agent": "Viper",
+          "agentImg": "https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/displayicon.png",
+          "kda": "18/19/6",
+          "hs": 22
+        }
+      ]
+    },
+    {
       "id": "64579208-13ee-40fe-94db-11ad29523aaa",
       "map": "Pearl",
       "mode": "Competitive",
@@ -271,31 +296,6 @@
           "agentImg": "https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/displayicon.png",
           "kda": "14/16/5",
           "hs": 22
-        }
-      ]
-    },
-    {
-      "id": "24b06db0-dbb9-43d8-99c8-dd0de41be3ee",
-      "map": "Haven",
-      "mode": "Competitive",
-      "started_at": 1771651880000,
-      "score": "13-9",
-      "result": "VITÓRIA",
-      "team_color": "Blue",
-      "squad": [
-        {
-          "riotId": "OUSADIA#013",
-          "agent": "Tejo",
-          "agentImg": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/displayicon.png",
-          "kda": "13/16/5",
-          "hs": 15
-        },
-        {
-          "riotId": "Mahoraga#Chess",
-          "agent": "Brimstone",
-          "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
-          "kda": "14/16/10",
-          "hs": 14
         }
       ]
     }
