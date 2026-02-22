@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771803043218,
+  "updatedAt": 1771804501920,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -37,7 +37,7 @@
       "peakRank": "Platinum 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/17/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "e3c037b2-b171-41d6-9587-b7c350421c0f",
+      "lastMatchId": "aa25c6b4-86a4-4f27-9421-d376c73039b5",
       "apiError": false
     },
     {
@@ -109,13 +109,13 @@
       "riotId": "Sunflower#Salut",
       "roleRaw": "Sentinela",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Sunflower%23Salut/overview",
-      "level": 235,
+      "level": 236,
       "card": "https://media.valorant-api.com/playercards/5dbce150-4e13-9f32-06cb-9ead45c8a258/smallart.png",
       "currentRank": "Gold 1",
       "peakRank": "Gold 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "63164018-66d3-4cc7-b226-bc41d7420092",
+      "lastMatchId": "07a6d859-2f5e-4f10-b65b-e2093e87b9bf",
       "apiError": false
     },
     {
