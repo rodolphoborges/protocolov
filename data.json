@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771789803058,
+  "updatedAt": 1771792323470,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -57,13 +57,13 @@
       "riotId": "TDAH IsNotAlex#REN",
       "roleRaw": "Iniciador",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/TDAH%20IsNotAlex%23REN/overview",
-      "level": 466,
+      "level": 467,
       "card": "https://media.valorant-api.com/playercards/cd87781f-4d21-cde6-959c-28b61b882fa3/smallart.png",
       "currentRank": "Gold 3",
       "peakRank": "Diamond 3",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/14/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "f7db1985-c520-46ce-be11-910d2e32fb69",
+      "lastMatchId": "ba123b6e-9de7-451b-b371-49ba1475c82c",
       "apiError": false
     },
     {
@@ -123,12 +123,12 @@
       "roleRaw": "Duelista",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Fadinha%20Do%20FF%23nobru/overview",
       "level": 311,
-      "card": "https://media.valorant-api.com/playercards/5b338357-4ee4-b112-a050-bcbf542ad9ba/smallart.png",
+      "card": "https://media.valorant-api.com/playercards/42d080df-41c6-4c11-ab17-948cb440bf6c/smallart.png",
       "currentRank": "Silver 3",
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/11/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "3b76f3c8-d4ac-48d1-87e7-bd9b99d55fe8",
+      "lastMatchId": "9f8d6f1e-49d5-496e-b152-38a5e9d596f8",
       "apiError": false
     },
     {
