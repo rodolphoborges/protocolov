@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771740653282,
+  "updatedAt": 1771741122644,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -119,19 +119,6 @@
       "apiError": false
     },
     {
-      "riotId": "Jjioz #8335",
-      "roleRaw": "Duelista",
-      "trackerLink": "https://tracker.gg/valorant/profile/riot/Jjioz%238335/overview",
-      "level": 260,
-      "card": "https://media.valorant-api.com/playercards/7b6a7b87-4c88-97af-2506-7784d35df022/smallart.png",
-      "currentRank": "Diamond 2",
-      "peakRank": "Ascendant 2",
-      "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/19/smallicon.png",
-      "peakRankIcon": "",
-      "lastMatchId": "252e16b9-0445-4580-92d7-de4748dbbefe",
-      "apiError": true
-    },
-    {
       "riotId": "Fadinha Do FF #nobru",
       "roleRaw": "Duelista",
       "trackerLink": "https://tracker.gg/valorant/profile/riot/Fadinha%20Do%20FF%23nobru/overview",
@@ -143,19 +130,6 @@
       "peakRankIcon": "",
       "lastMatchId": "439e2b66-c00f-45f1-a866-e24c867d3e55",
       "apiError": false
-    },
-    {
-      "riotId": "resenhar#bct ( temporaria )",
-      "roleRaw": "Flex",
-      "trackerLink": "https://tracker.gg/valorant/profile/riot/resenhar%23bct%20(%20temporaria%20)/overview",
-      "level": "--",
-      "card": "https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png",
-      "currentRank": "Sem Rank",
-      "peakRank": "Sem Rank",
-      "currentRankIcon": "",
-      "peakRankIcon": "",
-      "lastMatchId": null,
-      "apiError": true
     },
     {
       "riotId": "strawberry#c4ke",
