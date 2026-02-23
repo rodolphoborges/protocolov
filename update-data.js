@@ -5,8 +5,8 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 1. DELAY REDUZIDO: Como vamos fazer muito menos requisições, podemos baixar para 2 segundos.
-const REQUEST_DELAY = 3500; 
+// Delay seguro de 2 segundos. Como temos poucas requisições agora, será super rápido.
+const REQUEST_DELAY = 2000; 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function smartFetch(url, headers, retries = 2) {
@@ -43,29 +43,20 @@ async function run() {
         console.log('--- PROTOCOLO V: SUPABASE SYNC ONLINE ---');
         console.log('1. A buscar inscritos e memória de operações no banco de dados...');
         
-        // Busca os jogadores
-        const { data: records, error: dbError } = await supabase.from('players').select('riot_id, role_raw');
+        // Puxa TODOS os dados (para podermos reutilizar Ranks de quem não jogou)
+        const { data: records, error: dbError } = await supabase.from('players').select('*');
         if (dbError) throw new Error('Erro a ler jogadores do Supabase');
 
-        // 2. NOVA LÓGICA: Busca as últimas 500 operações salvas para evitar repetição
-        const { data: opsRecords } = await supabase
-            .from('operations')
-            .select('id')
-            .order('started_at', { ascending: false })
-            .limit(500);
-        
-        // Cria um "Dicionário" rápido com os IDs das partidas que já temos no banco
+        const { data: opsRecords } = await supabase.from('operations').select('id').order('started_at', { ascending: false }).limit(500);
         const knownMatchIds = new Set(opsRecords ? opsRecords.map(op => op.id) : []);
-        console.log(`   -> ${knownMatchIds.size} operações em cache local. Ignorando requisições repetidas.`);
 
         let playersToFetch = [];
         let rosterMap = new Set(); 
-        
         const riotIdRegex = /^[^#]{2,16}#[a-zA-Z0-9]{3,5}$/;
 
         for (const record of records) {
             if (record.riot_id && riotIdRegex.test(record.riot_id.trim())) {
-                playersToFetch.push({ role: record.role_raw, riotId: record.riot_id.trim() });
+                playersToFetch.push({ role: record.role_raw, riotId: record.riot_id.trim(), dbRecord: record });
                 rosterMap.add(record.riot_id.trim().toLowerCase().replace(/\s/g, ''));
             }
         }
@@ -81,18 +72,27 @@ async function run() {
             const safeName = encodeURIComponent(name.trim());
             const safeTag = encodeURIComponent(tag.trim());
             
+            // Inicia com os dados antigos da base de dados (reutilização)
             let playerData = {
                 riot_id: p.riotId, role_raw: p.role,
-                tracker_link: `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
+                tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
+                level: p.dbRecord.level,
+                card_url: p.dbRecord.card_url,
+                current_rank: p.dbRecord.current_rank || 'Pendente',
+                peak_rank: p.dbRecord.peak_rank,
+                current_rank_icon: p.dbRecord.current_rank_icon,
+                peak_rank_icon: p.dbRecord.peak_rank_icon,
                 api_error: false,
-                updated_at: new Date().toISOString() // <-- Força a atualização do relógio!
+                updated_at: new Date().toISOString()
             };
 
             let region = 'br'; 
+            let hasNewMatches = false;
 
             try {
-                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=10`, headers);
-                if (listRes.status === 404) listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?size=10`, headers);
+                // Reduzimos para as últimas 5 partidas (ninguém joga mais de 5 partidas em 30 min)
+                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=5`, headers);
+                if (listRes.status === 404) listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?size=5`, headers);
 
                 if (listRes.status === 200) {
                     const listData = await listRes.json();
@@ -102,51 +102,45 @@ async function run() {
                         for (const matchCandidate of recentCompMatches) {
                             const matchId = matchCandidate.metadata.matchid;
                             
-                            // 3. A GRANDE OTIMIZAÇÃO: Se a partida já está no nosso banco de dados, NÃO FAZ O FETCH! Pula para a próxima.
-                            if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) {
-                                continue; 
-                            }
+                            if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
                             
-                            const detailRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/match/${matchId}`, headers);
-                            if (detailRes.status === 200) {
-                                const detailData = await detailRes.json();
-                                let bestMatch = detailData.data;
-                                if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) {
-                                    bestMatch.players = bestMatch.players.all_players;
-                                }
-                                allMatchesMap.set(matchId, bestMatch);
+                            hasNewMatches = true;
+
+                            // A GRANDE MUDANÇA: Usar os dados da lista diretamente! Zero requisições extras.
+                            let bestMatch = matchCandidate;
+                            if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) {
+                                bestMatch.players = bestMatch.players.all_players;
                             }
+                            allMatchesMap.set(matchId, bestMatch);
                         }
                     }
                 } else {
                     playerData.api_error = true;
                 }
 
-                const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
-                if (accRes.status === 200) {
-                    const accData = await accRes.json();
-                    playerData.level = accData.data.account_level;
-                    playerData.card_url = accData.data.card.small;
-                    region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
-                }
+                // Só gasta requisições na conta e rank se o jogador for novo ou tiver jogado partidas novas
+                const isMissingData = !playerData.level || !playerData.current_rank || playerData.current_rank === 'Processando...';
 
-                const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
-                if (mmrRes.status === 200) {
-                    const mmrData = await mmrRes.json();
-                    
-                    // 1. Elo Atual (A API já dá a imagem pronta)
-                    if (mmrData.data.current_data?.currenttierpatched) {
-                        playerData.current_rank = mmrData.data.current_data.currenttierpatched;
-                        playerData.current_rank_icon = mmrData.data.current_data.images.small;
+                if ((hasNewMatches || isMissingData) && !playerData.api_error) {
+                    const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
+                    if (accRes.status === 200) {
+                        const accData = await accRes.json();
+                        playerData.level = accData.data.account_level;
+                        playerData.card_url = accData.data.card.small;
+                        region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
                     }
-                    
-                    // 2. Rank Máximo (Temos de montar a imagem usando o número do 'tier')
-                    if (mmrData.data.highest_rank?.patched_tier) {
-                        playerData.peak_rank = mmrData.data.highest_rank.patched_tier;
-                        
-                        const peakTier = mmrData.data.highest_rank.tier;
-                        if (peakTier) {
-                            playerData.peak_rank_icon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
+
+                    const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
+                    if (mmrRes.status === 200) {
+                        const mmrData = await mmrRes.json();
+                        if (mmrData.data.current_data?.currenttierpatched) {
+                            playerData.current_rank = mmrData.data.current_data.currenttierpatched;
+                            playerData.current_rank_icon = mmrData.data.current_data.images.small;
+                        }
+                        if (mmrData.data.highest_rank?.patched_tier) {
+                            playerData.peak_rank = mmrData.data.highest_rank.patched_tier;
+                            const peakTier = mmrData.data.highest_rank.tier;
+                            if (peakTier) playerData.peak_rank_icon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
                         }
                     }
                 }
@@ -159,7 +153,7 @@ async function run() {
             finalPlayersData.push(playerData);
         }
 
-        console.log(`3. A calcular sinergia de ${allMatchesMap.size} NOVAS partidas únicas...`);
+        console.log(`3. A processar sinergia de operações...`);
         let operations = [];
 
         for (const [matchId, match] of allMatchesMap) {
@@ -180,11 +174,9 @@ async function run() {
                     squad: squadMembers.map(m => {
                         const totalHits = m.stats.headshots + m.stats.bodyshots + m.stats.legshots;
                         const hsPercent = totalHits > 0 ? Math.round((m.stats.headshots / totalHits) * 100) : 0;
-                        
                         return {
                             riotId: `${m.name}#${m.tag}`, agent: m.character, agentImg: m.assets.agent.small,
-                            kda: `${m.stats.kills}/${m.stats.deaths}/${m.stats.assists}`,
-                            hs: hsPercent
+                            kda: `${m.stats.kills}/${m.stats.deaths}/${m.stats.assists}`, hs: hsPercent
                         };
                     })
                 });
