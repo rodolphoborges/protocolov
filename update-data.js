@@ -91,7 +91,7 @@ async function run() {
 
             try {
                 // Reduzimos para as últimas 5 partidas (ninguém joga mais de 5 partidas em 30 min)
-                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=40`, headers);
+                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=10`, headers);
                 if (listRes.status === 404) listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?size=40`, headers);
 
                 if (listRes.status === 200) {
