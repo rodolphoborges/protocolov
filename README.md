@@ -81,44 +81,41 @@ CREATE POLICY "Leitura Publica" ON players FOR SELECT USING (true);
 CREATE POLICY "Leitura Publica" ON operations FOR SELECT USING (true);
 CREATE POLICY "Leitura Publica" ON operation_squads FOR SELECT USING (true);
 CREATE POLICY "Permitir Inscricao" ON players FOR INSERT WITH CHECK (true);
+```
 
-```### 2. Configurar o Frontend
-No Supabase, vá a Project Settings > API e copie o Project URL e a anon / public key.
+### 2. Configurar o Frontend
+1. No Supabase, vá a **Project Settings > API** e copie o **Project URL** e a **anon / public key**.
+2. Abra o ficheiro `script.js` e substitua as variáveis no topo do ficheiro por estas chaves.
 
-Abra o ficheiro script.js e substitua as variáveis no topo do ficheiro por estas chaves.
-
-3. Configurar os Segredos do GitHub (Automação)
+### 3. Configurar os Segredos do GitHub (Automação)
 O robô precisa de permissões especiais para ler a API do Valorant e gravar na base de dados.
+1. Gere uma chave gratuita na API do [HenrikDev](https://github.com/Henrik-3/unofficial-valorant-api).
+2. Vá a **Project Settings > API** no Supabase e copie a **service_role / secret key** (NUNCA partilhe esta chave publicamente).
+3. No seu repositório GitHub, vá a **Settings > Secrets and variables > Actions** e adicione:
+   - `HENRIK_API_KEY`: A sua chave do HenrikDev.
+   - `SUPABASE_URL`: O seu URL do Supabase.
+   - `SUPABASE_SERVICE_KEY`: A sua chave secreta `service_role`.
 
-Gere uma chave gratuita na API do HenrikDev.
+---
 
-Vá a Project Settings > API no Supabase e copie a service_role / secret key (NUNCA partilhe esta chave publicamente).
+## 💻 Como Executar Localmente
 
-No seu repositório GitHub, vá a Settings > Secrets and variables > Actions e adicione:
-
-HENRIK_API_KEY: Sua chave do HenrikDev.
-
-SUPABASE_URL: O seu URL do Supabase.
-
-SUPABASE_SERVICE_KEY: A sua chave secreta service_role.
-
-💻 Como Executar Localmente
 Para testar o visual e forçar a atualização de dados na sua máquina:
 
-Clone o repositório.
+1. Clone o repositório.
+2. Instale as dependências do motor de atualização:
+   ```bash
+   npm install
+   ```
+3. Crie um ficheiro `.env` na raiz com as suas credenciais (`SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `HENRIK_API_KEY`).
+4. Execute o script de sincronização manualmente:
+   ```bash
+   node update-data.js
+   ```
+5. Abra o ficheiro `index.html` no seu navegador ou utilize a extensão *Live Server* do VS Code.
 
-Instale as dependências do motor de atualização:
-
-Bash
-npm install
-Crie um ficheiro .env na raiz com as suas credenciais (SUPABASE_URL, SUPABASE_SERVICE_KEY, HENRIK_API_KEY).
-
-Execute o script de sincronização manualmente:
-
-Bash
-node update-data.js
-Abra o ficheiro index.html no seu navegador ou utilize a extensão Live Server do VS Code.
+---
 
 <p align="center">
-<small>Desenvolvido para a comunidade. GLHF. 👊</small>
+  <small>Desenvolvido para a comunidade. GLHF. 👊</small>
 </p>
