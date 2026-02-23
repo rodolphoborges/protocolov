@@ -7,7 +7,7 @@
     "start": "node update-data.js"
   },
   "dependencies": {
-    "csv-parse": "^5.5.3"
+    "@supabase/supabase-js": "^2.39.0"
   },
   "engines": {
     "node": ">=18.0.0"
