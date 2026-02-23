@@ -1,0 +1,34 @@
+[
+  {
+    "id": "fd762dd9-3294-44bb-941b-ddd7825d2122",
+    "map": "Haven",
+    "mode": "Competitive",
+    "started_at": 1771808663000,
+    "score": "13-9",
+    "result": "DERROTA",
+    "team_color": "Red",
+    "squad": [
+      {
+        "riotId": "OUSADIA#013",
+        "agent": "Jett",
+        "agentImg": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png",
+        "kda": "10/19/3",
+        "hs": 9
+      },
+      {
+        "riotId": "ALEGRIA#021",
+        "agent": "Omen",
+        "agentImg": "https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/displayicon.png",
+        "kda": "11/16/9",
+        "hs": 17
+      },
+      {
+        "riotId": "Fadinha Do FF#nobru",
+        "agent": "Neon",
+        "agentImg": "https://media.valorant-api.com/agents/bb2a4828-46eb-8cd1-e765-15848195d751/displayicon.png",
+        "kda": "19/20/3",
+        "hs": 17
+      }
+    ]
+  }
+]
