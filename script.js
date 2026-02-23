@@ -161,7 +161,6 @@ function renderOperations(operations) {
         return;
     }
 
-    // Criamos uma única coluna que vai empilhar as barras horizontais
     let html = '<div class="col-12 d-flex flex-column gap-3">'; 
     
     operations.forEach(op => { 
@@ -170,33 +169,53 @@ function renderOperations(operations) {
         const resultColor = isWin ? 'text-success' : 'text-danger';
         const date = new Date(op.started_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         
-        let squadHTML = op.squad.map(m => `
-            <div class="d-flex align-items-center gap-2 bg-dark p-2 rounded border border-secondary" style="min-width: 130px;">
-                <img src="${safeUrl(m.agentImg, '')}" class="rounded" style="width: 32px; height: 32px; object-fit: cover;" onerror="this.onerror=null; this.src='https://media.valorant-api.com/agents/default.png';">
-                <div class="lh-1">
-                    <div class="fw-bold text-white mb-1" style="font-size: 0.85rem;">${escapeHtml(m.riotId.split('#')[0])}</div>
-                    <div class="text-muted" style="font-size: 0.7rem;">${escapeHtml(m.kda)} <span class="text-secondary mx-1">|</span> ${m.hs}% HS</div>
-                </div>
-            </div>
-        `).join('');
+        // NOVO: Mini-tabela de jogadores estruturada e alinhada
+        let squadHTML = '<div class="d-flex flex-column flex-grow-1 ms-md-auto" style="max-width: 500px;">';
+        
+        op.squad.forEach((m, index) => {
+            const isLast = index === op.squad.length - 1;
+            const borderClass = isLast ? '' : 'border-bottom border-secondary border-opacity-25';
+            
+            // Separa o KDA para colorir as mortes a vermelho e facilitar a leitura
+            const [kills, deaths, assists] = m.kda.split('/');
+            const kdaFormatted = `<span class="text-white">${kills}</span><span class="text-muted mx-1">/</span><span class="text-danger">${deaths}</span><span class="text-muted mx-1">/</span><span class="text-white">${assists}</span>`;
 
+            squadHTML += `
+                <div class="d-flex align-items-center justify-content-between py-2 ${borderClass}">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="${safeUrl(m.agentImg, '')}" class="rounded" style="width: 30px; height: 30px; object-fit: cover;" onerror="this.onerror=null; this.src='https://media.valorant-api.com/agents/default.png';">
+                        <span class="fw-bold text-light text-truncate" style="max-width: 120px; font-size: 0.95rem;">${escapeHtml(m.riotId.split('#')[0])}</span>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-4 font-monospace" style="font-size: 0.9rem;">
+                        <div style="width: 80px;" class="text-center bg-dark rounded px-2 py-1">${kdaFormatted}</div>
+                        <div style="width: 60px;" class="text-end text-muted"><span class="text-light">${m.hs}%</span> <span style="font-size:0.65rem">HS</span></div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        squadHTML += '</div>';
+
+        // Layout Principal da Linha
         html += `
-            <div class="mission-row ${resultClass} p-3 rounded d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-3">
+            <div class="mission-row ${resultClass} p-3 p-md-4 rounded d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4">
                 
-                <div class="d-flex align-items-center gap-4">
-                    <div class="text-center" style="width: 70px;">
-                        <div class="fs-4 fw-bold ${resultColor} lh-1">${escapeHtml(op.score)}</div>
-                        <div class="small text-muted text-uppercase mt-1" style="font-size: 0.7rem;">${escapeHtml(op.result)}</div>
+                <div class="d-flex align-items-center gap-4" style="min-width: 220px;">
+                    <div class="text-center" style="width: 80px;">
+                        <div class="fs-2 fw-bold ${resultColor} lh-1" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;">${escapeHtml(op.score)}</div>
+                        <div class="small text-muted text-uppercase mt-2 fw-bold" style="font-size: 0.75rem; letter-spacing: 2px;">${escapeHtml(op.result)}</div>
                     </div>
-                    <div class="border-start border-secondary ps-4">
-                        <div class="fs-5 fw-bold text-white lh-1 mb-1">${escapeHtml(op.map)}</div>
-                        <div class="text-muted" style="font-size: 0.8rem;">${date}</div>
+                    <div class="border-start border-secondary border-opacity-50 ps-4">
+                        <div class="fs-4 fw-bold text-white lh-1 mb-2 text-uppercase" style="letter-spacing: 1px;">${escapeHtml(op.map)}</div>
+                        <div class="text-muted d-flex align-items-center gap-2" style="font-size: 0.85rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
+                            ${date}
+                        </div>
                     </div>
                 </div>
 
-                <div class="d-flex flex-wrap gap-2 justify-content-start justify-content-xl-end">
-                    ${squadHTML}
-                </div>
+                ${squadHTML}
 
             </div>`;
     });
