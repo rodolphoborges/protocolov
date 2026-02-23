@@ -197,8 +197,9 @@ function renderOperations(operations) {
         
         squadHTML += '</div>';
 
+        // A MÁGICA ACONTECE AQUI: Trocamos a <div> exterior por uma <a> apontando para o Tracker.gg
         html += `
-            <div class="mission-row ${resultClass} p-3 p-md-4 rounded d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4">
+            <a href="https://tracker.gg/valorant/match/${op.id}" target="_blank" title="Ver detalhes da partida no Tracker.gg" class="text-decoration-none mission-row ${resultClass} p-3 p-md-4 rounded d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; display: block;">
                 
                 <div class="d-flex align-items-center gap-4" style="min-width: 220px;">
                     <div class="text-center" style="width: 80px;">
@@ -218,7 +219,7 @@ function renderOperations(operations) {
 
                 ${squadHTML}
 
-            </div>`;
+            </a>`;
     });
     
     html += '</div>';
