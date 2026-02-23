@@ -83,9 +83,11 @@ async function fetchCachedData() {
                     riotId: sq.riot_id, agent: sq.agent, agentImg: sq.agent_img, kda: sq.kda, hs: sq.hs_percent
                 }))
             }));
-            (formattedOps);
+            // CORREÇÃO: O nome da função voltou!
+            renderOperations(formattedOps);
         } else if (!opsRes.error) {
-            ([]);
+            // CORREÇÃO: O nome da função voltou!
+            renderOperations([]);
         }
 
     } catch (error) {
