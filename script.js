@@ -94,7 +94,7 @@ function createPlayerCardHTML(player, isWaiting = false) {
     return `
         <div class="col-md-6">
             <div class="player-card ${isWaitingClass}">
-                <img src="${safeCard}" class="player-avatar">
+                <img src="${safeCard}" class="player-avatar" onerror="this.onerror=null; this.src='https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png';">
                 <div class="flex-grow-1">
                     <div class="fw-bold text-white mb-2" style="font-size: 1rem; line-height: 1;">
                         ${player.riotId} 
