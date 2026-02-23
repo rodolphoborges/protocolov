@@ -6,7 +6,7 @@ const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 1. DELAY REDUZIDO: Como vamos fazer muito menos requisições, podemos baixar para 2 segundos.
-const REQUEST_DELAY = 2000; 
+const REQUEST_DELAY = 3500; 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function smartFetch(url, headers, retries = 2) {
