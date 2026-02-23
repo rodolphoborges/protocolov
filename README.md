@@ -82,7 +82,7 @@ CREATE POLICY "Leitura Publica" ON operations FOR SELECT USING (true);
 CREATE POLICY "Leitura Publica" ON operation_squads FOR SELECT USING (true);
 CREATE POLICY "Permitir Inscricao" ON players FOR INSERT WITH CHECK (true);
 
-2. Configurar o Frontend
+```### 2. Configurar o Frontend
 No Supabase, vá a Project Settings > API e copie o Project URL e a anon / public key.
 
 Abra o ficheiro script.js e substitua as variáveis no topo do ficheiro por estas chaves.
