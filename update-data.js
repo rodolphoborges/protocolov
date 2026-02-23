@@ -133,12 +133,21 @@ async function run() {
                 const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
                 if (mmrRes.status === 200) {
                     const mmrData = await mmrRes.json();
+                    
+                    // 1. Elo Atual (A API já dá a imagem pronta)
                     if (mmrData.data.current_data?.currenttierpatched) {
                         playerData.current_rank = mmrData.data.current_data.currenttierpatched;
                         playerData.current_rank_icon = mmrData.data.current_data.images.small;
                     }
+                    
+                    // 2. Rank Máximo (Temos de montar a imagem usando o número do 'tier')
                     if (mmrData.data.highest_rank?.patched_tier) {
                         playerData.peak_rank = mmrData.data.highest_rank.patched_tier;
+                        
+                        const peakTier = mmrData.data.highest_rank.tier;
+                        if (peakTier) {
+                            playerData.peak_rank_icon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
+                        }
                     }
                 }
 
