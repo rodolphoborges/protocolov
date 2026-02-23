@@ -65,7 +65,7 @@ async function fetchCachedData() {
                     if (rolesConfig[role].current < rolesConfig[role].max) {
                         rolesConfig[role].current++;
                         rolesConfig[role].players.push(player);
-                    } else if (rolesConfig[role].waitlist.length < 4) {
+                    } else {
                         rolesConfig[role].waitlist.push(player);
                     }
                     break;
