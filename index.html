@@ -99,7 +99,32 @@
         <a href="https://forms.gle/jULFiyjojXUiN3EcA" target="_blank" class="btn-val">Iniciar Inscrição</a>
     </section>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js"></script>    
+    <section class="container text-center py-5 mb-5 fade-in-section">
+        <h2 class="section-header border-0 justify-content-center d-flex">Pronto para a rankeada?</h2>
+        
+        <form id="recrutamento-form" class="mx-auto" style="max-width: 400px;">
+            <div class="mb-3 text-start">
+                <label class="text-muted small text-uppercase">Riot ID (Ex: OUSADIA#013)</label>
+                <input type="text" id="riotIdInput" class="form-control bg-dark text-white border-secondary" required placeholder="SeuNick#TAG">
+            </div>
+            <div class="mb-3 text-start">
+                <label class="text-muted small text-uppercase">Função Principal</label>
+                <select id="roleInput" class="form-control bg-dark text-white border-secondary" required>
+                    <option value="Controlador">Controlador</option>
+                    <option value="Duelista">Duelista</option>
+                    <option value="Iniciador">Iniciador</option>
+                    <option value="Sentinela">Sentinela</option>
+                    <option value="Flex">Flex</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-val w-100 mt-2" id="submitBtn">Alistar-se</button>
+            <div id="formFeedback" class="mt-3 small"></div>
+        </form>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
 </body>
 </html>
+
 
