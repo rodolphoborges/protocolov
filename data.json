@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1771813076246,
+  "updatedAt": 1771813873279,
   "players": [
     {
       "riotId": "ousadia#013",
@@ -11,7 +11,7 @@
       "peakRank": "Diamond 1",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/14/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "fd762dd9-3294-44bb-941b-ddd7825d2122",
+      "lastMatchId": "711a02d7-5d4b-4694-a6f4-a9d87cb50d91",
       "apiError": false
     },
     {
@@ -24,7 +24,7 @@
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/12/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "fd762dd9-3294-44bb-941b-ddd7825d2122",
+      "lastMatchId": "711a02d7-5d4b-4694-a6f4-a9d87cb50d91",
       "apiError": false
     },
     {
@@ -128,7 +128,7 @@
       "peakRank": "Platinum 2",
       "currentRankIcon": "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/11/smallicon.png",
       "peakRankIcon": "",
-      "lastMatchId": "fd762dd9-3294-44bb-941b-ddd7825d2122",
+      "lastMatchId": "711a02d7-5d4b-4694-a6f4-a9d87cb50d91",
       "apiError": false
     },
     {
@@ -159,6 +159,38 @@
     }
   ],
   "operations": [
+    {
+      "id": "711a02d7-5d4b-4694-a6f4-a9d87cb50d91",
+      "map": "Bind",
+      "mode": "Competitive",
+      "started_at": 1771810884000,
+      "score": "13-11",
+      "result": "VITÓRIA",
+      "team_color": "Blue",
+      "squad": [
+        {
+          "riotId": "ALEGRIA#021",
+          "agent": "Omen",
+          "agentImg": "https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/displayicon.png",
+          "kda": "12/15/11",
+          "hs": 11
+        },
+        {
+          "riotId": "Fadinha Do FF#nobru",
+          "agent": "Neon",
+          "agentImg": "https://media.valorant-api.com/agents/bb2a4828-46eb-8cd1-e765-15848195d751/displayicon.png",
+          "kda": "17/21/7",
+          "hs": 14
+        },
+        {
+          "riotId": "OUSADIA#013",
+          "agent": "Gekko",
+          "agentImg": "https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/displayicon.png",
+          "kda": "18/17/6",
+          "hs": 23
+        }
+      ]
+    },
     {
       "id": "fd762dd9-3294-44bb-941b-ddd7825d2122",
       "map": "Haven",
@@ -245,38 +277,6 @@
           "agentImg": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/displayicon.png",
           "kda": "18/17/14",
           "hs": 13
-        }
-      ]
-    },
-    {
-      "id": "af663d39-a687-43d4-976c-0b2507c7d523",
-      "map": "Split",
-      "mode": "Competitive",
-      "started_at": 1771731446000,
-      "score": "13-9",
-      "result": "DERROTA",
-      "team_color": "Red",
-      "squad": [
-        {
-          "riotId": "ALEGRIA#021",
-          "agent": "Skye",
-          "agentImg": "https://media.valorant-api.com/agents/6f2a04ca-43e0-be17-7f36-b3908627744d/displayicon.png",
-          "kda": "10/19/7",
-          "hs": 17
-        },
-        {
-          "riotId": "OUSADIA#013",
-          "agent": "Chamber",
-          "agentImg": "https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/displayicon.png",
-          "kda": "12/18/3",
-          "hs": 18
-        },
-        {
-          "riotId": "Mahoraga#Chess",
-          "agent": "Brimstone",
-          "agentImg": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
-          "kda": "18/15/10",
-          "hs": 18
         }
       ]
     }
