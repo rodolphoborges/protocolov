@@ -182,7 +182,25 @@ async function run() {
                 });
             }
         }
+        
+        // --- NOVO: LÓGICA DE PONTOS DE SINERGIA ---
+        let newSynergyPoints = {};
+        operations.forEach(op => {
+            op.squad.forEach(m => {
+                newSynergyPoints[m.riotId] = (newSynergyPoints[m.riotId] || 0) + 1;
+            });
+        });
 
+        // Adiciona os pontos novos aos pontos que o jogador já tinha no banco de dados
+        finalPlayersData = finalPlayersData.map(player => {
+            const earnedPoints = newSynergyPoints[player.riot_id] || 0;
+            const currentPoints = player.dbRecord ? (player.dbRecord.synergy_score || 0) : 0;
+            return {
+                ...player,
+                synergy_score: currentPoints + earnedPoints
+            };
+        });
+        // ------------------------------------------
         console.log('4. Guardando dados no Supabase...');
         const { error: pError } = await supabase.from('players').upsert(finalPlayersData, { onConflict: 'riot_id' });
         if (pError) console.error('Erro ao guardar jogadores:', pError);
