@@ -1,8 +1,29 @@
-- name: Roda o script de extração e API
+name: Atualiza Dados da Line-up
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # Roda a cada 30 minutos
+  workflow_dispatch:
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Setup do Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar Dependências
+        run: npm install
+
+      - name: Roda o script de extração e API
         run: node update-data.js
         env:
           HENRIK_API_KEY: ${{ secrets.HENRIK_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-
-      # APAGUE A ETAPA "Commit das mudanças". O robô não precisa mais dar git push!
