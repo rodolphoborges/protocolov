@@ -107,3 +107,24 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 .bg-dark-section .text-muted {
     color: rgba(236, 232, 225, 0.75) !important;
 }
+/* --- ESTILOS DO RELATÓRIO DE MISSÕES (TIMELINE) --- */
+.mission-row {
+    background-color: rgba(20, 20, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.mission-row:hover {
+    background-color: rgba(30, 30, 30, 0.95);
+    transform: translateX(5px); /* Dá um pequeno salto à direita ao passar o rato */
+}
+
+.mission-win {
+    border-left: 4px solid #198754; /* Verde Sucesso */
+    background: linear-gradient(90deg, rgba(25,135,84,0.05) 0%, rgba(0,0,0,0) 50%), rgba(20, 20, 20, 0.8);
+}
+
+.mission-loss {
+    border-left: 4px solid var(--val-red); /* Vermelho Valorant */
+    background: linear-gradient(90deg, rgba(255,70,85,0.05) 0%, rgba(0,0,0,0) 50%), rgba(20, 20, 20, 0.8);
+}
