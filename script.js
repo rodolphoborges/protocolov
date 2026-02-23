@@ -32,14 +32,25 @@ function updateLastSyncTime(playersData) {
     const statusEl = document.getElementById('last-updated-status');
     if (statusEl && lastUpdated) {
         const diffMins = Math.floor((new Date() - lastUpdated) / 60000);
-        statusEl.innerHTML = `<span class="badge bg-dark border border-secondary text-muted px-2 py-1">Sincronizado há ${diffMins} min</span>`;
+        const timeText = diffMins <= 0 ? "agora mesmo" : `há ${diffMins} min`;
+        statusEl.innerHTML = `<span class="badge bg-dark border border-secondary text-muted px-2 py-1">Sincronizado ${timeText}</span>`;
     }
 }
 
 async function fetchCachedData() {
     try {
-        const { data: playersData, error: playersError } = await supabaseClient.from('players').select('*');
-        if (playersError) throw playersError;
+        // Fetch Paralelo para carregar o site duas vezes mais rápido
+        const [playersRes, opsRes] = await Promise.all([
+            supabaseClient.from('players').select('*'),
+            supabaseClient.from('operations')
+                .select(`*, operation_squads(riot_id, agent, agent_img, kda, hs_percent)`)
+                .order('started_at', { ascending: false })
+                .limit(4)
+        ]);
+
+        if (playersRes.error) throw playersRes.error;
+
+        const playersData = playersRes.data;
 
         Object.values(rolesConfig).forEach(role => { role.current = 0; role.players = []; role.waitlist = []; });
 
@@ -63,26 +74,22 @@ async function fetchCachedData() {
         });
         
         renderRoles();
-        updateLastSyncTime(playersData); // Atualiza visualmente o frescor dos dados
+        updateLastSyncTime(playersData); 
 
-        const { data: opsData, error: opsError } = await supabaseClient
-            .from('operations')
-            .select(`*, operation_squads(riot_id, agent, agent_img, kda, hs_percent)`)
-            .order('started_at', { ascending: false })
-            .limit(4);
-
-        if (!opsError) {
-            const formattedOps = opsData.map(op => ({
+        if (!opsRes.error && opsRes.data && opsRes.data.length > 0) {
+            const formattedOps = opsRes.data.map(op => ({
                 id: op.id, map: op.map, started_at: op.started_at, score: op.score, result: op.result,
                 squad: op.operation_squads.map(sq => ({
                     riotId: sq.riot_id, agent: sq.agent, agentImg: sq.agent_img, kda: sq.kda, hs: sq.hs_percent
                 }))
             }));
             renderOperations(formattedOps);
+        } else if (!opsRes.error) {
+            renderOperations([]);
         }
 
     } catch (error) {
-        console.error('Falha:', error);
+        console.error('Falha ao carregar dados:', error);
         document.getElementById('roles-container').innerHTML = `
             <div class="alert alert-danger border-danger bg-transparent text-danger text-center">
                 A carregar sistema ou base de dados vazia. Tente recarregar.
@@ -102,14 +109,28 @@ function createPlayerCardHTML(player, isWaiting = false) {
     const eloHTML = safeRankIcon ? `<img src="${safeRankIcon}" alt="${player.currentRank}" style="width: 20px; height: 20px;"> ${player.currentRank}` : player.currentRank;
     const peakHTML = safePeakIcon ? `<img src="${safePeakIcon}" alt="${player.peak_rank}" style="width: 20px; height: 20px;"> ${player.peak_rank}` : (player.peak_rank || 'Sem Rank');
 
+    // Lógica do Sistema de Sinergia (Karma)
+    const synergyPoints = player.synergy_score || 0;
+    let synergyBadge = '';
+    if (synergyPoints > 10) {
+        synergyBadge = `<span class="badge bg-danger ms-2" title="Jogador muito ativo com a comunidade">🔥 Sinergia: ${synergyPoints}</span>`;
+    } else if (synergyPoints > 0) {
+        synergyBadge = `<span class="badge bg-secondary ms-2" title="Partidas jogadas em grupo">🤝 Sinergia: ${synergyPoints}</span>`;
+    }
+
     return `
         <div class="col-md-6">
             <div class="player-card ${isWaitingClass}">
                 <img src="${safeCard}" class="player-avatar" onerror="this.onerror=null; this.src='https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png';">
                 <div class="flex-grow-1">
-                    <div class="fw-bold text-white mb-2" style="font-size: 1rem; line-height: 1;">
-                        ${player.riotId} 
+                    <div class="fw-bold text-white mb-2 d-flex align-items-center flex-wrap gap-1" style="font-size: 1rem; line-height: 1;">
+                        
+                        <span class="user-select-all" style="cursor: pointer;" onclick="navigator.clipboard.writeText('${player.riotId}'); this.innerHTML='Copiado! ✅'; setTimeout(() => this.innerHTML='${player.riotId} <span class=\\'fs-6 text-muted\\'>📋</span>', 2000);" title="Clique para copiar e adicionar no Valorant">
+                            ${player.riotId} <span class="fs-6 text-muted">📋</span>
+                        </span>
+                        
                         <span class="badge bg-secondary ms-1" style="font-size: 0.6rem;">LVL ${player.level || '--'}</span>
+                        ${synergyBadge}
                         ${warningBadge}
                     </div>
                     <div class="d-flex gap-4">
@@ -118,7 +139,7 @@ function createPlayerCardHTML(player, isWaiting = false) {
                     </div>
                 </div>
                 <div class="ms-auto pe-2">
-                    <a href="${safeTracker}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                    <a href="${safeTracker}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver no Tracker.gg">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                           <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
                           <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
@@ -133,10 +154,8 @@ function renderOperations(operations) {
     const section = document.getElementById('operations-section');
     const container = document.getElementById('operations-container');
     
-    // Mostra sempre a secção
     section.style.display = 'block';
 
-    // Feedback visual elegante caso não haja partidas em equipa recentes
     if(operations.length === 0) {
         container.innerHTML = `<div class="col-12"><div class="alert bg-dark border-secondary text-muted text-center py-4">Nenhuma operação conjunta detetada nas últimas 10 partidas.</div></div>`;
         return;
@@ -233,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('submitBtn');
             const feedback = document.getElementById('formFeedback');
 
-            // Validação visual rápida no frontend antes de enviar
             if (!/^[^#]{2,16}#[a-zA-Z0-9]{3,5}$/.test(riotId)) {
                 feedback.innerHTML = `<span class="text-warning">Formato inválido. Use Nome#TAG.</span>`;
                 return;
