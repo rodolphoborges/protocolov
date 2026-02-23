@@ -1,36 +1,8 @@
-name: Atualiza Dados da Line-up
-
-on:
-  schedule:
-    - cron: '*/30 * * * *' # Roda a cada 30 minutos
-  workflow_dispatch:
-
-jobs:
-  update-data:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v4
-
-      - name: Setup do Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Instalar Dependências
-        run: npm install
-
-      - name: Roda o script de extração e API
+- name: Roda o script de extração e API
         run: node update-data.js
         env:
           HENRIK_API_KEY: ${{ secrets.HENRIK_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
 
-      - name: Commit das mudanças
-        run: |
-          git config --global user.name "GitHub Action Bot"
-          git config --global user.email "action@github.com"
-          git add data.json history/ package-lock.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: Atualiza dados e dependências" && git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:main)
+      # APAGUE A ETAPA "Commit das mudanças". O robô não precisa mais dar git push!
