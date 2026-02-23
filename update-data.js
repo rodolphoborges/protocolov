@@ -5,7 +5,8 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const REQUEST_DELAY = 8000;
+// 1. DELAY REDUZIDO: Como vamos fazer muito menos requisições, podemos baixar para 2 segundos.
+const REQUEST_DELAY = 2000; 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function smartFetch(url, headers, retries = 2) {
@@ -13,7 +14,6 @@ async function smartFetch(url, headers, retries = 2) {
     let response = null; 
     let error = null;
     
-    // Adicionado Timeout de 30s
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -41,23 +41,32 @@ async function smartFetch(url, headers, retries = 2) {
 async function run() {
     try {
         console.log('--- PROTOCOLO V: SUPABASE SYNC ONLINE ---');
-        console.log('1. A buscar inscritos no banco de dados...');
+        console.log('1. A buscar inscritos e memória de operações no banco de dados...');
         
+        // Busca os jogadores
         const { data: records, error: dbError } = await supabase.from('players').select('riot_id, role_raw');
         if (dbError) throw new Error('Erro a ler jogadores do Supabase');
+
+        // 2. NOVA LÓGICA: Busca as últimas 500 operações salvas para evitar repetição
+        const { data: opsRecords } = await supabase
+            .from('operations')
+            .select('id')
+            .order('started_at', { ascending: false })
+            .limit(500);
+        
+        // Cria um "Dicionário" rápido com os IDs das partidas que já temos no banco
+        const knownMatchIds = new Set(opsRecords ? opsRecords.map(op => op.id) : []);
+        console.log(`   -> ${knownMatchIds.size} operações em cache local. Ignorando requisições repetidas.`);
 
         let playersToFetch = [];
         let rosterMap = new Set(); 
         
-        // Validação estrita do Riot ID (Nome 2-16 chars + '#' + Tag 3-5 chars alfanuméricos)
         const riotIdRegex = /^[^#]{2,16}#[a-zA-Z0-9]{3,5}$/;
 
         for (const record of records) {
             if (record.riot_id && riotIdRegex.test(record.riot_id.trim())) {
                 playersToFetch.push({ role: record.role_raw, riotId: record.riot_id.trim() });
                 rosterMap.add(record.riot_id.trim().toLowerCase().replace(/\s/g, ''));
-            } else {
-                console.log(`⚠️ Riot ID inválido ignorado e não processado: ${record.riot_id}`);
             }
         }
 
@@ -81,7 +90,6 @@ async function run() {
             let region = 'br'; 
 
             try {
-                // Aumentado para 10 partidas para maior precisão de sinergia
                 let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=10`, headers);
                 if (listRes.status === 404) listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?size=10`, headers);
 
@@ -92,7 +100,11 @@ async function run() {
                     if (recentCompMatches.length > 0) {
                         for (const matchCandidate of recentCompMatches) {
                             const matchId = matchCandidate.metadata.matchid;
-                            if (allMatchesMap.has(matchId)) continue;
+                            
+                            // 3. A GRANDE OTIMIZAÇÃO: Se a partida já está no nosso banco de dados, NÃO FAZ O FETCH! Pula para a próxima.
+                            if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) {
+                                continue; 
+                            }
                             
                             const detailRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/match/${matchId}`, headers);
                             if (detailRes.status === 200) {
@@ -137,7 +149,7 @@ async function run() {
             finalPlayersData.push(playerData);
         }
 
-        console.log(`3. A calcular sinergia (${allMatchesMap.size} partidas únicas)...`);
+        console.log(`3. A calcular sinergia de ${allMatchesMap.size} NOVAS partidas únicas...`);
         let operations = [];
 
         for (const [matchId, match] of allMatchesMap) {
@@ -156,7 +168,6 @@ async function run() {
                     score: match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A',
                     result: hasWon ? 'VITÓRIA' : 'DERROTA', team_color: teamId,
                     squad: squadMembers.map(m => {
-                        // Prevenção contra divisão por zero no cálculo de HS
                         const totalHits = m.stats.headshots + m.stats.bodyshots + m.stats.legshots;
                         const hsPercent = totalHits > 0 ? Math.round((m.stats.headshots / totalHits) * 100) : 0;
                         
