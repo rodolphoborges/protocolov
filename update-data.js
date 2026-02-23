@@ -10,17 +10,30 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function smartFetch(url, headers, retries = 2) {
     const start = Date.now();
-    let response = null; let error = null;
+    let response = null; 
+    let error = null;
+    
+    // Adicionado Timeout de 30s
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     try {
-        response = await fetch(url, { headers });
+        response = await fetch(url, { headers, signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (response.status === 429 && retries > 0) {
             console.log(`      ⛔ Rate Limit (429). Pausa de 45s...`);
             await delay(45000); 
             return smartFetch(url, headers, retries - 1);
         }
-    } catch (e) { error = e; }
+    } catch (e) { 
+        clearTimeout(timeoutId);
+        error = e; 
+    }
+    
     const remainingDelay = Math.max(0, REQUEST_DELAY - (Date.now() - start));
     if (remainingDelay > 0) await delay(remainingDelay);
+    
     if (error) throw error;
     return response;
 }
@@ -36,10 +49,15 @@ async function run() {
         let playersToFetch = [];
         let rosterMap = new Set(); 
         
+        // Validação estrita do Riot ID (Nome 2-16 chars + '#' + Tag 3-5 chars alfanuméricos)
+        const riotIdRegex = /^[^#]{2,16}#[a-zA-Z0-9]{3,5}$/;
+
         for (const record of records) {
-            if (record.riot_id && record.riot_id.includes('#')) {
-                playersToFetch.push({ role: record.role_raw, riotId: record.riot_id });
-                rosterMap.add(record.riot_id.toLowerCase().replace(/\s/g, ''));
+            if (record.riot_id && riotIdRegex.test(record.riot_id.trim())) {
+                playersToFetch.push({ role: record.role_raw, riotId: record.riot_id.trim() });
+                rosterMap.add(record.riot_id.trim().toLowerCase().replace(/\s/g, ''));
+            } else {
+                console.log(`⚠️ Riot ID inválido ignorado e não processado: ${record.riot_id}`);
             }
         }
 
@@ -63,8 +81,9 @@ async function run() {
             let region = 'br'; 
 
             try {
-                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=5`, headers);
-                if (listRes.status === 404) listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?size=5`, headers);
+                // Aumentado para 10 partidas para maior precisão de sinergia
+                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=10`, headers);
+                if (listRes.status === 404) listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?size=10`, headers);
 
                 if (listRes.status === 200) {
                     const listData = await listRes.json();
@@ -136,11 +155,17 @@ async function run() {
                     started_at: match.metadata.game_start * 1000, 
                     score: match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A',
                     result: hasWon ? 'VITÓRIA' : 'DERROTA', team_color: teamId,
-                    squad: squadMembers.map(m => ({
-                        riotId: `${m.name}#${m.tag}`, agent: m.character, agentImg: m.assets.agent.small,
-                        kda: `${m.stats.kills}/${m.stats.deaths}/${m.stats.assists}`,
-                        hs: Math.round((m.stats.headshots / (m.stats.headshots + m.stats.bodyshots + m.stats.legshots)) * 100) || 0
-                    }))
+                    squad: squadMembers.map(m => {
+                        // Prevenção contra divisão por zero no cálculo de HS
+                        const totalHits = m.stats.headshots + m.stats.bodyshots + m.stats.legshots;
+                        const hsPercent = totalHits > 0 ? Math.round((m.stats.headshots / totalHits) * 100) : 0;
+                        
+                        return {
+                            riotId: `${m.name}#${m.tag}`, agent: m.character, agentImg: m.assets.agent.small,
+                            kda: `${m.stats.kills}/${m.stats.deaths}/${m.stats.assists}`,
+                            hs: hsPercent
+                        };
+                    })
                 });
             }
         }
