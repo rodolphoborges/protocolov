@@ -1,8 +1,5 @@
-// Substitua pelas suas chaves do Supabase
 const supabaseUrl = 'https://gzbzfmvgwfvzjqurowku.supabase.co';
 const supabaseAnonKey = 'sb_publishable_EBbK4nq9kpV0VNFmOzFEqQ_2mooasVD';
-
-// MUDANÇA AQUI: Mudámos de 'supabase' para 'supabaseClient' para evitar conflito com a biblioteca
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
 const rolesConfig = {
@@ -23,13 +20,27 @@ function safeUrl(url, fallback) {
     return fallback;
 }
 
+function updateLastSyncTime(playersData) {
+    let lastUpdated = null;
+    playersData.forEach(p => {
+        if (p.updated_at) {
+            const pDate = new Date(p.updated_at);
+            if (!lastUpdated || pDate > lastUpdated) lastUpdated = pDate;
+        }
+    });
+
+    const statusEl = document.getElementById('last-updated-status');
+    if (statusEl && lastUpdated) {
+        const diffMins = Math.floor((new Date() - lastUpdated) / 60000);
+        statusEl.innerHTML = `<span class="badge bg-dark border border-secondary text-muted px-2 py-1">Sincronizado há ${diffMins} min</span>`;
+    }
+}
+
 async function fetchCachedData() {
     try {
-        // Busca Jogadores (usando o supabaseClient)
         const { data: playersData, error: playersError } = await supabaseClient.from('players').select('*');
         if (playersError) throw playersError;
 
-        // Limpa os dados atuais antes de renderizar
         Object.values(rolesConfig).forEach(role => { role.current = 0; role.players = []; role.waitlist = []; });
 
         playersData.forEach(player => {
@@ -52,15 +63,15 @@ async function fetchCachedData() {
         });
         
         renderRoles();
+        updateLastSyncTime(playersData); // Atualiza visualmente o frescor dos dados
 
-        // Busca Operações (usando o supabaseClient)
         const { data: opsData, error: opsError } = await supabaseClient
             .from('operations')
             .select(`*, operation_squads(riot_id, agent, agent_img, kda, hs_percent)`)
             .order('started_at', { ascending: false })
             .limit(4);
 
-        if (!opsError && opsData.length > 0) {
+        if (!opsError) {
             const formattedOps = opsData.map(op => ({
                 id: op.id, map: op.map, started_at: op.started_at, score: op.score, result: op.result,
                 squad: op.operation_squads.map(sq => ({
@@ -121,18 +132,24 @@ function createPlayerCardHTML(player, isWaiting = false) {
 function renderOperations(operations) {
     const section = document.getElementById('operations-section');
     const container = document.getElementById('operations-container');
-    if(operations.length === 0) return;
-
+    
+    // Mostra sempre a secção
     section.style.display = 'block';
-    let html = '';
 
+    // Feedback visual elegante caso não haja partidas em equipa recentes
+    if(operations.length === 0) {
+        container.innerHTML = `<div class="col-12"><div class="alert bg-dark border-secondary text-muted text-center py-4">Nenhuma operação conjunta detetada nas últimas 10 partidas.</div></div>`;
+        return;
+    }
+
+    let html = '';
     operations.forEach(op => { 
         const resultClass = op.result === 'VITÓRIA' ? 'win' : 'loss';
         const date = new Date(op.started_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         
         let squadHTML = op.squad.map(m => `
             <div class="squad-member">
-                <img src="${safeUrl(m.agentImg, '')}" class="agent-icon">
+                <img src="${safeUrl(m.agentImg, '')}" class="agent-icon" onerror="this.onerror=null; this.src='https://media.valorant-api.com/agents/default.png';">
                 <span class="member-name text-truncate">${escapeHtml(m.riotId.split('#')[0])}</span>
                 <div class="member-stats text-end">
                     <div>${escapeHtml(m.kda)}</div>
@@ -191,11 +208,9 @@ function renderRoles() {
     container.innerHTML = fullHTML;
 }
 
-// Animações de Scroll e Submissão do Formulário
 document.addEventListener('DOMContentLoaded', () => {
     fetchCachedData();
     
-    // Animações que estavam a fazer falta!
     const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
@@ -209,7 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const sections = document.querySelectorAll('.fade-in-section');
     sections.forEach(section => observer.observe(section));
     
-    // Formulário
     const form = document.getElementById('recrutamento-form');
     if (form) {
         form.addEventListener('submit', async (e) => {
@@ -219,9 +233,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('submitBtn');
             const feedback = document.getElementById('formFeedback');
 
+            // Validação visual rápida no frontend antes de enviar
+            if (!/^[^#]{2,16}#[a-zA-Z0-9]{3,5}$/.test(riotId)) {
+                feedback.innerHTML = `<span class="text-warning">Formato inválido. Use Nome#TAG.</span>`;
+                return;
+            }
+
             btn.disabled = true; btn.innerHTML = "Enviando...";
             try {
-                // Inserção usando supabaseClient
                 const { error } = await supabaseClient.from('players').insert([{ 
                     riot_id: riotId, role_raw: role, current_rank: 'Processando...' 
                 }]);
@@ -231,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 feedback.innerHTML = `<span class="text-success">Inscrição recebida! Aguarde a atualização (até 30m).</span>`;
                 form.reset();
-                fetchCachedData(); // Atualiza a tela
+                fetchCachedData();
             } catch (err) {
                 feedback.innerHTML = `<span class="text-danger">Erro: ${err.message}</span>`;
             } finally {
