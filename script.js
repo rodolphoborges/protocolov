@@ -1,6 +1,6 @@
 // Substitua pelas suas chaves do Supabase
-const supabaseUrl = 'SUA_URL_DO_SUPABASE';
-const supabaseAnonKey = 'SUA_ANON_KEY_DO_SUPABASE';
+const supabaseUrl = 'https://gzbzfmvgwfvzjqurowku.supabase.co';
+const supabaseAnonKey = 'sb_publishable_EBbK4nq9kpV0VNFmOzFEqQ_2mooasVD';
 const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
 const rolesConfig = {
