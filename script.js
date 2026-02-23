@@ -190,8 +190,24 @@ function renderRoles() {
 }
 
 // Submissão do Formulário
+// Animações de Scroll e Submissão do Formulário
 document.addEventListener('DOMContentLoaded', () => {
     fetchCachedData();
+    
+    // --- CÓDIGO DAS ANIMAÇÕES DE VOLTA ---
+    const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    const sections = document.querySelectorAll('.fade-in-section');
+    sections.forEach(section => observer.observe(section));
+    // -------------------------------------
     
     const form = document.getElementById('recrutamento-form');
     if (form) {
