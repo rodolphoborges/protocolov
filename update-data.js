@@ -84,7 +84,8 @@ async function run() {
             let playerData = {
                 riot_id: p.riotId, role_raw: p.role,
                 tracker_link: `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
-                api_error: false
+                api_error: false,
+                updated_at: new Date().toISOString() // <-- Força a atualização do relógio!
             };
 
             let region = 'br'; 
