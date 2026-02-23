@@ -5,7 +5,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Delay seguro de 2 segundos. Como temos poucas requisições agora, será super rápido.
+// Delay seguro de 2 segundos.
 const REQUEST_DELAY = 2000; 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -90,9 +90,8 @@ async function run() {
             let hasNewMatches = false;
 
             try {
-                // Reduzimos para as últimas 5 partidas (ninguém joga mais de 5 partidas em 30 min)
+                // Buscando apenas no servidor BR (sem fallback para NA)
                 let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=10`, headers);
-                if (listRes.status === 404) listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/na/${safeName}/${safeTag}?size=40`, headers);
 
                 if (listRes.status === 200) {
                     const listData = await listRes.json();
@@ -106,7 +105,6 @@ async function run() {
                             
                             hasNewMatches = true;
 
-                            // A GRANDE MUDANÇA: Usar os dados da lista diretamente! Zero requisições extras.
                             let bestMatch = matchCandidate;
                             if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) {
                                 bestMatch.players = bestMatch.players.all_players;
@@ -127,6 +125,7 @@ async function run() {
                         const accData = await accRes.json();
                         playerData.level = accData.data.account_level;
                         playerData.card_url = accData.data.card.small;
+                        // A API do Valorant retorna a região real da conta, garantindo que o MMR puxe do lugar certo
                         region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
                     }
 
@@ -183,17 +182,18 @@ async function run() {
             }
         }
         
-        // --- NOVO: LÓGICA DE PONTOS DE SINERGIA ---
+        // --- LÓGICA DE PONTOS DE SINERGIA NORMALIZADA ---
         let newSynergyPoints = {};
         operations.forEach(op => {
             op.squad.forEach(m => {
-                newSynergyPoints[m.riotId] = (newSynergyPoints[m.riotId] || 0) + 1;
+                let normalizedId = m.riotId.toLowerCase().replace(/\s/g, '');
+                newSynergyPoints[normalizedId] = (newSynergyPoints[normalizedId] || 0) + 1;
             });
         });
 
-        // Adiciona os pontos novos aos pontos que o jogador já tinha no banco de dados
         finalPlayersData = finalPlayersData.map(player => {
-            const earnedPoints = newSynergyPoints[player.riot_id] || 0;
+            let normalizedPlayerId = player.riot_id.toLowerCase().replace(/\s/g, '');
+            const earnedPoints = newSynergyPoints[normalizedPlayerId] || 0;
             const currentPoints = player.dbRecord ? (player.dbRecord.synergy_score || 0) : 0;
             return {
                 ...player,
@@ -201,6 +201,7 @@ async function run() {
             };
         });
         // ------------------------------------------
+        
         console.log('4. Guardando dados no Supabase...');
         const { error: pError } = await supabase.from('players').upsert(finalPlayersData, { onConflict: 'riot_id' });
         if (pError) console.error('Erro ao guardar jogadores:', pError);
