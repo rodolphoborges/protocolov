@@ -107,4 +107,136 @@ function createPlayerCardHTML(player, isWaiting = false) {
                     </div>
                 </div>
                 <div class="ms-auto pe-2">
-                    <a href="${safeTracker}" target="_blank" class="btn btn
+                    <a href="${safeTracker}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
+                          <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>`;
+}
+
+function renderOperations(operations) {
+    const section = document.getElementById('operations-section');
+    const container = document.getElementById('operations-container');
+    if(operations.length === 0) return;
+
+    section.style.display = 'block';
+    let html = '';
+
+    operations.forEach(op => { 
+        const resultClass = op.result === 'VITÓRIA' ? 'win' : 'loss';
+        const date = new Date(op.started_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        
+        let squadHTML = op.squad.map(m => `
+            <div class="squad-member">
+                <img src="${safeUrl(m.agentImg, '')}" class="agent-icon">
+                <span class="member-name text-truncate">${escapeHtml(m.riotId.split('#')[0])}</span>
+                <div class="member-stats text-end">
+                    <div>${escapeHtml(m.kda)}</div>
+                    <div class="small text-muted">${m.hs}% HS</div>
+                </div>
+            </div>
+        `).join('');
+
+        html += `
+            <div class="col-md-6 col-lg-4">
+                <div class="op-card ${resultClass}">
+                    <div class="op-header">
+                        <div><div class="op-map">${escapeHtml(op.map)}</div><div class="op-date">${date}</div></div>
+                        <div class="op-score ${resultClass}">${escapeHtml(op.score)}</div>
+                    </div>
+                    <div class="op-squad">${squadHTML}</div>
+                </div>
+            </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderRoles() {
+    const container = document.getElementById('roles-container');
+    let fullHTML = '';
+
+    for (const [role, data] of Object.entries(rolesConfig)) {
+        const isMainFull = data.current >= data.max;
+        const formattedCurrent = String(data.current).padStart(2, '0');
+        const formattedMax = String(data.max).padStart(2, '0');
+        const statusBadge = !isMainFull ? `<span class="slot-indicator fs-4">[ ${formattedCurrent} / ${formattedMax} ]</span>` : `<span class="slot-indicator fs-5 text-accent">/// VAGAS NA RESERVA</span>`;
+
+        let playersHTML = data.players.map(p => createPlayerCardHTML(p, false)).join('');
+        let waitlistHTML = data.waitlist.length > 0 ? `
+            <div class="waitlist-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="waitlist-label">Fila de Reserva</span>
+                    <span class="badge bg-secondary">${data.waitlist.length} na escuta</span>
+                </div>
+                <div class="row g-2">${data.waitlist.map(p => createPlayerCardHTML(p, true)).join('')}</div>
+            </div>` : '';
+
+        fullHTML += `
+            <div class="row align-items-start role-row ${isMainFull ? 'role-full' : ''}">
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h3 class="role-title">${role}</h3><p class="mb-0 text-muted small">${data.desc}</p>
+                </div>
+                <div class="col-md-9">
+                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-3">
+                        <span class="text-uppercase text-muted small">Status Operacional</span>${statusBadge}
+                    </div>
+                    <div class="row g-3">${playersHTML}</div>${waitlistHTML}
+                </div>
+            </div>`;
+    }
+    container.innerHTML = fullHTML;
+}
+
+// Animações de Scroll e Submissão do Formulário
+document.addEventListener('DOMContentLoaded', () => {
+    fetchCachedData();
+    
+    // Animações que estavam a fazer falta!
+    const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    const sections = document.querySelectorAll('.fade-in-section');
+    sections.forEach(section => observer.observe(section));
+    
+    // Formulário
+    const form = document.getElementById('recrutamento-form');
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const riotId = document.getElementById('riotIdInput').value.trim();
+            const role = document.getElementById('roleInput').value;
+            const btn = document.getElementById('submitBtn');
+            const feedback = document.getElementById('formFeedback');
+
+            btn.disabled = true; btn.innerHTML = "Enviando...";
+            try {
+                // Inserção usando supabaseClient
+                const { error } = await supabaseClient.from('players').insert([{ 
+                    riot_id: riotId, role_raw: role, current_rank: 'Processando...' 
+                }]);
+                if (error) {
+                    if (error.code === '23505') throw new Error("Este Riot ID já está na base!");
+                    throw error;
+                }
+                feedback.innerHTML = `<span class="text-success">Inscrição recebida! Aguarde a atualização (até 30m).</span>`;
+                form.reset();
+                fetchCachedData(); // Atualiza a tela
+            } catch (err) {
+                feedback.innerHTML = `<span class="text-danger">Erro: ${err.message}</span>`;
+            } finally {
+                btn.disabled = false; btn.innerHTML = "Alistar-se";
+            }
+        });
+    }
+});
