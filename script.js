@@ -161,33 +161,47 @@ function renderOperations(operations) {
         return;
     }
 
-    let html = '';
+    // Criamos uma única coluna que vai empilhar as barras horizontais
+    let html = '<div class="col-12 d-flex flex-column gap-3">'; 
+    
     operations.forEach(op => { 
-        const resultClass = op.result === 'VITÓRIA' ? 'win' : 'loss';
+        const isWin = op.result === 'VITÓRIA';
+        const resultClass = isWin ? 'mission-win' : 'mission-loss';
+        const resultColor = isWin ? 'text-success' : 'text-danger';
         const date = new Date(op.started_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         
         let squadHTML = op.squad.map(m => `
-            <div class="squad-member">
-                <img src="${safeUrl(m.agentImg, '')}" class="agent-icon" onerror="this.onerror=null; this.src='https://media.valorant-api.com/agents/default.png';">
-                <span class="member-name text-truncate">${escapeHtml(m.riotId.split('#')[0])}</span>
-                <div class="member-stats text-end">
-                    <div>${escapeHtml(m.kda)}</div>
-                    <div class="small text-muted">${m.hs}% HS</div>
+            <div class="d-flex align-items-center gap-2 bg-dark p-2 rounded border border-secondary" style="min-width: 130px;">
+                <img src="${safeUrl(m.agentImg, '')}" class="rounded" style="width: 32px; height: 32px; object-fit: cover;" onerror="this.onerror=null; this.src='https://media.valorant-api.com/agents/default.png';">
+                <div class="lh-1">
+                    <div class="fw-bold text-white mb-1" style="font-size: 0.85rem;">${escapeHtml(m.riotId.split('#')[0])}</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">${escapeHtml(m.kda)} <span class="text-secondary mx-1">|</span> ${m.hs}% HS</div>
                 </div>
             </div>
         `).join('');
 
         html += `
-            <div class="col-md-6 col-lg-4">
-                <div class="op-card ${resultClass}">
-                    <div class="op-header">
-                        <div><div class="op-map">${escapeHtml(op.map)}</div><div class="op-date">${date}</div></div>
-                        <div class="op-score ${resultClass}">${escapeHtml(op.score)}</div>
+            <div class="mission-row ${resultClass} p-3 rounded d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-3">
+                
+                <div class="d-flex align-items-center gap-4">
+                    <div class="text-center" style="width: 70px;">
+                        <div class="fs-4 fw-bold ${resultColor} lh-1">${escapeHtml(op.score)}</div>
+                        <div class="small text-muted text-uppercase mt-1" style="font-size: 0.7rem;">${escapeHtml(op.result)}</div>
                     </div>
-                    <div class="op-squad">${squadHTML}</div>
+                    <div class="border-start border-secondary ps-4">
+                        <div class="fs-5 fw-bold text-white lh-1 mb-1">${escapeHtml(op.map)}</div>
+                        <div class="text-muted" style="font-size: 0.8rem;">${date}</div>
+                    </div>
                 </div>
+
+                <div class="d-flex flex-wrap gap-2 justify-content-start justify-content-xl-end">
+                    ${squadHTML}
+                </div>
+
             </div>`;
     });
+    
+    html += '</div>';
     container.innerHTML = html;
 }
 
