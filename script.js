@@ -41,7 +41,7 @@ async function fetchCachedData() {
     try {
         // Fetch Paralelo para carregar o site duas vezes mais rápido
         const [playersRes, opsRes] = await Promise.all([
-            supabaseClient.from('players').select('*'),
+            supabaseClient.from('players').select('*').order('synergy_score', { ascending: false }).order('riot_id', { ascending: true }),
             supabaseClient.from('operations')
                 .select(`*, operation_squads(riot_id, agent, agent_img, kda, hs_percent)`)
                 .order('started_at', { ascending: false })
