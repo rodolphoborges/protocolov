@@ -72,9 +72,11 @@ async function run() {
             const safeName = encodeURIComponent(name.trim());
             const safeTag = encodeURIComponent(tag.trim());
             
-            // Inicia com os dados antigos da base de dados (reutilização)
+            // CORREÇÃO: Salva o synergy_score que já está no banco de dados!
             let playerData = {
-                riot_id: p.riotId, role_raw: p.role,
+                riot_id: p.riotId, 
+                role_raw: p.role,
+                synergy_score: p.dbRecord.synergy_score || 0, 
                 tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
                 level: p.dbRecord.level,
                 card_url: p.dbRecord.card_url,
@@ -125,7 +127,6 @@ async function run() {
                         const accData = await accRes.json();
                         playerData.level = accData.data.account_level;
                         playerData.card_url = accData.data.card.small;
-                        // A API do Valorant retorna a região real da conta, garantindo que o MMR puxe do lugar certo
                         region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
                     }
 
@@ -182,7 +183,7 @@ async function run() {
             }
         }
         
-        // --- LÓGICA DE PONTOS DE SINERGIA NORMALIZADA ---
+        // --- LÓGICA DE PONTOS DE SINERGIA CORRIGIDA ---
         let newSynergyPoints = {};
         operations.forEach(op => {
             op.squad.forEach(m => {
@@ -194,10 +195,10 @@ async function run() {
         finalPlayersData = finalPlayersData.map(player => {
             let normalizedPlayerId = player.riot_id.toLowerCase().replace(/\s/g, '');
             const earnedPoints = newSynergyPoints[normalizedPlayerId] || 0;
-            const currentPoints = player.dbRecord ? (player.dbRecord.synergy_score || 0) : 0;
+            // CORREÇÃO: Usa os pontos que já carregamos na linha 80!
             return {
                 ...player,
-                synergy_score: currentPoints + earnedPoints
+                synergy_score: player.synergy_score + earnedPoints 
             };
         });
         // ------------------------------------------
