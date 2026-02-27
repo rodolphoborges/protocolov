@@ -77,16 +77,32 @@ async function fetchCachedData() {
         updateLastSyncTime(playersData); 
 
         if (!opsRes.error && opsRes.data && opsRes.data.length > 0) {
-            const formattedOps = opsRes.data.map(op => ({
-                id: op.id, map: op.map, started_at: op.started_at, score: op.score, result: op.result,
-                squad: op.operation_squads.map(sq => ({
+            const formattedOps = opsRes.data.map(op => {
+                
+                // Mapeia e ordena o esquadrão: 1º Mais Kills, 2º Menos Mortes
+                const sortedSquad = op.operation_squads.map(sq => ({
                     riotId: sq.riot_id, agent: sq.agent, agentImg: sq.agent_img, kda: sq.kda, hs: sq.hs_percent
-                }))
-            }));
-            // CORREÇÃO: O nome da função voltou!
+                })).sort((a, b) => {
+                    // Separa o KDA em números (Kills, Deaths, Assists)
+                    const [k1, d1] = a.kda.split('/').map(Number);
+                    const [k2, d2] = b.kda.split('/').map(Number);
+                    
+                    if (k2 !== k1) return k2 - k1; // Quem tem mais kills sobe
+                    return d1 - d2; // Em caso de empate, quem morreu menos sobe
+                });
+
+                return {
+                    id: op.id, 
+                    map: op.map, 
+                    started_at: op.started_at, 
+                    score: op.score, 
+                    result: op.result,
+                    squad: sortedSquad
+                };
+            });
+            
             renderOperations(formattedOps);
         } else if (!opsRes.error) {
-            // CORREÇÃO: O nome da função voltou!
             renderOperations([]);
         }
 
