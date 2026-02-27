@@ -94,7 +94,7 @@ async function run() {
             let hasNewMatches = false;
 
             try {
-                // Buscando apenas as 3 últimas partidas (size=3)
+                // Buscando apenas as 3 últimas partidas (size=3) para otimizar tempo e banda
                 let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=3`, headers);
 
                 if (listRes.status === 200) {
@@ -125,8 +125,10 @@ async function run() {
 
                 if (!playerData.api_error) {
                     
-                    // Só busca dados da conta (Nível e Card) se realmente faltarem no Supabase
-                    if (isMissingData) {
+                    // Só gasta requisições na conta e rank se o jogador for novo ou tiver jogado partidas recentes
+                    if (hasNewMatches || isMissingData) {
+                        
+                        // 1. Atualiza Nível e Card
                         const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
                         if (accRes.status === 200) {
                             const accData = await accRes.json();
@@ -134,10 +136,8 @@ async function run() {
                             playerData.card_url = accData.data.card.small;
                             region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
                         }
-                    }
 
-                    // Só busca o MMR se faltarem dados ou se o jogador tiver jogado partidas novas
-                    if (hasNewMatches || isMissingData) {
+                        // 2. Atualiza Elo e Rank Máximo
                         const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
                         if (mmrRes.status === 200) {
                             const mmrData = await mmrRes.json();
