@@ -5,8 +5,8 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Delay seguro de 2 segundos.
-const REQUEST_DELAY = 2000; 
+// Delay seguro aumentado para evitar rate limits frequentes.
+const REQUEST_DELAY = 3500; 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function smartFetch(url, headers, retries = 2) {
@@ -22,8 +22,10 @@ async function smartFetch(url, headers, retries = 2) {
         clearTimeout(timeoutId);
 
         if (response.status === 429 && retries > 0) {
-            console.log(`      ⛔ Rate Limit (429). Pausa de 45s...`);
-            await delay(45000); 
+            // Lê o header de reset da API do HenrikDev (em segundos). Se não existir, assume 30s.
+            const resetInSeconds = parseInt(response.headers.get('x-ratelimit-reset')) || 30;
+            console.log(`      ⛔ Rate Limit (429). Pausa inteligente de ${resetInSeconds}s...`);
+            await delay(resetInSeconds * 1000); 
             return smartFetch(url, headers, retries - 1);
         }
     } catch (e) { 
@@ -72,7 +74,7 @@ async function run() {
             const safeName = encodeURIComponent(name.trim());
             const safeTag = encodeURIComponent(tag.trim());
             
-            // CORREÇÃO: Salva o synergy_score que já está no banco de dados!
+            // Salva o synergy_score que já está no banco de dados
             let playerData = {
                 riot_id: p.riotId, 
                 role_raw: p.role,
@@ -92,8 +94,8 @@ async function run() {
             let hasNewMatches = false;
 
             try {
-                // Buscando apenas no servidor BR (sem fallback para NA)
-                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=10`, headers);
+                // Buscando apenas as 3 últimas partidas (size=3)
+                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=3`, headers);
 
                 if (listRes.status === 200) {
                     const listData = await listRes.json();
@@ -118,29 +120,36 @@ async function run() {
                     playerData.api_error = true;
                 }
 
-                // Só gasta requisições na conta e rank se o jogador for novo ou tiver jogado partidas novas
+                // Otimização das chamadas para Account e MMR
                 const isMissingData = !playerData.level || !playerData.current_rank || playerData.current_rank === 'Processando...';
 
-                if ((hasNewMatches || isMissingData) && !playerData.api_error) {
-                    const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
-                    if (accRes.status === 200) {
-                        const accData = await accRes.json();
-                        playerData.level = accData.data.account_level;
-                        playerData.card_url = accData.data.card.small;
-                        region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
+                if (!playerData.api_error) {
+                    
+                    // Só busca dados da conta (Nível e Card) se realmente faltarem no Supabase
+                    if (isMissingData) {
+                        const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
+                        if (accRes.status === 200) {
+                            const accData = await accRes.json();
+                            playerData.level = accData.data.account_level;
+                            playerData.card_url = accData.data.card.small;
+                            region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
+                        }
                     }
 
-                    const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
-                    if (mmrRes.status === 200) {
-                        const mmrData = await mmrRes.json();
-                        if (mmrData.data.current_data?.currenttierpatched) {
-                            playerData.current_rank = mmrData.data.current_data.currenttierpatched;
-                            playerData.current_rank_icon = mmrData.data.current_data.images.small;
-                        }
-                        if (mmrData.data.highest_rank?.patched_tier) {
-                            playerData.peak_rank = mmrData.data.highest_rank.patched_tier;
-                            const peakTier = mmrData.data.highest_rank.tier;
-                            if (peakTier) playerData.peak_rank_icon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
+                    // Só busca o MMR se faltarem dados ou se o jogador tiver jogado partidas novas
+                    if (hasNewMatches || isMissingData) {
+                        const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
+                        if (mmrRes.status === 200) {
+                            const mmrData = await mmrRes.json();
+                            if (mmrData.data.current_data?.currenttierpatched) {
+                                playerData.current_rank = mmrData.data.current_data.currenttierpatched;
+                                playerData.current_rank_icon = mmrData.data.current_data.images.small;
+                            }
+                            if (mmrData.data.highest_rank?.patched_tier) {
+                                playerData.peak_rank = mmrData.data.highest_rank.patched_tier;
+                                const peakTier = mmrData.data.highest_rank.tier;
+                                if (peakTier) playerData.peak_rank_icon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
+                            }
                         }
                     }
                 }
@@ -195,7 +204,6 @@ async function run() {
         finalPlayersData = finalPlayersData.map(player => {
             let normalizedPlayerId = player.riot_id.toLowerCase().replace(/\s/g, '');
             const earnedPoints = newSynergyPoints[normalizedPlayerId] || 0;
-            // CORREÇÃO: Usa os pontos que já carregamos na linha 80!
             return {
                 ...player,
                 synergy_score: player.synergy_score + earnedPoints 
