@@ -108,6 +108,11 @@ async function run() {
                         for (const matchCandidate of recentCompMatches) {
                             const matchId = matchCandidate.metadata.matchid;
                             
+                            // CORREÇÃO: Se a partida já está no banco de operações, conta como grupo!
+                            if (knownMatchIds.has(matchId)) {
+                                playerMatchStats[normalizedPlayerId].group++;
+                            }
+
                             if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
                             
                             hasNewMatches = true;
