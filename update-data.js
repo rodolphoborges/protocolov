@@ -173,13 +173,25 @@ async function run() {
             if (squadMembers.length >= 2) {
                 const teamId = squadMembers[0].team; 
                 const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
-                const hasWon = teamData ? teamData.has_won : false;
+                const teamId = squadMembers[0].team; 
+                const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
+                
+                // Nova lógica de verificação
+                let finalResult = 'DERROTA';
+                if (match.teams) {
+                    if (match.teams.blue.rounds_won === match.teams.red.rounds_won) {
+                        finalResult = 'EMPATE';
+                    } else if (teamData && teamData.has_won) {
+                        finalResult = 'VITÓRIA';
+                    }
+                }
                 
                 operations.push({
                     id: matchId, map: match.metadata.map, mode: match.metadata.mode,
                     started_at: match.metadata.game_start * 1000, 
                     score: match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A',
-                    result: hasWon ? 'VITÓRIA' : 'DERROTA', team_color: teamId,
+                    result: finalResult, // Aplica a nova variável aqui
+                    team_color: teamId,
                     squad: squadMembers.map(m => {
                         const totalHits = m.stats.headshots + m.stats.bodyshots + m.stats.legshots;
                         const hsPercent = totalHits > 0 ? Math.round((m.stats.headshots / totalHits) * 100) : 0;
