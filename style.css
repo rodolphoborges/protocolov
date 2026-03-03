@@ -148,3 +148,16 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
     box-shadow: 0 4px 15px rgba(255, 70, 85, 0.2);
     z-index: 10;
 }
+
+/* --- ESTILOS DO LOBO SOLITÁRIO --- */
+.opaque-rank {
+    opacity: 0.35;
+    filter: grayscale(100%);
+    transition: all 0.3s ease;
+}
+
+/* O rank volta ao normal quando se passa o rato por cima do card */
+.player-card:hover .opaque-rank {
+    opacity: 1;
+    filter: grayscale(0%);
+}
