@@ -129,6 +129,10 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
     background: linear-gradient(90deg, rgba(255,70,85,0.05) 0%, rgba(0,0,0,0) 50%), rgba(20, 20, 20, 0.8);
 }
 
+.mission-draw {
+    border-left: 4px solid #ffce56; 
+    background: linear-gradient(90deg, rgba(255, 206, 86, 0.05) 0%, rgba(0,0,0,0) 50%), rgba(20, 20, 20, 0.8);
+}
 /* --- ESTILOS DOS AGENTES NA RESERVA --- */
 .is-waiting {
     opacity: 0.55;
