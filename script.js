@@ -181,10 +181,17 @@ function renderOperations(operations) {
 
     let html = '<div class="col-12 d-flex flex-column gap-3">'; 
     
-    operations.forEach(op => { 
-        const isWin = op.result === 'VITÓRIA';
-        const resultClass = isWin ? 'mission-win' : 'mission-loss';
-        const resultColor = isWin ? 'text-success' : 'text-danger';
+        operations.forEach(op => { 
+        let resultClass = 'mission-loss';
+        let resultColor = 'text-danger';
+    
+        if (op.result === 'VITÓRIA') {
+            resultClass = 'mission-win';
+            resultColor = 'text-success';
+        } else if (op.result === 'EMPATE') {
+            resultClass = 'mission-draw';
+            resultColor = 'text-warning'; // Usa o amarelo padrão do Bootstrap
+        }
         const date = new Date(op.started_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         
         let squadHTML = '<div class="d-flex flex-column flex-grow-1 ms-md-auto" style="max-width: 500px;">';
