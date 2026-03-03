@@ -10,11 +10,9 @@ const rolesConfig = {
     'Controlador': { max: 2, current: 0, desc: 'Smokes, ritmo e domínio de mapa.', players: [], waitlist: [] } 
 };
 
-// --- VARIÁVEIS DE PAGINAÇÃO DAS OPERAÇÕES ---
 let opsOffset = 0;
 const OPS_PER_PAGE = 5;
 let isFetchingOps = false;
-// --------------------------------------------
 
 function escapeHtml(unsafe) {
     if (!unsafe) return "";
@@ -45,7 +43,6 @@ function updateLastSyncTime(playersData) {
 
 async function fetchCachedData() {
     try {
-        // Busca apenas os jogadores primeiro
         const { data: playersData, error: playersError } = await supabaseClient
             .from('players')
             .select('*')
@@ -78,7 +75,6 @@ async function fetchCachedData() {
         renderRoles();
         updateLastSyncTime(playersData); 
 
-        // Inicia a busca das primeiras 5 operações
         opsOffset = 0;
         await fetchOperations(false);
 
@@ -91,7 +87,6 @@ async function fetchCachedData() {
     }
 }
 
-// --- FUNÇÃO QUE BUSCA AS OPERAÇÕES EM BLOCOS (PAGINAÇÃO) ---
 async function fetchOperations(append = false) {
     if (isFetchingOps) return;
     isFetchingOps = true;
@@ -103,7 +98,6 @@ async function fetchOperations(append = false) {
     }
 
     try {
-        // range() diz ao Supabase para trazer só do offset X ao Y
         const { data, error } = await supabaseClient
             .from('operations')
             .select(`*, operation_squads(riot_id, agent, agent_img, kda, hs_percent)`)
@@ -130,17 +124,15 @@ async function fetchOperations(append = false) {
             });
             
             renderOperations(formattedOps, append);
-            opsOffset += data.length; // Atualiza onde estamos na lista
+            opsOffset += data.length;
 
-            // Mostra ou esconde o botão "Ver Mais" dependendo se ainda há dados
             const loadMoreContainer = document.getElementById('load-more-container');
             if (data.length < OPS_PER_PAGE) {
-                if (loadMoreContainer) loadMoreContainer.style.display = 'none'; // Acabaram as partidas
+                if (loadMoreContainer) loadMoreContainer.style.display = 'none';
             } else {
-                if (loadMoreContainer) loadMoreContainer.style.display = 'block'; // Tem mais partidas
+                if (loadMoreContainer) loadMoreContainer.style.display = 'block';
             }
         } else {
-            // Fim da lista total
             const loadMoreContainer = document.getElementById('load-more-container');
             if (loadMoreContainer) loadMoreContainer.style.display = 'none';
             if (!append) renderOperations([], false);
@@ -165,9 +157,13 @@ function createPlayerCardHTML(player, isWaiting = false) {
     const safePeakIcon = safeUrl(player.peak_rank_icon, '');
 
     let warningBadge = player.api_error ? `<span class="badge bg-warning text-dark ms-2">⚠️ Desatualizado</span>` : '';
+    
+    // Gamificação: Tag Lobo Solitário e Classe Opaca
+    let loneWolfBadge = player.lone_wolf ? `<span class="badge ms-2 text-dark bg-secondary" style="background-color: #768079 !important;" title="Jogou as últimas ranqueadas totalmente solo.">🐺 Lobo Solitário</span>` : '';
+    let opaqueClass = player.lone_wolf ? 'opaque-rank' : '';
 
-    const eloHTML = safeRankIcon ? `<img src="${safeRankIcon}" alt="${player.currentRank}" style="width: 20px; height: 20px;"> ${player.currentRank}` : player.currentRank;
-    const peakHTML = safePeakIcon ? `<img src="${safePeakIcon}" alt="${player.peak_rank}" style="width: 20px; height: 20px;"> ${player.peak_rank}` : (player.peak_rank || 'Sem Rank');
+    const eloHTML = safeRankIcon ? `<img src="${safeRankIcon}" alt="${player.currentRank}" class="${opaqueClass}" style="width: 20px; height: 20px;"> <span class="${opaqueClass}">${player.currentRank}</span>` : `<span class="${opaqueClass}">${player.currentRank}</span>`;
+    const peakHTML = safePeakIcon ? `<img src="${safePeakIcon}" alt="${player.peak_rank}" class="${opaqueClass}" style="width: 20px; height: 20px;"> <span class="${opaqueClass}">${player.peak_rank}</span>` : `<span class="${opaqueClass}">${(player.peak_rank || 'Sem Rank')}</span>`;
 
     const synergyPoints = player.synergy_score || 0;
     let synergyBadge = '';
@@ -190,6 +186,7 @@ function createPlayerCardHTML(player, isWaiting = false) {
                         
                         <span class="badge bg-secondary ms-1" style="font-size: 0.6rem;">LVL ${player.level || '--'}</span>
                         ${synergyBadge}
+                        ${loneWolfBadge}
                         ${warningBadge}
                     </div>
                     <div class="d-flex gap-4">
@@ -220,7 +217,6 @@ function renderOperations(operations, append = false) {
         return;
     }
 
-    // Cria um embrulho flex interno caso não exista, para permitir anexar itens suavemente
     let innerWrapper = document.getElementById('ops-inner-wrapper');
     if (!innerWrapper || !append) {
         container.innerHTML = `<div class="col-12 d-flex flex-column gap-3" id="ops-inner-wrapper"></div>`;
@@ -252,7 +248,6 @@ function renderOperations(operations, append = false) {
             const [kills, deaths, assists] = m.kda.split('/');
             const kdaFormatted = `<span class="text-white">${kills}</span><span class="text-secondary mx-1">/</span><span class="text-danger">${deaths}</span><span class="text-secondary mx-1">/</span><span class="text-white">${assists}</span>`;
 
-            // A classe text-nowrap evita que o KDA e HS% quebrem de linha em telas muito finas de celular
             squadHTML += `
                 <div class="d-flex align-items-center justify-content-between py-2 ${borderClass}">
                     <div class="d-flex align-items-center gap-3">
@@ -294,7 +289,6 @@ function renderOperations(operations, append = false) {
             </a>`;
     });
     
-    // Se for um 'Ver Mais', anexa o HTML em vez de substituir o que já existe
     if (append) {
         innerWrapper.insertAdjacentHTML('beforeend', html);
     } else {
@@ -341,7 +335,6 @@ function renderRoles() {
 document.addEventListener('DOMContentLoaded', () => {
     fetchCachedData();
     
-    // Lógica do Observador de Animações
     const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
@@ -355,15 +348,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const sections = document.querySelectorAll('.fade-in-section');
     sections.forEach(section => observer.observe(section));
     
-    // Lógica de click no novo botão de Ver Mais
     const loadMoreBtn = document.getElementById('load-more-ops-btn');
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', () => {
-            fetchOperations(true); // O "true" indica que queremos anexar e não sobrescrever
+            fetchOperations(true);
         });
     }
 
-    // Formulário de Inscrição
     const form = document.getElementById('recrutamento-form');
     if (form) {
         form.addEventListener('submit', async (e) => {
