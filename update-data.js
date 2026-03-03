@@ -5,7 +5,6 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Delay seguro aumentado para evitar rate limits frequentes.
 const REQUEST_DELAY = 3500; 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -22,7 +21,6 @@ async function smartFetch(url, headers, retries = 2) {
         clearTimeout(timeoutId);
 
         if (response.status === 429 && retries > 0) {
-            // Lê o header de reset da API do HenrikDev (em segundos). Se não existir, assume 30s.
             const resetInSeconds = parseInt(response.headers.get('x-ratelimit-reset')) || 30;
             console.log(`      ⛔ Rate Limit (429). Pausa inteligente de ${resetInSeconds}s...`);
             await delay(resetInSeconds * 1000); 
@@ -45,7 +43,6 @@ async function run() {
         console.log('--- PROTOCOLO V: SUPABASE SYNC ONLINE ---');
         console.log('1. A buscar inscritos e memória de operações no banco de dados...');
         
-        // Puxa TODOS os dados (para podermos reutilizar Ranks de quem não jogou)
         const { data: records, error: dbError } = await supabase.from('players').select('*');
         if (dbError) throw new Error('Erro a ler jogadores do Supabase');
 
@@ -65,6 +62,7 @@ async function run() {
 
         let finalPlayersData = [];
         let allMatchesMap = new Map(); 
+        let playerMatchStats = {}; // Monitora as partidas solo vs grupo
         const headers = { 'Authorization': henrikApiKey };
 
         console.log(`2. A sincronizar dados de ${playersToFetch.length} agentes na API Valorant...`);
@@ -73,8 +71,10 @@ async function run() {
             const [name, tag] = p.riotId.split('#');
             const safeName = encodeURIComponent(name.trim());
             const safeTag = encodeURIComponent(tag.trim());
+            const normalizedPlayerId = p.riotId.toLowerCase().replace(/\s/g, '');
             
-            // Salva o synergy_score que já está no banco de dados
+            playerMatchStats[normalizedPlayerId] = { comp: 0, group: 0 };
+
             let playerData = {
                 riot_id: p.riotId, 
                 role_raw: p.role,
@@ -86,6 +86,7 @@ async function run() {
                 peak_rank: p.dbRecord.peak_rank,
                 current_rank_icon: p.dbRecord.current_rank_icon,
                 peak_rank_icon: p.dbRecord.peak_rank_icon,
+                lone_wolf: p.dbRecord.lone_wolf || false,
                 api_error: false,
                 updated_at: new Date().toISOString()
             };
@@ -94,12 +95,14 @@ async function run() {
             let hasNewMatches = false;
 
             try {
-                // Buscando apenas as 3 últimas partidas (size=3) para otimizar tempo e banda
-                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=3`, headers);
+                // Busca de 5 partidas para melhor monitoramento do Lobo Solitário
+                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=5`, headers);
 
                 if (listRes.status === 200) {
                     const listData = await listRes.json();
                     const recentCompMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'competitive') : [];
+                    
+                    playerMatchStats[normalizedPlayerId].comp = recentCompMatches.length;
 
                     if (recentCompMatches.length > 0) {
                         for (const matchCandidate of recentCompMatches) {
@@ -120,15 +123,10 @@ async function run() {
                     playerData.api_error = true;
                 }
 
-                // Otimização das chamadas para Account e MMR
                 const isMissingData = !playerData.level || !playerData.current_rank || playerData.current_rank === 'Processando...';
 
                 if (!playerData.api_error) {
-                    
-                    // Só gasta requisições na conta e rank se o jogador for novo ou tiver jogado partidas recentes
                     if (hasNewMatches || isMissingData) {
-                        
-                        // 1. Atualiza Nível e Card
                         const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
                         if (accRes.status === 200) {
                             const accData = await accRes.json();
@@ -137,7 +135,6 @@ async function run() {
                             region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
                         }
 
-                        // 2. Atualiza Elo e Rank Máximo
                         const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
                         if (mmrRes.status === 200) {
                             const mmrData = await mmrRes.json();
@@ -162,8 +159,9 @@ async function run() {
             finalPlayersData.push(playerData);
         }
 
-        console.log(`3. A processar sinergia de operações...`);
+        console.log(`3. A processar operações conjuntas e Gamificação...`);
         let operations = [];
+        let newSynergyPoints = {};
 
         for (const [matchId, match] of allMatchesMap) {
             if (!match.players || !Array.isArray(match.players)) continue;
@@ -174,22 +172,32 @@ async function run() {
                 const teamId = squadMembers[0].team; 
                 const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
                 
-                // Nova lógica de verificação
                 let finalResult = 'DERROTA';
                 if (match.teams) {
-                    if (match.teams.blue.rounds_won === match.teams.red.rounds_won) {
-                        finalResult = 'EMPATE';
-                    } else if (teamData && teamData.has_won) {
-                        finalResult = 'VITÓRIA';
-                    }
+                    if (match.teams.blue.rounds_won === match.teams.red.rounds_won) finalResult = 'EMPATE';
+                    else if (teamData && teamData.has_won) finalResult = 'VITÓRIA';
                 }
+
+                // --- LÓGICA DE ESCALONAMENTO E MULTIPLICADOR ---
+                let basePoints = 0;
+                if (squadMembers.length === 2) basePoints = 1;
+                else if (squadMembers.length === 3) basePoints = 2;
+                else if (squadMembers.length >= 4) basePoints = 5; // Recompensa massiva para Full Squad
+
+                // Vitória dobra a pontuação
+                let earnedPoints = (finalResult === 'VITÓRIA') ? basePoints * 2 : basePoints;
+
+                squadMembers.forEach(m => {
+                    let nId = `${m.name}#${m.tag}`.toLowerCase().replace(/\s/g, '');
+                    newSynergyPoints[nId] = (newSynergyPoints[nId] || 0) + earnedPoints;
+                    if(playerMatchStats[nId]) playerMatchStats[nId].group++;
+                });
                 
                 operations.push({
                     id: matchId, map: match.metadata.map, mode: match.metadata.mode,
                     started_at: match.metadata.game_start * 1000, 
                     score: match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A',
-                    result: finalResult, // Aplica a nova variável aqui
-                    team_color: teamId,
+                    result: finalResult, team_color: teamId,
                     squad: squadMembers.map(m => {
                         const totalHits = m.stats.headshots + m.stats.bodyshots + m.stats.legshots;
                         const hsPercent = totalHits > 0 ? Math.round((m.stats.headshots / totalHits) * 100) : 0;
@@ -201,25 +209,26 @@ async function run() {
                 });
             }
         }
-        
-        // --- LÓGICA DE PONTOS DE SINERGIA CORRIGIDA ---
-        let newSynergyPoints = {};
-        operations.forEach(op => {
-            op.squad.forEach(m => {
-                let normalizedId = m.riotId.toLowerCase().replace(/\s/g, '');
-                newSynergyPoints[normalizedId] = (newSynergyPoints[normalizedId] || 0) + 1;
-            });
-        });
 
         finalPlayersData = finalPlayersData.map(player => {
-            let normalizedPlayerId = player.riot_id.toLowerCase().replace(/\s/g, '');
-            const earnedPoints = newSynergyPoints[normalizedPlayerId] || 0;
+            let nId = player.riot_id.toLowerCase().replace(/\s/g, '');
+            const earnedPoints = newSynergyPoints[nId] || 0;
+            let stats = playerMatchStats[nId] || { comp: 0, group: 0 };
+            
+            // --- DETECÇÃO DO LOBO SOLITÁRIO ---
+            let isLoneWolf = player.lone_wolf;
+            if (stats.comp > 0 && stats.group === 0) {
+                isLoneWolf = true; // Jogou recentemente, mas nunca com a equipe
+            } else if (stats.group > 0) {
+                isLoneWolf = false; // Jogou com a equipe, retira a tag
+            }
+
             return {
                 ...player,
-                synergy_score: player.synergy_score + earnedPoints 
+                synergy_score: player.synergy_score + earnedPoints,
+                lone_wolf: isLoneWolf
             };
         });
-        // ------------------------------------------
         
         console.log('4. Guardando dados no Supabase...');
         const { error: pError } = await supabase.from('players').upsert(finalPlayersData, { onConflict: 'riot_id' });
@@ -239,7 +248,20 @@ async function run() {
                 await supabase.from('operation_squads').insert(squadData);
             }
         }
-        
+
+        console.log('5. Executando Purga de Agentes Inativos...');
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        const { data: purged, error: purgeError } = await supabase
+            .from('players')
+            .delete()
+            .eq('synergy_score', 0)
+            .lt('created_at', sevenDaysAgo)
+            .select();
+            
+        if (purgeError) console.error('   ❌ Erro na purga:', purgeError);
+        else if (purged && purged.length > 0) console.log(`   🧹 ${purged.length} recruta(s) removido(s) por falta de interação.`);
+        else console.log('   ✅ Nenhum recruta inativo para expurgar.');
+
         console.log('✅ Sincronização concluída com sucesso!');
 
     } catch (error) {
