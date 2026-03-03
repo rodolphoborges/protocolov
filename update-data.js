@@ -173,8 +173,6 @@ async function run() {
             if (squadMembers.length >= 2) {
                 const teamId = squadMembers[0].team; 
                 const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
-                const teamId = squadMembers[0].team; 
-                const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
                 
                 // Nova lógica de verificação
                 let finalResult = 'DERROTA';
