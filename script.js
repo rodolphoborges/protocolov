@@ -10,6 +10,12 @@ const rolesConfig = {
     'Controlador': { max: 2, current: 0, desc: 'Smokes, ritmo e domínio de mapa.', players: [], waitlist: [] } 
 };
 
+// --- VARIÁVEIS DE PAGINAÇÃO DAS OPERAÇÕES ---
+let opsOffset = 0;
+const OPS_PER_PAGE = 5;
+let isFetchingOps = false;
+// --------------------------------------------
+
 function escapeHtml(unsafe) {
     if (!unsafe) return "";
     return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
@@ -39,18 +45,14 @@ function updateLastSyncTime(playersData) {
 
 async function fetchCachedData() {
     try {
-        // Fetch Paralelo para carregar o site duas vezes mais rápido
-        const [playersRes, opsRes] = await Promise.all([
-            supabaseClient.from('players').select('*').order('synergy_score', { ascending: false }).order('riot_id', { ascending: true }),
-            supabaseClient.from('operations')
-                .select(`*, operation_squads(riot_id, agent, agent_img, kda, hs_percent)`)
-                .order('started_at', { ascending: false })
-                .limit(4)
-        ]);
+        // Busca apenas os jogadores primeiro
+        const { data: playersData, error: playersError } = await supabaseClient
+            .from('players')
+            .select('*')
+            .order('synergy_score', { ascending: false })
+            .order('riot_id', { ascending: true });
 
-        if (playersRes.error) throw playersRes.error;
-
-        const playersData = playersRes.data;
+        if (playersError) throw playersError;
 
         Object.values(rolesConfig).forEach(role => { role.current = 0; role.players = []; role.waitlist = []; });
 
@@ -76,35 +78,9 @@ async function fetchCachedData() {
         renderRoles();
         updateLastSyncTime(playersData); 
 
-        if (!opsRes.error && opsRes.data && opsRes.data.length > 0) {
-            const formattedOps = opsRes.data.map(op => {
-                
-                // Mapeia e ordena o esquadrão: 1º Mais Kills, 2º Menos Mortes
-                const sortedSquad = op.operation_squads.map(sq => ({
-                    riotId: sq.riot_id, agent: sq.agent, agentImg: sq.agent_img, kda: sq.kda, hs: sq.hs_percent
-                })).sort((a, b) => {
-                    // Separa o KDA em números (Kills, Deaths, Assists)
-                    const [k1, d1] = a.kda.split('/').map(Number);
-                    const [k2, d2] = b.kda.split('/').map(Number);
-                    
-                    if (k2 !== k1) return k2 - k1; // Quem tem mais kills sobe
-                    return d1 - d2; // Em caso de empate, quem morreu menos sobe
-                });
-
-                return {
-                    id: op.id, 
-                    map: op.map, 
-                    started_at: op.started_at, 
-                    score: op.score, 
-                    result: op.result,
-                    squad: sortedSquad
-                };
-            });
-            
-            renderOperations(formattedOps);
-        } else if (!opsRes.error) {
-            renderOperations([]);
-        }
+        // Inicia a busca das primeiras 5 operações
+        opsOffset = 0;
+        await fetchOperations(false);
 
     } catch (error) {
         console.error('Falha ao carregar dados:', error);
@@ -112,6 +88,72 @@ async function fetchCachedData() {
             <div class="alert alert-danger border-danger bg-transparent text-danger text-center">
                 A carregar sistema ou base de dados vazia. Tente recarregar.
             </div>`;
+    }
+}
+
+// --- FUNÇÃO QUE BUSCA AS OPERAÇÕES EM BLOCOS (PAGINAÇÃO) ---
+async function fetchOperations(append = false) {
+    if (isFetchingOps) return;
+    isFetchingOps = true;
+
+    const btn = document.getElementById('load-more-ops-btn');
+    if (btn && append) {
+        btn.innerHTML = 'A Decodificar...';
+        btn.disabled = true;
+    }
+
+    try {
+        // range() diz ao Supabase para trazer só do offset X ao Y
+        const { data, error } = await supabaseClient
+            .from('operations')
+            .select(`*, operation_squads(riot_id, agent, agent_img, kda, hs_percent)`)
+            .order('started_at', { ascending: false })
+            .range(opsOffset, opsOffset + OPS_PER_PAGE - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+            const formattedOps = data.map(op => {
+                const sortedSquad = op.operation_squads.map(sq => ({
+                    riotId: sq.riot_id, agent: sq.agent, agentImg: sq.agent_img, kda: sq.kda, hs: sq.hs_percent
+                })).sort((a, b) => {
+                    const [k1, d1] = a.kda.split('/').map(Number);
+                    const [k2, d2] = b.kda.split('/').map(Number);
+                    if (k2 !== k1) return k2 - k1; 
+                    return d1 - d2; 
+                });
+
+                return {
+                    id: op.id, map: op.map, started_at: op.started_at, 
+                    score: op.score, result: op.result, squad: sortedSquad
+                };
+            });
+            
+            renderOperations(formattedOps, append);
+            opsOffset += data.length; // Atualiza onde estamos na lista
+
+            // Mostra ou esconde o botão "Ver Mais" dependendo se ainda há dados
+            const loadMoreContainer = document.getElementById('load-more-container');
+            if (data.length < OPS_PER_PAGE) {
+                if (loadMoreContainer) loadMoreContainer.style.display = 'none'; // Acabaram as partidas
+            } else {
+                if (loadMoreContainer) loadMoreContainer.style.display = 'block'; // Tem mais partidas
+            }
+        } else {
+            // Fim da lista total
+            const loadMoreContainer = document.getElementById('load-more-container');
+            if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+            if (!append) renderOperations([], false);
+        }
+
+    } catch (err) {
+        console.error('Falha ao carregar operações:', err);
+    } finally {
+        isFetchingOps = false;
+        if (btn) {
+            btn.innerHTML = 'Ver Mais Partidas';
+            btn.disabled = false;
+        }
     }
 }
 
@@ -127,7 +169,6 @@ function createPlayerCardHTML(player, isWaiting = false) {
     const eloHTML = safeRankIcon ? `<img src="${safeRankIcon}" alt="${player.currentRank}" style="width: 20px; height: 20px;"> ${player.currentRank}` : player.currentRank;
     const peakHTML = safePeakIcon ? `<img src="${safePeakIcon}" alt="${player.peak_rank}" style="width: 20px; height: 20px;"> ${player.peak_rank}` : (player.peak_rank || 'Sem Rank');
 
-    // Lógica do Sistema de Sinergia (Karma)
     const synergyPoints = player.synergy_score || 0;
     let synergyBadge = '';
     if (synergyPoints > 10) {
@@ -168,30 +209,38 @@ function createPlayerCardHTML(player, isWaiting = false) {
         </div>`;
 }
 
-function renderOperations(operations) {
+function renderOperations(operations, append = false) {
     const section = document.getElementById('operations-section');
     const container = document.getElementById('operations-container');
     
     section.style.display = 'block';
 
-    if(operations.length === 0) {
-        container.innerHTML = `<div class="col-12"><div class="alert bg-dark border-secondary text-muted text-center py-4">Nenhuma operação conjunta detetada nas últimas 10 partidas.</div></div>`;
+    if(operations.length === 0 && !append) {
+        container.innerHTML = `<div class="col-12"><div class="alert bg-dark border-secondary text-muted text-center py-4">Nenhuma operação conjunta detetada recentemente.</div></div>`;
         return;
     }
 
-    let html = '<div class="col-12 d-flex flex-column gap-3">'; 
+    // Cria um embrulho flex interno caso não exista, para permitir anexar itens suavemente
+    let innerWrapper = document.getElementById('ops-inner-wrapper');
+    if (!innerWrapper || !append) {
+        container.innerHTML = `<div class="col-12 d-flex flex-column gap-3" id="ops-inner-wrapper"></div>`;
+        innerWrapper = document.getElementById('ops-inner-wrapper');
+    }
+
+    let html = ''; 
     
-        operations.forEach(op => { 
+    operations.forEach(op => { 
         let resultClass = 'mission-loss';
         let resultColor = 'text-danger';
-    
+
         if (op.result === 'VITÓRIA') {
             resultClass = 'mission-win';
             resultColor = 'text-success';
         } else if (op.result === 'EMPATE') {
             resultClass = 'mission-draw';
-            resultColor = 'text-warning'; // Usa o amarelo padrão do Bootstrap
+            resultColor = 'text-warning'; 
         }
+        
         const date = new Date(op.started_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         
         let squadHTML = '<div class="d-flex flex-column flex-grow-1 ms-md-auto" style="max-width: 500px;">';
@@ -203,6 +252,7 @@ function renderOperations(operations) {
             const [kills, deaths, assists] = m.kda.split('/');
             const kdaFormatted = `<span class="text-white">${kills}</span><span class="text-secondary mx-1">/</span><span class="text-danger">${deaths}</span><span class="text-secondary mx-1">/</span><span class="text-white">${assists}</span>`;
 
+            // A classe text-nowrap evita que o KDA e HS% quebrem de linha em telas muito finas de celular
             squadHTML += `
                 <div class="d-flex align-items-center justify-content-between py-2 ${borderClass}">
                     <div class="d-flex align-items-center gap-3">
@@ -210,7 +260,7 @@ function renderOperations(operations) {
                         <span class="fw-bold text-light text-truncate" style="max-width: 120px; font-size: 0.95rem;">${escapeHtml(m.riotId.split('#')[0])}</span>
                     </div>
                     
-                    <div class="d-flex align-items-center gap-4 font-monospace" style="font-size: 0.9rem;">
+                    <div class="d-flex align-items-center gap-4 font-monospace text-nowrap" style="font-size: 0.9rem;">
                         <div style="width: 80px;" class="text-center bg-dark rounded px-2 py-1 border border-secondary border-opacity-25">${kdaFormatted}</div>
                         <div style="width: 60px;" class="text-end" style="color: #adb5bd;"><span class="text-light">${m.hs}%</span> <span style="font-size:0.65rem">HS</span></div>
                     </div>
@@ -220,7 +270,6 @@ function renderOperations(operations) {
         
         squadHTML += '</div>';
 
-        // A MÁGICA ACONTECE AQUI: Trocamos a <div> exterior por uma <a> apontando para o Tracker.gg
         html += `
             <a href="https://tracker.gg/valorant/match/${op.id}" target="_blank" title="Ver detalhes da partida no Tracker.gg" class="text-decoration-none mission-row ${resultClass} p-3 p-md-4 rounded d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; display: block;">
                 
@@ -245,8 +294,12 @@ function renderOperations(operations) {
             </a>`;
     });
     
-    html += '</div>';
-    container.innerHTML = html;
+    // Se for um 'Ver Mais', anexa o HTML em vez de substituir o que já existe
+    if (append) {
+        innerWrapper.insertAdjacentHTML('beforeend', html);
+    } else {
+        innerWrapper.innerHTML = html;
+    }
 }
 
 function renderRoles() {
@@ -288,6 +341,7 @@ function renderRoles() {
 document.addEventListener('DOMContentLoaded', () => {
     fetchCachedData();
     
+    // Lógica do Observador de Animações
     const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
@@ -301,6 +355,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const sections = document.querySelectorAll('.fade-in-section');
     sections.forEach(section => observer.observe(section));
     
+    // Lógica de click no novo botão de Ver Mais
+    const loadMoreBtn = document.getElementById('load-more-ops-btn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', () => {
+            fetchOperations(true); // O "true" indica que queremos anexar e não sobrescrever
+        });
+    }
+
+    // Formulário de Inscrição
     const form = document.getElementById('recrutamento-form');
     if (form) {
         form.addEventListener('submit', async (e) => {
