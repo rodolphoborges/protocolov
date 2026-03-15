@@ -38,6 +38,23 @@ async function smartFetch(url, headers, retries = 2) {
     return response;
 }
 
+// --- MOTOR DE NOTIFICAÇÕES (WHATSAPP - CALLMEBOT) ---
+async function notificarWhatsApp(mensagem) {
+    const apiKey = process.env.WHATSAPP_API_KEY;
+    const groupId = process.env.WHATSAPP_GROUP_ID;
+    
+    if (!apiKey || !groupId) return;
+
+    const textoCodificado = encodeURIComponent(mensagem);
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${groupId}&text=${textoCodificado}&apikey=${apiKey}`;
+    
+    try {
+        await fetch(url);
+        console.log("   📱 Transmissão enviada para a base (WhatsApp).");
+    } catch (error) {
+        console.error("   ❌ Falha na transmissão via WhatsApp:", error);
+    }
+}
 const chunkArray = (arr, size) => arr.length ? [arr.slice(0, size), ...chunkArray(arr.slice(size), size)] : [];
 
 async function run() {
