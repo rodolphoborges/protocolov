@@ -1,199 +1,238 @@
-/* =========================================
-   PROTOCOLO V - CONFIGURAÇÃO GLOBAL
-   ========================================= */
-
 :root {
+    --val-dark: #0f1923;
+    --val-light: #ece8e1;
     --val-red: #ff4655;
-    --val-dark: #111;
-    --val-light: #f9f9f9;
-    --text-accent: #ff4655;
-    --neon-green: #00ff41;
-    --font-main: 'FF Mark', 'Segoe UI', Roboto, sans-serif;
-}
-
-/* Reset de Navegador */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+    --val-gray: #768079;
 }
 
 body {
-    font-family: var(--font-main);
     background-color: var(--val-light);
     color: var(--val-dark);
-    line-height: 1.6;
+    font-family: 'Inter', sans-serif;
     overflow-x: hidden;
+    scroll-behavior: smooth;
 }
 
+h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: uppercase; line-height: 0.9; margin: 0; }
+
 /* =========================================
-   TIPOGRAFIA E CABEÇALHO
-   ========================================= */
+   BRUTALIST SYSTEM (PlayValorant UI)
+========================================= */
+.val-bg-text-massive {
+    position: fixed; top: -5vh; left: -2vw; font-family: 'Teko', sans-serif;
+    font-size: clamp(10rem, 35vw, 40rem); line-height: 0.8; color: transparent;
+    -webkit-text-stroke: 2px rgba(15, 25, 35, 0.05);
+    z-index: 0; pointer-events: none; user-select: none; font-weight: 700;
+    white-space: nowrap;
+}
+.bg-dark-section .val-bg-text-massive { -webkit-text-stroke: 2px rgba(236, 232, 225, 0.03); }
 
 .val-section-header {
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: -2px;
-    line-height: 0.85;
-    /* Font-size padrão para Desktop é 6rem no HTML, ajustamos no mobile abaixo */
+    font-family: 'Teko', sans-serif; font-size: 4rem; text-transform: uppercase;
+    line-height: 0.9; margin-bottom: 30px; position: relative; display: inline-block;
+    color: var(--val-dark);
+}
+.bg-dark-section .val-section-header { color: var(--val-light); }
+.val-section-header::after {
+    content: ''; position: absolute; bottom: -10px; left: 0; width: 60px; height: 8px; background-color: var(--val-red);
 }
 
-.text-accent {
-    color: var(--val-red);
-}
+.decor-square { width: 10px; height: 10px; background-color: var(--val-red); display: inline-block; margin-right: 15px; }
 
-.decor-square {
-    width: 12px;
-    height: 12px;
-    background-color: var(--val-red);
-    margin-right: 15px;
+.content-wrapper { position: relative; z-index: 1; padding: 40px 0; }
+.bg-dark-section { background-color: var(--val-dark); color: var(--val-light); }
+.text-accent { color: var(--val-red); }
+
+/* =========================================
+   CORREÇÃO DE CONTRASTE (Legibilidade)
+========================================= */
+/* Obriga os textos secundários a serem luminosos quando estão num fundo escuro */
+.bg-dark-section .text-muted,
+.role-row .text-muted,
+.waitlist-label,
+.stat-label {
+    color: #b0b8b4 !important; /* Cinza claro e nítido (Silver) */
 }
 
 /* =========================================
-   COMPONENTES (BOTÕES E LINKS)
-   ========================================= */
-
-/* Botão Principal de Alistamento */
+   BOTÕES E FORMULÁRIOS
+========================================= */
 .btn-val {
-    display: inline-block;
-    padding: 18px 40px;
-    background-color: var(--val-dark);
-    color: #fff !important;
-    text-decoration: none !important;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    border: 1px solid var(--val-dark);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    background-color: var(--val-red); color: var(--val-light); font-family: 'Teko', sans-serif;
+    font-size: 1.5rem; padding: 10px 30px; text-decoration: none; text-transform: uppercase; position: relative;
+    transition: 0.2s ease-in-out; border: none; cursor: pointer; line-height: 1; text-align: center;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.btn-val:hover { background-color: var(--val-dark); color: var(--val-light); transform: translateY(-2px); }
+.btn-val:disabled { background-color: var(--val-gray); cursor: not-allowed; transform: none; }
+
+.form-control.val-input {
+    border-radius: 0; border: 2px solid var(--val-gray); background-color: transparent;
+    color: var(--val-dark); font-family: 'Inter', sans-serif; padding: 10px 15px;
+    transition: all 0.2s ease;
+}
+.form-control.val-input:focus {
+    background-color: rgba(255,255,255,0.5); border-color: var(--val-red); box-shadow: none;
 }
 
-.btn-val:hover {
-    background-color: transparent;
-    color: var(--val-dark) !important;
-    box-shadow: 8px 8px 0px var(--val-red);
-    transform: translate(-4px, -4px);
+/* =========================================
+   CARDS DE JOGADORES (Titulares e Reservas)
+========================================= */
+.role-row { border-bottom: 1px solid rgba(236, 232, 225, 0.1); padding: 30px 0; transition: all 0.3s ease; }
+.role-title { font-size: 3.5rem; color: var(--val-light); }
+.slot-indicator { font-family: 'Teko', sans-serif; font-size: 2.5rem; color: var(--val-red); }
+.role-full .slot-indicator { color: var(--val-gray); text-decoration: line-through; }
+
+.player-card {
+    background-color: rgba(30, 30, 30, 0.9); border: none; border-left: 4px solid transparent;
+    display: flex; align-items: center; gap: 15px; transition: 0.2s ease; height: 100%;
+    clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%, 0 15px); padding: 15px;
+}
+.player-card:hover { border-left-color: var(--val-red); background-color: var(--val-dark); transform: translateX(5px); }
+.player-avatar { width: 64px; height: 64px; object-fit: cover; border: 2px solid var(--val-gray); border-radius: 0; }
+
+.waitlist-section { border-top: 1px dashed rgba(118, 128, 121, 0.4); margin-top: 20px; padding-top: 15px; }
+.waitlist-label { font-family: 'Teko', sans-serif; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; }
+
+.player-card.is-waiting { opacity: 0.65; background-color: rgba(15, 25, 35, 0.5); }
+.player-card.is-waiting:hover { opacity: 1; border-left-color: var(--val-gray); background-color: var(--val-dark); transform: translateX(5px); }
+.player-card.is-waiting .player-avatar { width: 48px; height: 48px; }
+
+/* =========================================
+   HISTÓRICO DE OPERAÇÕES
+========================================= */
+.mission-row {
+    background-color: var(--val-dark); border: none;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+    position: relative;
+}
+.mission-row::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+}
+.mission-row:hover { background-color: #1a2733; transform: translateY(-3px); }
+
+.mission-win::before { background-color: #198754; }
+.mission-loss::before { background-color: var(--val-red); }
+.mission-draw::before { background-color: #ffce56; }
+
+/* =========================================
+   MATA-MATA (Treino) - Grid e Cards
+========================================= */
+.leaderboard-grid { display: grid; grid-template-columns: 1fr; gap: 30px; margin-top: 50px; }
+@media (min-width: 992px) { .leaderboard-grid { grid-template-columns: 1fr 1fr; align-items: stretch; } }
+
+.mvp-card {
+    background-color: var(--val-red); color: var(--val-light);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 40px), calc(100% - 40px) 100%, 0 100%);
+    padding: 40px; position: relative; display: flex; flex-direction: column; justify-content: flex-end;
+    min-height: 400px; transition: transform 0.3s ease;
+}
+.mvp-card:hover { transform: translateY(-5px); }
+.mvp-card::before { content: 'MVP'; position: absolute; top: 20px; right: 20px; font-family: 'Teko', sans-serif; font-size: 6rem; opacity: 0.2; line-height: 0.8; }
+.mvp-avatar { width: 120px; height: 120px; border: 4px solid var(--val-light); object-fit: cover; margin-bottom: 20px; }
+.mvp-name { font-family: 'Teko', sans-serif; font-size: 4rem; line-height: 0.9; text-transform: uppercase; }
+.mvp-score { font-family: 'Teko', sans-serif; font-size: 6rem; font-weight: 700; line-height: 0.8; margin-top: 10px; }
+.mvp-score span { font-size: 1.5rem; letter-spacing: 2px; font-weight: 400; opacity: 0.8; }
+
+.contender-list { display: flex; flex-direction: column; gap: 15px; justify-content: center; }
+.contender-card {
+    background-color: var(--val-dark); color: var(--val-light); display: flex; align-items: center; padding: 15px 25px;
+    clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%, 0 15px);
+    position: relative; transition: all 0.2s ease; border-left: 4px solid transparent;
+}
+.contender-card:hover { background-color: #1a2733; border-left-color: var(--val-red); transform: translateX(10px); }
+.contender-rank { font-family: 'Teko', sans-serif; font-size: 2.5rem; color: var(--val-gray); width: 40px; text-align: left; line-height: 1; }
+.contender-avatar { width: 50px; height: 50px; border-radius: 0; object-fit: cover; margin-right: 20px; border: 1px solid var(--val-gray); }
+.contender-name { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 1.2rem; flex-grow: 1; text-transform: uppercase; }
+.contender-score { font-family: 'Teko', sans-serif; font-size: 3rem; color: var(--val-red); line-height: 1; }
+.contender-score span { font-size: 1rem; color: var(--val-gray); }
+
+.grid-lines {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 30%;
+    background-image: linear-gradient(90deg, transparent 95%, rgba(255,255,255,0.1) 100%);
+    background-size: 20px 100%; pointer-events: none;
 }
 
-/* Link Especial do Telegram */
+/* =========================================
+   UTILITÁRIOS E MISC
+========================================= */
+.stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; }
+.stat-val { font-size: 0.9rem; color: var(--val-light); font-family: 'Inter', sans-serif; font-weight: 600; }
+.manifesto-text { font-size: 1.1rem; line-height: 1.6; color: var(--val-dark); font-weight: 500; }
+.manifesto-text strong { color: var(--val-red); }
+.icon-svg { width: 20px; height: 20px; fill: var(--val-red); margin-right: 10px; flex-shrink: 0;}
+.rule-item { display: flex; align-items: start; margin-bottom: 20px; font-weight: 500; }
+
+.opaque-rank { opacity: 0.35; filter: grayscale(100%); transition: all 0.3s ease; }
+.player-card:hover .opaque-rank { opacity: 1; filter: grayscale(0%); }
+.badge.bg-secondary[title*="Lobo Solitário"] { background-color: #3b423e !important; border: 1px solid var(--val-gray); color: var(--val-light) !important; }
+
+.fade-in-section { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; will-change: opacity, visibility; }
+.fade-in-section.is-visible { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after { animation-delay: -1ms !important; animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 0s !important; transition-delay: 0s !important; }
+    .fade-in-section { opacity: 1 !important; transform: none !important; }
+    .player-card, .mission-row, .btn-val, .mvp-card, .contender-card { transform: none !important; }
+}
+
+/* =========================================
+   AJUSTES: TELEGRAM LINK E MOBILE FIX
+========================================= */
+
+/* Link do Telegram no Header */
 .telegram-link-header {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     color: var(--val-red) !important;
     text-decoration: none !important;
+    font-family: 'Inter', sans-serif;
     font-weight: 800;
     font-size: 0.85rem;
-    letter-spacing: 1.5px;
-    padding: 12px 20px;
+    letter-spacing: 1px;
     border: 1px solid rgba(255, 70, 85, 0.3);
-    background: rgba(255, 70, 85, 0.03);
-    transition: 0.3s ease;
-    text-transform: uppercase;
+    padding: 10px 15px;
+    transition: all 0.3s ease;
+    background: rgba(255, 70, 85, 0.05);
 }
 
 .telegram-link-header:hover {
     background: var(--val-red);
     color: #fff !important;
     border-color: var(--val-red);
-    box-shadow: 0 0 20px rgba(255, 70, 85, 0.3);
 }
 
-/* =========================================
-   ANIMAÇÕES
-   ========================================= */
-
-/* Efeito Piscar do Terminal [!] */
+/* Animação do [!] para chamar atenção */
 @keyframes blinker-alt {
     50% { opacity: 0; }
 }
 
 .blink-terminal {
     animation: blinker-alt 1s step-end infinite;
-    margin-right: 10px;
-    font-weight: 900;
+    margin-right: 5px;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.2rem;
+    color: var(--val-red);
 }
 
-/* Fade In das Seções */
-.fade-in-section {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-
-.fade-in-section.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* =========================================
-   LAYOUT E RESPONSIVIDADE (MOBILE FIRST)
-   ========================================= */
-
-.content-wrapper {
-    padding: 80px 0;
-}
-
-/* Ajustes para Telas Grandes (Desktop) */
-@media (min-width: 992px) {
-    .gap-custom {
-        gap: 25px !important;
-    }
-}
-
-/* Ajustes para Tablets e Mobile */
-@media (max-width: 991px) {
+/* Responsividade para evitar quebra no Mobile */
+@media (max-width: 768px) {
     .val-section-header {
-        font-size: 4.5rem !important;
+        font-size: 3.2rem !important; /* Reduz o tamanho do H1 PROTOCOLO em telemóveis */
     }
-}
-
-@media (max-width: 767px) {
-    .val-section-header {
-        font-size: 3.2rem !important; /* Evita quebra de linha feia no mobile */
-        letter-spacing: -1px;
-    }
-
-    .header p {
-        font-size: 1.1rem !important;
-        margin-bottom: 30px;
-    }
-
-    /* Empilha os botões no mobile */
-    .d-flex.align-items-center.gap-3, 
+    
     .d-flex.flex-wrap.align-items-center.gap-3 {
         flex-direction: column !important;
         align-items: stretch !important;
-        width: 100%;
+        gap: 15px !important;
     }
 
-    .btn-val, 
-    .telegram-link-header {
+    .btn-val, .telegram-link-header {
         width: 100%;
         text-align: center;
-        justify-content: center;
+        padding: 15px 10px;
     }
-}
-
-/* =========================================
-   LEADERBOARD & TREINO (MODO DARK/CYBER)
-   ========================================= */
-
-.leaderboard-container {
-    background: #000;
-    color: var(--neon-green);
-    padding: 30px;
-    border: 1px solid var(--neon-green);
-    font-family: 'Courier New', monospace;
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
-}
-
-.dm-row {
-    border-bottom: 1px solid rgba(0, 255, 65, 0.1);
-    padding: 12px 0;
-    display: flex;
-    justify-content: space-between;
-}
-
-.dm-row:last-child {
-    border-bottom: none;
 }
