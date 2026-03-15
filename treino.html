@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocolo V - Treino de Mira</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .podium-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: flex-end; margin-top: 50px; min-height: 300px; }
+        .dm-card {
+            background-color: rgba(255, 255, 255, 0.05); border: 1px solid var(--val-gray);
+            border-radius: 8px; padding: 20px; text-align: center; width: 200px;
+            transition: transform 0.3s ease; display: flex; flex-direction: column; align-items: center;
+        }
+        .dm-card:hover { transform: translateY(-10px); }
+        .dm-avatar { width: 80px; height: 80px; border-radius: 12px; margin-bottom: 15px; object-fit: cover; border: 2px solid; }
+        .dm-name { font-weight: 800; font-size: 1.2rem; margin-bottom: 5px; color: var(--val-light); word-break: break-all; }
+        .dm-score { font-family: 'Teko', sans-serif; font-size: 3rem; color: var(--val-red); line-height: 1; margin-top: auto; }
+        
+        /* Estilos do Pódio */
+        .rank-1 { border-color: #ffd700; background: linear-gradient(180deg, rgba(255,215,0,0.15) 0%, rgba(0,0,0,0) 100%); height: 320px; z-index: 3; box-shadow: 0 0 20px rgba(255,215,0,0.1);}
+        .rank-1 .dm-avatar { border-color: #ffd700; }
+        .rank-2 { border-color: #c0c0c0; background: linear-gradient(180deg, rgba(192,192,192,0.1) 0%, rgba(0,0,0,0) 100%); height: 280px; z-index: 2;}
+        .rank-2 .dm-avatar { border-color: #c0c0c0; }
+        .rank-3 { border-color: #cd7f32; background: linear-gradient(180deg, rgba(205,127,50,0.1) 0%, rgba(0,0,0,0) 100%); height: 250px; z-index: 1;}
+        .rank-3 .dm-avatar { border-color: #cd7f32; }
+        .rank-4, .rank-5 { height: 220px; opacity: 0.8; border-color: var(--val-gray); background: rgba(15, 25, 35, 0.5);}
+        .rank-4 .dm-avatar, .rank-5 .dm-avatar { border-color: var(--val-gray); }
+
+        .medal { font-size: 2.5rem; margin-bottom: 10px; }
+    </style>
+</head>
+<body class="bg-dark-section">
+
+    <nav class="p-3 border-bottom border-secondary mb-5">
+        <div class="container d-flex justify-content-between align-items-center">
+            <span class="fs-4 fw-bold" style="font-family: 'Teko', sans-serif; color: var(--val-light);"><span class="text-accent">///</span> PROTOCOLO V</span>
+            <a href="index.html" class="btn btn-sm btn-outline-secondary text-light">Voltar ao QG Central</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="text-center mb-5 fade-in-section is-visible">
+            <h2 class="display-4" style="font-family: 'Teko', sans-serif;">SALA DE TREINO <span class="text-accent">/// MATA-MATA</span></h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">
+                O aquecimento é a forja dos verdadeiros duelistas. Acompanhe a tabela de classificação semanal do Mata-Mata.<br>
+                <strong>1 Kill = 1 Ponto</strong>. Fator de Brutalidade para o Top 3: <span class="text-warning">+15</span>, <span style="color:#c0c0c0;">+10</span>, <span style="color:#cd7f32;">+5</span> bónus.
+            </p>
+        </div>
+
+        <div class="podium-container fade-in-section is-visible" id="podium">
+            <div class="text-center text-muted">A decodificar estatísticas do Supabase...</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://gzbzfmvgwfvzjqurowku.supabase.co';
+        const supabaseAnonKey = 'sb_publishable_EBbK4nq9kpV0VNFmOzFEqQ_2mooasVD';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        async function fetchDmLeaderboard() {
+            try {
+                // Puxa apenas jogadores que têm algum ponto de DM (dm_score > 0) ordenados do maior para o menor
+                const { data: playersData, error } = await supabaseClient
+                    .from('players')
+                    .select('riot_id, card_url, dm_score')
+                    .gt('dm_score', 0)
+                    .order('dm_score', { ascending: false })
+                    .limit(5);
+
+                if (error) throw error;
+
+                const podiumDiv = document.getElementById('podium');
+
+                if (!playersData || playersData.length === 0) {
+                    podiumDiv.innerHTML = `<div class="alert bg-transparent border-secondary text-muted p-5 w-100 text-center">Nenhum agente realizou treinos de Mata-Mata recentemente.</div>`;
+                    return;
+                }
+
+                const medals = ['🥇', '🥈', '🥉', '4º', '5º'];
+                
+                // Reordenar visualmente o array para fazer o formato de "Pódio": 2º, 1º, 3º, 4º, 5º
+                const visualOrder = [];
+                if(playersData[1]) visualOrder.push(playersData[1]); // Esquerda
+                if(playersData[0]) visualOrder.push(playersData[0]); // Centro
+                if(playersData[2]) visualOrder.push(playersData[2]); // Direita
+                if(playersData[3]) visualOrder.push(playersData[3]);
+                if(playersData[4]) visualOrder.push(playersData[4]);
+
+                let html = '';
+                visualOrder.forEach(p => {
+                    const realRank = playersData.findIndex(x => x.riot_id === p.riot_id) + 1;
+                    const fallbackImg = 'https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png';
+                    
+                    html += `
+                    <div class="dm-card rank-${realRank}">
+                        <div class="medal">${medals[realRank - 1]}</div>
+                        <img src="${p.card_url || fallbackImg}" class="dm-avatar" onerror="this.onerror=null; this.src='${fallbackImg}';">
+                        <div class="dm-name">${p.riot_id.split('#')[0]}</div>
+                        <div class="dm-score">${p.dm_score} <span style="font-size: 1rem; color: #768079;">PTS</span></div>
+                    </div>`;
+                });
+
+                podiumDiv.innerHTML = html;
+
+            } catch (err) {
+                console.error("Erro ao puxar dados:", err);
+                document.getElementById('podium').innerHTML = `<div class="text-danger">Erro de ligação aos servidores da base de dados.</div>`;
+            }
+        }
+
+        // Executar a função
+        fetchDmLeaderboard();
+    </script>
+</body>
+</html>
