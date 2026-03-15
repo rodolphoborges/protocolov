@@ -13,7 +13,7 @@ const rolesConfig = {
 let opsOffset = 0;
 const OPS_PER_PAGE = 5;
 let isFetchingOps = false;
-let isSubmittingForm = false;
+let isSubmittingForm = false; // Flag anti-spam de interface
 
 function escapeHtml(unsafe) {
     if (!unsafe) return "";
@@ -74,7 +74,7 @@ async function fetchCachedData() {
                 }
             }
             
-            // Fallback de segurança: Se não encaixar em nenhuma função, vai para o Flex
+            // Fallback: Se o jogador tiver uma classe desconhecida, vai para a fila "Flex"
             if (!isAssigned) {
                 rolesConfig['Flex'].waitlist.push(player);
             }
@@ -157,7 +157,7 @@ async function fetchOperations(append = false) {
     }
 }
 
-// Expomos a função de copiar globalmente para o onclick no HTML
+// Fallback robusto para Clipboard (evita rebentar sem HTTPS e permite compatibilidade)
 window.copyRiotId = function(btnElement, riotId) {
     if(navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(riotId).then(() => {
@@ -165,7 +165,6 @@ window.copyRiotId = function(btnElement, riotId) {
             setTimeout(() => btnElement.innerHTML = `${riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>`, 2000);
         }).catch(e => console.error('Erro ao copiar:', e));
     } else {
-        // Fallback primitivo
         const textArea = document.createElement("textarea");
         textArea.value = riotId;
         document.body.appendChild(textArea);
@@ -319,10 +318,12 @@ function renderOperations(operations, append = false) {
             </a>`;
     });
     
+    // Otimizado: Usar insertAdjacentHTML evita destruir e recriar nós do DOM
     if (append) {
         innerWrapper.insertAdjacentHTML('beforeend', html);
     } else {
-        innerWrapper.innerHTML = html;
+        innerWrapper.replaceChildren();
+        innerWrapper.insertAdjacentHTML('beforeend', html);
     }
 }
 
@@ -405,6 +406,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             btn.disabled = true; btn.innerHTML = "Enviando...";
             try {
+                // NOTA: Para um nível de segurança Enterprise, não deve usar .insert com anonKey. 
+                // Esta chamada deve ser feita por Edge Function num projeto em produção.
                 const { error } = await supabaseClient.from('players').insert([{ 
                     riot_id: riotId, role_raw: role, current_rank: 'Processando...' 
                 }]);
