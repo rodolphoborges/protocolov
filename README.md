@@ -52,6 +52,8 @@ CREATE TABLE players (
   peak_rank_icon TEXT,
   synergy_score INTEGER DEFAULT 0,
   api_error BOOLEAN DEFAULT false,
+  lone_wolf BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()), -- COLUNA ESSENCIAL PARA A PURGA
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
