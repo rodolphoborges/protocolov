@@ -108,6 +108,8 @@ async function run() {
                 role_raw: p.role,
                 synergy_score: p.dbRecord.synergy_score || 0, 
                 dm_score: p.dbRecord.dm_score || 0,
+                dm_score_monthly: p.dbRecord.dm_score_monthly || 0, // NOVO
+                dm_score_total: p.dbRecord.dm_score_total || 0,     // NOVO
                 tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
                 level: p.dbRecord.level,
                 card_url: p.dbRecord.card_url,
