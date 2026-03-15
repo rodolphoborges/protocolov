@@ -3,56 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocolo V - Treino de Mira</title>
+    <title>Protocolo V - Mata-Mata</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        .podium-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: flex-end; margin-top: 50px; min-height: 300px; }
-        .dm-card {
-            background-color: rgba(255, 255, 255, 0.05); border: 1px solid var(--val-gray);
-            border-radius: 8px; padding: 20px; text-align: center; width: 200px;
-            transition: transform 0.3s ease; display: flex; flex-direction: column; align-items: center;
-        }
-        .dm-card:hover { transform: translateY(-10px); }
-        .dm-avatar { width: 80px; height: 80px; border-radius: 12px; margin-bottom: 15px; object-fit: cover; border: 2px solid; }
-        .dm-name { font-weight: 800; font-size: 1.2rem; margin-bottom: 5px; color: var(--val-light); word-break: break-all; }
-        .dm-score { font-family: 'Teko', sans-serif; font-size: 3rem; color: var(--val-red); line-height: 1; margin-top: auto; }
+        /* ESTÉTICA OFICIAL VALORANT (BRUTALISMO) */
+        body { background-color: var(--val-light); color: var(--val-dark); overflow-x: hidden; }
         
-        /* Estilos do Pódio */
-        .rank-1 { border-color: #ffd700; background: linear-gradient(180deg, rgba(255,215,0,0.15) 0%, rgba(0,0,0,0) 100%); height: 320px; z-index: 3; box-shadow: 0 0 20px rgba(255,215,0,0.1);}
-        .rank-1 .dm-avatar { border-color: #ffd700; }
-        .rank-2 { border-color: #c0c0c0; background: linear-gradient(180deg, rgba(192,192,192,0.1) 0%, rgba(0,0,0,0) 100%); height: 280px; z-index: 2;}
-        .rank-2 .dm-avatar { border-color: #c0c0c0; }
-        .rank-3 { border-color: #cd7f32; background: linear-gradient(180deg, rgba(205,127,50,0.1) 0%, rgba(0,0,0,0) 100%); height: 250px; z-index: 1;}
-        .rank-3 .dm-avatar { border-color: #cd7f32; }
-        .rank-4, .rank-5 { height: 220px; opacity: 0.8; border-color: var(--val-gray); background: rgba(15, 25, 35, 0.5);}
-        .rank-4 .dm-avatar, .rank-5 .dm-avatar { border-color: var(--val-gray); }
+        /* Fundo com texto massivo */
+        .bg-text-massive {
+            position: fixed; top: -5vh; left: -2vw; font-family: 'Teko', sans-serif;
+            font-size: 35vw; line-height: 0.8; color: transparent;
+            -webkit-text-stroke: 2px rgba(15, 25, 35, 0.05);
+            z-index: 0; pointer-events: none; user-select: none; font-weight: 700;
+        }
 
-        .medal { font-size: 2.5rem; margin-bottom: 10px; }
+        .content-wrapper { position: relative; z-index: 1; padding: 40px 0; }
+        
+        .section-header-val {
+            font-family: 'Teko', sans-serif; font-size: 5rem; text-transform: uppercase;
+            line-height: 0.9; margin-bottom: 0; position: relative; display: inline-block;
+        }
+        .section-header-val::after {
+            content: ''; position: absolute; bottom: -10px; left: 0; width: 60px; height: 8px; background-color: var(--val-red);
+        }
+
+        /* GRID ASSIMÉTRICA */
+        .leaderboard-grid {
+            display: grid; grid-template-columns: 1fr; gap: 30px; margin-top: 50px;
+        }
+        @media (min-width: 992px) {
+            .leaderboard-grid { grid-template-columns: 1fr 1fr; align-items: stretch; }
+        }
+
+        /* MVP CARD (1º LUGAR) */
+        .mvp-card {
+            background-color: var(--val-red); color: var(--val-light);
+            /* Canto inferior direito cortado */
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 40px), calc(100% - 40px) 100%, 0 100%);
+            padding: 40px; position: relative; display: flex; flex-direction: column; justify-content: flex-end;
+            min-height: 400px; transition: transform 0.3s ease;
+        }
+        .mvp-card:hover { transform: translateY(-5px); }
+        .mvp-card::before {
+            content: 'MVP'; position: absolute; top: 20px; right: 20px;
+            font-family: 'Teko', sans-serif; font-size: 6rem; opacity: 0.2; line-height: 0.8;
+        }
+        .mvp-avatar {
+            width: 120px; height: 120px; border: 4px solid var(--val-light);
+            object-fit: cover; margin-bottom: 20px;
+        }
+        .mvp-name { font-family: 'Teko', sans-serif; font-size: 4rem; line-height: 0.9; text-transform: uppercase; }
+        .mvp-score { font-family: 'Teko', sans-serif; font-size: 6rem; font-weight: 700; line-height: 0.8; margin-top: 10px; }
+        .mvp-score span { font-size: 1.5rem; letter-spacing: 2px; font-weight: 400; opacity: 0.8; }
+
+        /* LISTA DOS RESTANTES (2º AO 5º) */
+        .contender-list { display: flex; flex-direction: column; gap: 15px; justify-content: center; }
+        
+        .contender-card {
+            background-color: var(--val-dark); color: var(--val-light);
+            display: flex; align-items: center; padding: 15px 25px;
+            /* Canto superior esquerdo cortado */
+            clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%, 0 15px);
+            position: relative; transition: all 0.2s ease; border-left: 4px solid transparent;
+        }
+        .contender-card:hover { background-color: #1a2733; border-left-color: var(--val-red); transform: translateX(10px); }
+        
+        .contender-rank {
+            font-family: 'Teko', sans-serif; font-size: 2.5rem; color: var(--val-gray);
+            width: 40px; text-align: left; line-height: 1;
+        }
+        .contender-avatar {
+            width: 50px; height: 50px; border-radius: 0; object-fit: cover;
+            margin-right: 20px; border: 1px solid var(--val-gray);
+        }
+        .contender-name { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 1.2rem; flex-grow: 1; text-transform: uppercase; }
+        .contender-score { font-family: 'Teko', sans-serif; font-size: 3rem; color: var(--val-red); line-height: 1; }
+        .contender-score span { font-size: 1rem; color: var(--val-gray); }
+
+        /* Decorações Geométricas */
+        .decor-square { width: 10px; height: 10px; background-color: var(--val-red); display: inline-block; margin-right: 15px; }
+        .grid-lines {
+            position: absolute; top: 0; right: 0; bottom: 0; width: 30%;
+            background-image: linear-gradient(90deg, transparent 95%, rgba(255,255,255,0.1) 100%);
+            background-size: 20px 100%; pointer-events: none;
+        }
     </style>
 </head>
-<body class="bg-dark-section">
+<body>
 
-    <nav class="p-3 border-bottom border-secondary mb-5">
+    <div class="bg-text-massive">DEATHMATCH</div>
+
+    <nav class="p-4 position-relative z-index-2">
         <div class="container d-flex justify-content-between align-items-center">
-            <span class="fs-4 fw-bold" style="font-family: 'Teko', sans-serif; color: var(--val-light);"><span class="text-accent">///</span> PROTOCOLO V</span>
-            <a href="index.html" class="btn btn-sm btn-outline-secondary text-light">Voltar ao QG Central</a>
+            <span class="fs-3 fw-bold text-dark" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;">
+                <span class="text-accent">///</span> PROTOCOLO V
+            </span>
+            <a href="index.html" class="btn-val" style="font-size: 1.2rem; padding: 5px 20px;">VOLTAR AO QG</a>
         </div>
     </nav>
 
-    <div class="container">
-        <div class="text-center mb-5 fade-in-section is-visible">
-            <h2 class="display-4" style="font-family: 'Teko', sans-serif;">SALA DE TREINO <span class="text-accent">/// MATA-MATA</span></h2>
-            <p class="text-muted mx-auto" style="max-width: 600px;">
-                O aquecimento é a forja dos verdadeiros duelistas. Acompanhe a tabela de classificação semanal do Mata-Mata.<br>
-                <strong>1 Kill = 1 Ponto</strong>. Fator de Brutalidade para o Top 3: <span class="text-warning">+15</span>, <span style="color:#c0c0c0;">+10</span>, <span style="color:#cd7f32;">+5</span> bónus.
-            </p>
+    <div class="container content-wrapper">
+        
+        <div class="row fade-in-section is-visible">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="decor-square"></div>
+                    <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px;">Treino de Mira Semanal</span>
+                </div>
+                <h1 class="section-header-val text-dark">MATA-MATA <span class="text-accent">LEADERBOARD</span></h1>
+                <p class="mt-4 text-dark" style="max-width: 600px; font-weight: 600;">
+                    O aquecimento é a forja dos verdadeiros duelistas. Acompanhe a tabela de classificação de esforço. 
+                    <br><br>
+                    <span class="badge bg-dark text-light rounded-0 px-2 py-1">REGRA DE COMBATE</span> 
+                    <strong>1 Kill = 1 Ponto.</strong> Bónus de Brutalidade para o Top 3: <span class="text-accent">+15</span>, <span class="text-secondary">+10</span>, <span style="color:#cd7f32;">+5</span> pts.
+                </p>
+            </div>
         </div>
 
-        <div class="podium-container fade-in-section is-visible" id="podium">
-            <div class="text-center text-muted">A decodificar estatísticas do Supabase...</div>
+        <div id="leaderboard-container" class="leaderboard-grid fade-in-section is-visible">
+            <div class="text-muted fw-bold mt-5">A DECODIFICAR DADOS DO SERVIDOR...</div>
         </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -63,7 +136,6 @@
 
         async function fetchDmLeaderboard() {
             try {
-                // Puxa apenas jogadores que têm algum ponto de DM (dm_score > 0) ordenados do maior para o menor
                 const { data: playersData, error } = await supabaseClient
                     .from('players')
                     .select('riot_id, card_url, dm_score')
@@ -73,46 +145,56 @@
 
                 if (error) throw error;
 
-                const podiumDiv = document.getElementById('podium');
+                const container = document.getElementById('leaderboard-container');
 
                 if (!playersData || playersData.length === 0) {
-                    podiumDiv.innerHTML = `<div class="alert bg-transparent border-secondary text-muted p-5 w-100 text-center">Nenhum agente realizou treinos de Mata-Mata recentemente.</div>`;
+                    container.innerHTML = `<div class="p-4 bg-dark text-light border-start border-danger border-4 fw-bold">Nenhum agente realizou treinos de Mata-Mata recentemente.</div>`;
+                    container.style.display = 'block';
                     return;
                 }
 
-                const medals = ['🥇', '🥈', '🥉', '4º', '5º'];
-                
-                // Reordenar visualmente o array para fazer o formato de "Pódio": 2º, 1º, 3º, 4º, 5º
-                const visualOrder = [];
-                if(playersData[1]) visualOrder.push(playersData[1]); // Esquerda
-                if(playersData[0]) visualOrder.push(playersData[0]); // Centro
-                if(playersData[2]) visualOrder.push(playersData[2]); // Direita
-                if(playersData[3]) visualOrder.push(playersData[3]);
-                if(playersData[4]) visualOrder.push(playersData[4]);
+                // Separar o 1º Lugar dos Restantes
+                const mvp = playersData[0];
+                const contenders = playersData.slice(1);
+                const fallbackImg = 'https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png';
 
-                let html = '';
-                visualOrder.forEach(p => {
-                    const realRank = playersData.findIndex(x => x.riot_id === p.riot_id) + 1;
-                    const fallbackImg = 'https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png';
-                    
+                // Renderizar o MVP (Esquerda)
+                let html = `
+                <div class="mvp-card">
+                    <div class="grid-lines"></div>
+                    <div>
+                        <img src="${mvp.card_url || fallbackImg}" class="mvp-avatar" onerror="this.onerror=null; this.src='${fallbackImg}';">
+                        <div class="mvp-name">${mvp.riot_id.split('#')[0]}</div>
+                        <div class="text-dark fw-bold text-uppercase" style="letter-spacing: 2px;">Agente Dominante</div>
+                        <div class="mvp-score">${mvp.dm_score} <span>PTS</span></div>
+                    </div>
+                </div>
+                
+                <div class="contender-list">
+                `;
+
+                // Renderizar os Contenders (Direita)
+                contenders.forEach((p, index) => {
+                    const rank = index + 2; // Começa no 2º lugar
                     html += `
-                    <div class="dm-card rank-${realRank}">
-                        <div class="medal">${medals[realRank - 1]}</div>
-                        <img src="${p.card_url || fallbackImg}" class="dm-avatar" onerror="this.onerror=null; this.src='${fallbackImg}';">
-                        <div class="dm-name">${p.riot_id.split('#')[0]}</div>
-                        <div class="dm-score">${p.dm_score} <span style="font-size: 1rem; color: #768079;">PTS</span></div>
-                    </div>`;
+                    <div class="contender-card">
+                        <div class="contender-rank">0${rank}</div>
+                        <img src="${p.card_url || fallbackImg}" class="contender-avatar" onerror="this.onerror=null; this.src='${fallbackImg}';">
+                        <div class="contender-name">${p.riot_id.split('#')[0]}</div>
+                        <div class="contender-score">${p.dm_score} <span>PTS</span></div>
+                    </div>
+                    `;
                 });
 
-                podiumDiv.innerHTML = html;
+                html += `</div>`; // Fecha a contender-list
+                container.innerHTML = html;
 
             } catch (err) {
                 console.error("Erro ao puxar dados:", err);
-                document.getElementById('podium').innerHTML = `<div class="text-danger">Erro de ligação aos servidores da base de dados.</div>`;
+                document.getElementById('leaderboard-container').innerHTML = `<div class="text-danger fw-bold">ERRO DE CONEXÃO COM O SERVIDOR TÁTICO.</div>`;
             }
         }
 
-        // Executar a função
         fetchDmLeaderboard();
     </script>
 </body>
