@@ -26,7 +26,7 @@
             <div class="col-lg-8">
                 <div class="d-flex align-items-center mb-3">
                     <div class="decor-square"></div>
-                    <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px;">Treino de Mira Semanal</span>
+                    <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px;">Treino de Mira</span>
                 </div>
                 <h1 class="val-section-header text-dark">MATA-MATA <span class="text-accent">LEADERBOARD</span></h1>
                 <p class="mt-2 text-dark" style="max-width: 600px; font-weight: 600;">
@@ -36,6 +36,12 @@
                     <strong>1 Kill = 1 Ponto.</strong> Bónus de Brutalidade para o Top 3: <span class="text-accent">+15</span>, <span class="text-secondary">+10</span>, <span style="color:#cd7f32;">+5</span> pts.
                 </p>
             </div>
+        </div>
+
+        <div class="d-flex gap-2 mb-4 fade-in-section is-visible" style="margin-top: 30px;">
+            <button id="btn-dm_score" class="btn btn-period btn-danger rounded-0 fw-bold text-uppercase px-4" onclick="fetchDmLeaderboard('dm_score')" style="letter-spacing: 1px;">Semanal</button>
+            <button id="btn-dm_score_monthly" class="btn btn-period btn-outline-danger rounded-0 fw-bold text-uppercase px-4" onclick="fetchDmLeaderboard('dm_score_monthly')" style="letter-spacing: 1px;">Mensal</button>
+            <button id="btn-dm_score_total" class="btn btn-period btn-outline-danger rounded-0 fw-bold text-uppercase px-4" onclick="fetchDmLeaderboard('dm_score_total')" style="letter-spacing: 1px;">Geral</button>
         </div>
 
         <div id="leaderboard-container" class="leaderboard-grid fade-in-section is-visible">
@@ -49,18 +55,32 @@
         const supabaseAnonKey = 'sb_publishable_EBbK4nq9kpV0VNFmOzFEqQ_2mooasVD';
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-        async function fetchDmLeaderboard() {
+        async function fetchDmLeaderboard(column = 'dm_score') {
+            const container = document.getElementById('leaderboard-container');
+            container.innerHTML = `<div class="text-muted fw-bold mt-5">A DECODIFICAR DADOS DO SERVIDOR...</div>`;
+
+            // Atualiza o estado visual dos botões
+            document.querySelectorAll('.btn-period').forEach(btn => {
+                btn.classList.remove('btn-danger', 'text-light');
+                btn.classList.add('btn-outline-danger');
+            });
+            const activeBtn = document.getElementById('btn-' + column);
+            activeBtn.classList.remove('btn-outline-danger');
+            activeBtn.classList.add('btn-danger', 'text-light');
+
             try {
+                // Puxa a coluna dinâmica escolhida pelo utilizador
                 const { data: playersData, error } = await supabaseClient
-                    .from('players').select('riot_id, card_url, dm_score')
-                    .gt('dm_score', 0).order('dm_score', { ascending: false }).limit(5);
+                    .from('players').select(`riot_id, card_url, ${column}`)
+                    .gt(column, 0).order(column, { ascending: false }).limit(5);
 
                 if (error) throw error;
-                const container = document.getElementById('leaderboard-container');
 
                 if (!playersData || playersData.length === 0) {
-                    container.innerHTML = `<div class="p-4 bg-dark text-light border-start border-danger border-4 fw-bold">Nenhum agente realizou treinos de Mata-Mata recentemente.</div>`;
-                    container.style.display = 'block'; return;
+                    let periodoTexto = column === 'dm_score' ? 'nesta semana' : (column === 'dm_score_monthly' ? 'neste mês' : 'historicamente');
+                    container.innerHTML = `<div class="p-4 bg-dark text-light border-start border-danger border-4 fw-bold">Nenhum agente pontuou ${periodoTexto}.</div>`;
+                    container.style.display = 'block'; 
+                    return;
                 }
 
                 const mvp = playersData[0];
@@ -74,7 +94,7 @@
                         <img src="${mvp.card_url || fallbackImg}" class="mvp-avatar" onerror="this.onerror=null; this.src='${fallbackImg}';">
                         <div class="mvp-name">${mvp.riot_id.split('#')[0]}</div>
                         <div class="text-dark fw-bold text-uppercase" style="letter-spacing: 2px;">Agente Dominante</div>
-                        <div class="mvp-score">${mvp.dm_score} <span>PTS</span></div>
+                        <div class="mvp-score">${mvp[column]} <span>PTS</span></div>
                     </div>
                 </div>
                 <div class="contender-list">`;
@@ -86,7 +106,7 @@
                         <div class="contender-rank">0${rank}</div>
                         <img src="${p.card_url || fallbackImg}" class="contender-avatar" onerror="this.onerror=null; this.src='${fallbackImg}';">
                         <div class="contender-name">${p.riot_id.split('#')[0]}</div>
-                        <div class="contender-score">${p.dm_score} <span>PTS</span></div>
+                        <div class="contender-score">${p[column]} <span>PTS</span></div>
                     </div>`;
                 });
 
@@ -95,10 +115,12 @@
 
             } catch (err) {
                 console.error("Erro ao puxar dados:", err);
-                document.getElementById('leaderboard-container').innerHTML = `<div class="text-danger fw-bold">ERRO DE CONEXÃO COM O SERVIDOR TÁTICO.</div>`;
+                container.innerHTML = `<div class="text-danger fw-bold">ERRO DE CONEXÃO COM O SERVIDOR TÁTICO.</div>`;
             }
         }
-        fetchDmLeaderboard();
+        
+        // Carrega a Leaderboard Semanal por predefinição ao abrir a página
+        fetchDmLeaderboard('dm_score');
     </script>
 </body>
 </html>
