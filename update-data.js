@@ -38,6 +38,9 @@ async function smartFetch(url, headers, retries = 2) {
     return response;
 }
 
+// Função auxiliar para dividir o array em lotes (chunks)
+const chunkArray = (arr, size) => arr.length ? [arr.slice(0, size), ...chunkArray(arr.slice(size), size)] : [];
+
 async function run() {
     try {
         console.log('--- PROTOCOLO V: SUPABASE SYNC ONLINE ---');
@@ -62,106 +65,111 @@ async function run() {
 
         let finalPlayersData = [];
         let allMatchesMap = new Map(); 
-        let playerMatchStats = {}; // Monitora as partidas solo vs grupo
+        let playerMatchStats = {}; 
         const headers = { 'Authorization': henrikApiKey };
 
         console.log(`2. A sincronizar dados de ${playersToFetch.length} agentes na API Valorant...`);
 
-        for (const p of playersToFetch) {
-            const [name, tag] = p.riotId.split('#');
-            const safeName = encodeURIComponent(name.trim());
-            const safeTag = encodeURIComponent(tag.trim());
-            const normalizedPlayerId = p.riotId.toLowerCase().replace(/\s/g, '');
-            
-            playerMatchStats[normalizedPlayerId] = { comp: 0, group: 0 };
+        // Processamento em Lotes (Batches) para evitar Timeout no Actions
+        const playerBatches = chunkArray(playersToFetch, 3); // 3 pedidos em simultâneo
 
-            let playerData = {
-                riot_id: p.riotId, 
-                role_raw: p.role,
-                synergy_score: p.dbRecord.synergy_score || 0, 
-                tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
-                level: p.dbRecord.level,
-                card_url: p.dbRecord.card_url,
-                current_rank: p.dbRecord.current_rank || 'Pendente',
-                peak_rank: p.dbRecord.peak_rank,
-                current_rank_icon: p.dbRecord.current_rank_icon,
-                peak_rank_icon: p.dbRecord.peak_rank_icon,
-                lone_wolf: p.dbRecord.lone_wolf || false,
-                api_error: false,
-                updated_at: new Date().toISOString()
-            };
+        for (const batch of playerBatches) {
+            await Promise.allSettled(batch.map(async (p) => {
+                const [name, tag] = p.riotId.split('#');
+                const safeName = encodeURIComponent(name.trim());
+                const safeTag = encodeURIComponent(tag.trim());
+                const normalizedPlayerId = p.riotId.toLowerCase().replace(/\s/g, '');
+                
+                playerMatchStats[normalizedPlayerId] = { comp: 0, group: 0 };
 
-            let region = 'br'; 
-            let hasNewMatches = false;
+                let playerData = {
+                    riot_id: p.riotId, 
+                    role_raw: p.role,
+                    synergy_score: p.dbRecord.synergy_score || 0, 
+                    tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
+                    level: p.dbRecord.level,
+                    card_url: p.dbRecord.card_url,
+                    current_rank: p.dbRecord.current_rank || 'Pendente',
+                    peak_rank: p.dbRecord.peak_rank,
+                    current_rank_icon: p.dbRecord.current_rank_icon,
+                    peak_rank_icon: p.dbRecord.peak_rank_icon,
+                    lone_wolf: p.dbRecord.lone_wolf || false,
+                    api_error: false,
+                    updated_at: new Date().toISOString()
+                };
 
-            try {
-                // Busca de 5 partidas para melhor monitoramento do Lobo Solitário
-                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=5`, headers);
+                let region = 'br'; 
+                let hasNewMatches = false;
 
-                if (listRes.status === 200) {
-                    const listData = await listRes.json();
-                    const recentCompMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'competitive') : [];
-                    
-                    playerMatchStats[normalizedPlayerId].comp = recentCompMatches.length;
+                try {
+                    // Aumentado para 15 partidas para evitar Falsos Positivos no Lobo Solitário
+                    let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=15`, headers);
 
-                    if (recentCompMatches.length > 0) {
-                        for (const matchCandidate of recentCompMatches) {
-                            const matchId = matchCandidate.metadata.matchid;
-                            
-                            // CORREÇÃO: Se a partida já está no banco de operações, conta como grupo!
-                            if (knownMatchIds.has(matchId)) {
-                                playerMatchStats[normalizedPlayerId].group++;
+                    if (listRes.status === 200) {
+                        const listData = await listRes.json();
+                        const recentCompMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'competitive') : [];
+                        
+                        playerMatchStats[normalizedPlayerId].comp = recentCompMatches.length;
+
+                        if (recentCompMatches.length > 0) {
+                            for (const matchCandidate of recentCompMatches) {
+                                const matchId = matchCandidate.metadata.matchid;
+                                
+                                if (knownMatchIds.has(matchId)) {
+                                    playerMatchStats[normalizedPlayerId].group++;
+                                }
+
+                                if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
+                                
+                                hasNewMatches = true;
+
+                                let bestMatch = matchCandidate;
+                                if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) {
+                                    bestMatch.players = bestMatch.players.all_players;
+                                }
+                                allMatchesMap.set(matchId, bestMatch);
+                            }
+                        }
+                    } else {
+                        playerData.api_error = true;
+                    }
+
+                    const isMissingData = !playerData.level || !playerData.current_rank || playerData.current_rank === 'Processando...';
+
+                    if (!playerData.api_error) {
+                        if (hasNewMatches || isMissingData) {
+                            const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
+                            if (accRes.status === 200) {
+                                const accData = await accRes.json();
+                                playerData.level = accData.data.account_level;
+                                playerData.card_url = accData.data.card.small;
+                                region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
                             }
 
-                            if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
-                            
-                            hasNewMatches = true;
-
-                            let bestMatch = matchCandidate;
-                            if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) {
-                                bestMatch.players = bestMatch.players.all_players;
+                            const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
+                            if (mmrRes.status === 200) {
+                                const mmrData = await mmrRes.json();
+                                if (mmrData.data.current_data?.currenttierpatched) {
+                                    playerData.current_rank = mmrData.data.current_data.currenttierpatched;
+                                    playerData.current_rank_icon = mmrData.data.current_data.images.small;
+                                }
+                                if (mmrData.data.highest_rank?.patched_tier) {
+                                    playerData.peak_rank = mmrData.data.highest_rank.patched_tier;
+                                    const peakTier = mmrData.data.highest_rank.tier;
+                                    if (peakTier) playerData.peak_rank_icon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
+                                }
                             }
-                            allMatchesMap.set(matchId, bestMatch);
                         }
                     }
-                } else {
+
+                } catch (err) {
+                    console.error(`   [${p.riotId}] Falha: ${err.message}`);
                     playerData.api_error = true;
                 }
 
-                const isMissingData = !playerData.level || !playerData.current_rank || playerData.current_rank === 'Processando...';
-
-                if (!playerData.api_error) {
-                    if (hasNewMatches || isMissingData) {
-                        const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
-                        if (accRes.status === 200) {
-                            const accData = await accRes.json();
-                            playerData.level = accData.data.account_level;
-                            playerData.card_url = accData.data.card.small;
-                            region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
-                        }
-
-                        const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
-                        if (mmrRes.status === 200) {
-                            const mmrData = await mmrRes.json();
-                            if (mmrData.data.current_data?.currenttierpatched) {
-                                playerData.current_rank = mmrData.data.current_data.currenttierpatched;
-                                playerData.current_rank_icon = mmrData.data.current_data.images.small;
-                            }
-                            if (mmrData.data.highest_rank?.patched_tier) {
-                                playerData.peak_rank = mmrData.data.highest_rank.patched_tier;
-                                const peakTier = mmrData.data.highest_rank.tier;
-                                if (peakTier) playerData.peak_rank_icon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
-                            }
-                        }
-                    }
-                }
-
-            } catch (err) {
-                console.error(`   [${p.riotId}] Falha: ${err.message}`);
-                playerData.api_error = true;
-            }
-
-            finalPlayersData.push(playerData);
+                finalPlayersData.push(playerData);
+            }));
+            await delay(1000); // Pausa estratégica entre lotes de 3 para não sobrecarregar a API
         }
 
         console.log(`3. A processar operações conjuntas e Gamificação...`);
@@ -183,13 +191,11 @@ async function run() {
                     else if (teamData && teamData.has_won) finalResult = 'VITÓRIA';
                 }
 
-                // --- LÓGICA DE ESCALONAMENTO E MULTIPLICADOR ---
                 let basePoints = 0;
                 if (squadMembers.length === 2) basePoints = 1;
                 else if (squadMembers.length === 3) basePoints = 2;
-                else if (squadMembers.length >= 4) basePoints = 5; // Recompensa massiva para Full Squad
+                else if (squadMembers.length >= 4) basePoints = 5; 
 
-                // Vitória dobra a pontuação
                 let earnedPoints = (finalResult === 'VITÓRIA') ? basePoints * 2 : basePoints;
 
                 squadMembers.forEach(m => {
@@ -220,12 +226,11 @@ async function run() {
             const earnedPoints = newSynergyPoints[nId] || 0;
             let stats = playerMatchStats[nId] || { comp: 0, group: 0 };
             
-            // --- DETECÇÃO DO LOBO SOLITÁRIO ---
             let isLoneWolf = player.lone_wolf;
             if (stats.comp > 0 && stats.group === 0) {
-                isLoneWolf = true; // Jogou recentemente, mas nunca com a equipe
+                isLoneWolf = true; 
             } else if (stats.group > 0) {
-                isLoneWolf = false; // Jogou com a equipe, retira a tag
+                isLoneWolf = false; 
             }
 
             return {
@@ -260,7 +265,7 @@ async function run() {
             .from('players')
             .delete()
             .eq('synergy_score', 0)
-            .lt('created_at', sevenDaysAgo)
+            .lt('created_at', sevenDaysAgo) // Exige que o "created_at" exista no Supabase (ver README abaixo)
             .select();
             
         if (purgeError) console.error('   ❌ Erro na purga:', purgeError);
