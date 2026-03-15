@@ -44,6 +44,17 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 .text-accent { color: var(--val-red); }
 
 /* =========================================
+   CORREÇÃO DE CONTRASTE (Legibilidade)
+========================================= */
+/* Obriga os textos secundários a serem luminosos quando estão num fundo escuro */
+.bg-dark-section .text-muted,
+.role-row .text-muted,
+.waitlist-label,
+.stat-label {
+    color: #b0b8b4 !important; /* Cinza claro e nítido (Silver) */
+}
+
+/* =========================================
    BOTÕES E FORMULÁRIOS
 ========================================= */
 .btn-val {
@@ -81,7 +92,7 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 .player-avatar { width: 64px; height: 64px; object-fit: cover; border: 2px solid var(--val-gray); border-radius: 0; }
 
 .waitlist-section { border-top: 1px dashed rgba(118, 128, 121, 0.4); margin-top: 20px; padding-top: 15px; }
-.waitlist-label { font-family: 'Teko', sans-serif; color: var(--val-gray); font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; }
+.waitlist-label { font-family: 'Teko', sans-serif; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; }
 
 .player-card.is-waiting { opacity: 0.65; background-color: rgba(15, 25, 35, 0.5); }
 .player-card.is-waiting:hover { opacity: 1; border-left-color: var(--val-gray); background-color: var(--val-dark); transform: translateX(5px); }
@@ -146,7 +157,7 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 /* =========================================
    UTILITÁRIOS E MISC
 ========================================= */
-.stat-label { font-size: 0.65rem; color: var(--val-gray); text-transform: uppercase; letter-spacing: 1px; }
+.stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; }
 .stat-val { font-size: 0.9rem; color: var(--val-light); font-family: 'Inter', sans-serif; font-weight: 600; }
 .manifesto-text { font-size: 1.1rem; line-height: 1.6; color: var(--val-dark); font-weight: 500; }
 .manifesto-text strong { color: var(--val-red); }
