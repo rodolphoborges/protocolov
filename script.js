@@ -109,6 +109,7 @@ async function fetchOperations(append = false) {
         const { data, error } = await supabaseClient
             .from('operations')
             .select(`*, operation_squads(riot_id, agent, agent_img, kda, hs_percent)`)
+            .neq('mode', 'Deathmatch') // <--- ADICIONE ESTA LINHA AQUI!
             .order('started_at', { ascending: false })
             .range(opsOffset, opsOffset + OPS_PER_PAGE - 1);
 
