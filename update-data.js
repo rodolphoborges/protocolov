@@ -210,8 +210,12 @@ async function run() {
                     score: match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A',
                     result: finalResult, team_color: teamId,
                     squad: squadMembers.map(m => {
-                        const totalHits = m.stats.headshots + m.stats.bodyshots + m.stats.legshots;
-                        const hsPercent = totalHits > 0 ? Math.round((m.stats.headshots / totalHits) * 100) : 0;
+                        // CÓDIGO CORRIGIDO
+                        const hs = m.stats.headshots || 0;
+                        const bs = m.stats.bodyshots || 0;
+                        const ls = m.stats.legshots || 0;
+                        const totalHits = hs + bs + ls;
+                        const hsPercent = totalHits > 0 ? Math.round((hs / totalHits) * 100) : 0;
                         return {
                             riotId: `${m.name}#${m.tag}`, agent: m.character, agentImg: m.assets.agent.small,
                             kda: `${m.stats.kills}/${m.stats.deaths}/${m.stats.assists}`, hs: hsPercent
