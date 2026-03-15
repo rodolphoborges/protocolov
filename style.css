@@ -1,5 +1,5 @@
 /* =========================================
-   PROTOCOLO V - OFFICIAL STYLESHEET
+   PROTOCOLO V - CONFIGURAÇÃO GLOBAL
    ========================================= */
 
 :root {
@@ -8,9 +8,10 @@
     --val-light: #f9f9f9;
     --text-accent: #ff4655;
     --neon-green: #00ff41;
+    --font-main: 'FF Mark', 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Reset & Base */
+/* Reset de Navegador */
 * {
     margin: 0;
     padding: 0;
@@ -18,26 +19,29 @@
 }
 
 body {
-    font-family: 'FF Mark', 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-main);
     background-color: var(--val-light);
     color: var(--val-dark);
     line-height: 1.6;
-    overflow-x: hidden; /* Impede scroll horizontal */
+    overflow-x: hidden;
 }
 
-/* Typography */
+/* =========================================
+   TIPOGRAFIA E CABEÇALHO
+   ========================================= */
+
 .val-section-header {
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: -2px;
-    line-height: 0.9;
+    line-height: 0.85;
+    /* Font-size padrão para Desktop é 6rem no HTML, ajustamos no mobile abaixo */
 }
 
 .text-accent {
     color: var(--val-red);
 }
 
-/* Decor Elements */
 .decor-square {
     width: 12px;
     height: 12px;
@@ -45,65 +49,75 @@ body {
     margin-right: 15px;
 }
 
-/* Buttons */
+/* =========================================
+   COMPONENTES (BOTÕES E LINKS)
+   ========================================= */
+
+/* Botão Principal de Alistamento */
 .btn-val {
     display: inline-block;
-    padding: 15px 35px;
+    padding: 18px 40px;
     background-color: var(--val-dark);
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
+    color: #fff !important;
+    text-decoration: none !important;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 2px;
-    position: relative;
-    transition: all 0.3s ease;
     border: 1px solid var(--val-dark);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
 }
 
 .btn-val:hover {
     background-color: transparent;
-    color: var(--val-dark);
+    color: var(--val-dark) !important;
+    box-shadow: 8px 8px 0px var(--val-red);
+    transform: translate(-4px, -4px);
 }
 
-/* Telegram Link Styling */
+/* Link Especial do Telegram */
 .telegram-link-header {
     display: inline-flex;
     align-items: center;
     color: var(--val-red) !important;
     text-decoration: none !important;
     font-weight: 800;
-    font-size: 0.9rem;
-    letter-spacing: 1px;
-    padding: 10px 15px;
-    border: 1px solid rgba(255, 70, 85, 0.2);
-    background: rgba(255, 70, 85, 0.05);
+    font-size: 0.85rem;
+    letter-spacing: 1.5px;
+    padding: 12px 20px;
+    border: 1px solid rgba(255, 70, 85, 0.3);
+    background: rgba(255, 70, 85, 0.03);
     transition: 0.3s ease;
     text-transform: uppercase;
 }
 
 .telegram-link-header:hover {
     background: var(--val-red);
-    color: white !important;
+    color: #fff !important;
     border-color: var(--val-red);
-    box-shadow: 0 0 15px rgba(255, 70, 85, 0.4);
+    box-shadow: 0 0 20px rgba(255, 70, 85, 0.3);
 }
 
-/* Animations */
+/* =========================================
+   ANIMAÇÕES
+   ========================================= */
+
+/* Efeito Piscar do Terminal [!] */
 @keyframes blinker-alt {
     50% { opacity: 0; }
 }
 
 .blink-terminal {
     animation: blinker-alt 1s step-end infinite;
-    margin-right: 8px;
-    font-weight: bold;
+    margin-right: 10px;
+    font-weight: 900;
 }
 
+/* Fade In das Seções */
 .fade-in-section {
     opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
 }
 
 .fade-in-section.is-visible {
@@ -111,51 +125,75 @@ body {
     transform: translateY(0);
 }
 
-/* Containers */
+/* =========================================
+   LAYOUT E RESPONSIVIDADE (MOBILE FIRST)
+   ========================================= */
+
 .content-wrapper {
-    padding: 60px 0;
+    padding: 80px 0;
 }
 
-/* Mobile Adjustments (CRITICAL) */
-@media (max-width: 992px) {
-    .val-section-header {
-        font-size: 4rem !important;
+/* Ajustes para Telas Grandes (Desktop) */
+@media (min-width: 992px) {
+    .gap-custom {
+        gap: 25px !important;
     }
 }
 
-@media (max-width: 768px) {
+/* Ajustes para Tablets e Mobile */
+@media (max-width: 991px) {
     .val-section-header {
-        font-size: 3rem !important;
+        font-size: 4.5rem !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .val-section-header {
+        font-size: 3.2rem !important; /* Evita quebra de linha feia no mobile */
         letter-spacing: -1px;
     }
-    
+
     .header p {
         font-size: 1.1rem !important;
+        margin-bottom: 30px;
     }
 
-    .d-flex.gap-3 {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px !important;
+    /* Empilha os botões no mobile */
+    .d-flex.align-items-center.gap-3, 
+    .d-flex.flex-wrap.align-items-center.gap-3 {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100%;
     }
 
-    .btn-val, .telegram-link-header {
+    .btn-val, 
+    .telegram-link-header {
         width: 100%;
         text-align: center;
         justify-content: center;
     }
 }
 
-/* Leaderboard Specifics (Deathmatch) */
-.dm-leaderboard {
+/* =========================================
+   LEADERBOARD & TREINO (MODO DARK/CYBER)
+   ========================================= */
+
+.leaderboard-container {
     background: #000;
     color: var(--neon-green);
-    padding: 20px;
-    font-family: 'Courier New', Courier, monospace;
+    padding: 30px;
     border: 1px solid var(--neon-green);
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
 }
 
 .dm-row {
-    border-bottom: 1px solid rgba(0, 255, 65, 0.2);
-    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 255, 65, 0.1);
+    padding: 12px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.dm-row:last-child {
+    border-bottom: none;
 }
