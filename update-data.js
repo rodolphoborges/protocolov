@@ -55,7 +55,6 @@ async function notificarWhatsApp(mensagem) {
         console.error("   ❌ Falha na transmissão via WhatsApp:", error);
     }
 }
-const chunkArray = (arr, size) => arr.length ? [arr.slice(0, size), ...chunkArray(arr.slice(size), size)] : [];
 
 async function run() {
     try {
@@ -84,119 +83,117 @@ async function run() {
         let playerMatchStats = {}; 
         const headers = { 'Authorization': henrikApiKey };
 
-        console.log(`2. A sincronizar API (${playersToFetch.length} agentes)...`);
-        const playerBatches = chunkArray(playersToFetch, 3); 
+        console.log(`2. A sincronizar API (${playersToFetch.length} agentes) em modo furtivo (sequencial)...`);
+        
+        for (const p of playersToFetch) {
+            const [name, tag] = p.riotId.split('#');
+            const safeName = encodeURIComponent(name.trim());
+            const safeTag = encodeURIComponent(tag.trim());
+            const normalizedPlayerId = p.riotId.toLowerCase().replace(/\s/g, '');
+            
+            console.log(`      -> A extrair dados de: ${p.riotId}`);
+            
+            playerMatchStats[normalizedPlayerId] = { comp: 0, group: 0 };
 
-        for (const batch of playerBatches) {
-            await Promise.allSettled(batch.map(async (p) => {
-                const [name, tag] = p.riotId.split('#');
-                const safeName = encodeURIComponent(name.trim());
-                const safeTag = encodeURIComponent(tag.trim());
-                const normalizedPlayerId = p.riotId.toLowerCase().replace(/\s/g, '');
-                
-                playerMatchStats[normalizedPlayerId] = { comp: 0, group: 0 };
+            let playerData = {
+                riot_id: p.riotId, 
+                role_raw: p.role,
+                synergy_score: p.dbRecord.synergy_score || 0, 
+                dm_score: p.dbRecord.dm_score || 0, // MVP MATA-MATA
+                tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
+                level: p.dbRecord.level,
+                card_url: p.dbRecord.card_url,
+                current_rank: p.dbRecord.current_rank || 'Pendente',
+                peak_rank: p.dbRecord.peak_rank,
+                current_rank_icon: p.dbRecord.current_rank_icon,
+                peak_rank_icon: p.dbRecord.peak_rank_icon,
+                lone_wolf: p.dbRecord.lone_wolf || false,
+                api_error: false,
+                updated_at: new Date().toISOString()
+            };
 
-                let playerData = {
-                    riot_id: p.riotId, 
-                    role_raw: p.role,
-                    synergy_score: p.dbRecord.synergy_score || 0, 
-                    dm_score: p.dbRecord.dm_score || 0, // MVP MATA-MATA
-                    tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
-                    level: p.dbRecord.level,
-                    card_url: p.dbRecord.card_url,
-                    current_rank: p.dbRecord.current_rank || 'Pendente',
-                    peak_rank: p.dbRecord.peak_rank,
-                    current_rank_icon: p.dbRecord.current_rank_icon,
-                    peak_rank_icon: p.dbRecord.peak_rank_icon,
-                    lone_wolf: p.dbRecord.lone_wolf || false,
-                    api_error: false,
-                    updated_at: new Date().toISOString()
-                };
+            let region = 'br'; 
+            let hasNewMatches = false;
 
-                let region = 'br'; 
-                let hasNewMatches = false;
+            try {
+                // MVP MATA-MATA: Ampliamos para size=20 para não perder as ranqueadas se o jogador jogar muito DM
+                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=20`, headers);
 
-                try {
-                    // MVP MATA-MATA: Ampliamos para size=20 para não perder as ranqueadas se o jogador jogar muito DM
-                    let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=20`, headers);
+                if (listRes.status === 200) {
+                    const listData = await listRes.json();
+                    
+                    // Separar Modos
+                    const recentCompMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'competitive') : [];
+                    const recentDmMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'deathmatch') : [];
+                    
+                    playerMatchStats[normalizedPlayerId].comp = recentCompMatches.length;
 
-                    if (listRes.status === 200) {
-                        const listData = await listRes.json();
-                        
-                        // Separar Modos
-                        const recentCompMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'competitive') : [];
-                        const recentDmMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'deathmatch') : [];
-                        
-                        playerMatchStats[normalizedPlayerId].comp = recentCompMatches.length;
-
-                        // Adicionar Ranqueadas ao Mapa Global
-                        if (recentCompMatches.length > 0) {
-                            for (const matchCandidate of recentCompMatches) {
-                                const matchId = matchCandidate.metadata.matchid;
-                                if (knownMatchIds.has(matchId)) playerMatchStats[normalizedPlayerId].group++;
-                                if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
-                                
-                                hasNewMatches = true;
-                                let bestMatch = matchCandidate;
-                                if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) bestMatch.players = bestMatch.players.all_players;
-                                allMatchesMap.set(matchId, bestMatch);
-                            }
-                        }
-
-                        // MVP MATA-MATA: Adicionar DM ao Mapa Global
-                        if (recentDmMatches.length > 0) {
-                            for (const matchCandidate of recentDmMatches) {
-                                const matchId = matchCandidate.metadata.matchid;
-                                if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
-                                
-                                hasNewMatches = true;
-                                let bestMatch = matchCandidate;
-                                if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) bestMatch.players = bestMatch.players.all_players;
-                                allMatchesMap.set(matchId, bestMatch);
-                            }
-                        }
-
-                    } else if (listRes.status === 404) {
-                        playerData.api_error = true;
-                    } else {
-                        playerData.api_error = true;
-                    }
-
-                    const isMissingData = !playerData.level || !playerData.current_rank || playerData.current_rank === 'Processando...';
-
-                    if (!playerData.api_error) {
-                        if (hasNewMatches || isMissingData) {
-                            const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
-                            if (accRes.status === 200) {
-                                const accData = await accRes.json();
-                                playerData.level = accData.data.account_level;
-                                playerData.card_url = accData.data.card.small;
-                                region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
-                            }
-
-                            const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
-                            if (mmrRes.status === 200) {
-                                const mmrData = await mmrRes.json();
-                                if (mmrData.data.current_data?.currenttierpatched) {
-                                    playerData.current_rank = mmrData.data.current_data.currenttierpatched;
-                                    playerData.current_rank_icon = mmrData.data.current_data.images.small;
-                                }
-                                if (mmrData.data.highest_rank?.patched_tier) {
-                                    playerData.peak_rank = mmrData.data.highest_rank.patched_tier;
-                                    const peakTier = mmrData.data.highest_rank.tier;
-                                    if (peakTier) playerData.peak_rank_icon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
-                                }
-                            }
+                    // Adicionar Ranqueadas ao Mapa Global
+                    if (recentCompMatches.length > 0) {
+                        for (const matchCandidate of recentCompMatches) {
+                            const matchId = matchCandidate.metadata.matchid;
+                            if (knownMatchIds.has(matchId)) playerMatchStats[normalizedPlayerId].group++;
+                            if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
+                            
+                            hasNewMatches = true;
+                            let bestMatch = matchCandidate;
+                            if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) bestMatch.players = bestMatch.players.all_players;
+                            allMatchesMap.set(matchId, bestMatch);
                         }
                     }
 
-                } catch (err) {
+                    // MVP MATA-MATA: Adicionar DM ao Mapa Global
+                    if (recentDmMatches.length > 0) {
+                        for (const matchCandidate of recentDmMatches) {
+                            const matchId = matchCandidate.metadata.matchid;
+                            if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
+                            
+                            hasNewMatches = true;
+                            let bestMatch = matchCandidate;
+                            if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) bestMatch.players = bestMatch.players.all_players;
+                            allMatchesMap.set(matchId, bestMatch);
+                        }
+                    }
+
+                } else if (listRes.status === 404) {
+                    playerData.api_error = true;
+                } else {
                     playerData.api_error = true;
                 }
 
-                finalPlayersData.push(playerData);
-            }));
-            await delay(3500); 
+                const isMissingData = !playerData.level || !playerData.current_rank || playerData.current_rank === 'Processando...';
+
+                if (!playerData.api_error) {
+                    if (hasNewMatches || isMissingData) {
+                        const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
+                        if (accRes.status === 200) {
+                            const accData = await accRes.json();
+                            playerData.level = accData.data.account_level;
+                            playerData.card_url = accData.data.card.small;
+                            region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
+                        }
+
+                        const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
+                        if (mmrRes.status === 200) {
+                            const mmrData = await mmrRes.json();
+                            if (mmrData.data.current_data?.currenttierpatched) {
+                                playerData.current_rank = mmrData.data.current_data.currenttierpatched;
+                                playerData.current_rank_icon = mmrData.data.current_data.images.small;
+                            }
+                            if (mmrData.data.highest_rank?.patched_tier) {
+                                playerData.peak_rank = mmrData.data.highest_rank.patched_tier;
+                                const peakTier = mmrData.data.highest_rank.tier;
+                                if (peakTier) playerData.peak_rank_icon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
+                            }
+                        }
+                    }
+                }
+
+            } catch (err) {
+                playerData.api_error = true;
+            }
+
+            finalPlayersData.push(playerData);
         }
 
         console.log(`3. A processar operações conjuntas e Gamificação (Competitivo + DM)...`);
