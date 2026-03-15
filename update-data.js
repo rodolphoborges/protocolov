@@ -314,12 +314,24 @@ async function run() {
                 score: op.score, result: op.result, team_color: op.team_color
             }, { onConflict: 'id' });
 
-            if (!opError && op.squad.length > 0) {
+            if (!opError && op.squad && op.squad.length > 0) {
                 const squadData = op.squad.map(m => ({
                     operation_id: op.id, riot_id: m.riotId, agent: m.agent, agent_img: m.agentImg, kda: m.kda, hs_percent: m.hs
                 }));
                 await supabase.from('operation_squads').delete().eq('operation_id', op.id);
                 await supabase.from('operation_squads').insert(squadData);
+                
+                // === ALERTA WHATSAPP: OPERAÇÃO CONCLUÍDA ===
+                if (op.mode.toLowerCase() === 'competitive') {
+                    // Limpa a tag para ficar mais legível no telemóvel
+                    const agentes = op.squad.map(m => m.riotId.split('#')[0]).join(', ');
+                    const iconeResultado = op.result === 'VITÓRIA' ? '🟢' : (op.result === 'EMPATE' ? '🟡' : '🔴');
+                    
+                    const intelMessage = `🚨 *[PROTOCOLO V - INTEL]* 🚨\n\nOperação finalizada no mapa *${op.map}*\n👥 *Esquadrão:* ${agentes}\n${iconeResultado} *Resultado:* ${op.result} (${op.score})\n\n🌐 Aceder ao Terminal: protocolov.com`;
+                    
+                    await notificarWhatsApp(intelMessage);
+                    await delay(1500); // Pausa de segurança para evitar rate limit do CallMeBot
+                }
             }
         }
 
