@@ -38,7 +38,7 @@ function updateLastSyncTime(playersData) {
     if (statusEl && lastUpdated) {
         const diffMins = Math.floor((new Date() - lastUpdated) / 60000);
         const timeText = diffMins <= 0 ? "agora mesmo" : `há ${diffMins} min`;
-        statusEl.innerHTML = `<span class="badge bg-dark border border-secondary text-muted px-2 py-1">Sincronizado ${timeText}</span>`;
+        statusEl.innerHTML = `<span class="badge rounded-0 bg-dark border border-secondary text-muted px-3 py-2" style="font-family: 'Teko', sans-serif; font-size: 1.1rem; letter-spacing: 1px;">Sincronizado ${timeText}</span>`;
     }
 }
 
@@ -73,10 +73,7 @@ async function fetchCachedData() {
                     break;
                 }
             }
-            
-            if (!isAssigned) {
-                rolesConfig['Flex'].waitlist.push(player);
-            }
+            if (!isAssigned) rolesConfig['Flex'].waitlist.push(player);
         });
         
         renderRoles();
@@ -88,7 +85,7 @@ async function fetchCachedData() {
     } catch (error) {
         console.error('Falha ao carregar dados:', error);
         document.getElementById('roles-container').innerHTML = `
-            <div class="alert alert-danger border-danger bg-transparent text-danger text-center">
+            <div class="alert rounded-0 alert-danger border-danger text-center fw-bold" style="background-color: transparent;">
                 A carregar sistema ou base de dados vazia. Tente recarregar.
             </div>`;
     }
@@ -108,7 +105,7 @@ async function fetchOperations(append = false) {
         const { data, error } = await supabaseClient
             .from('operations')
             .select(`*, operation_squads(riot_id, agent, agent_img, kda, hs_percent)`)
-            .neq('mode', 'Deathmatch') // FILTRO APLICADO AQUI: Ignora Mata-Mata
+            .neq('mode', 'Deathmatch') // FILTRO MATA-MATA ATIVO
             .order('started_at', { ascending: false })
             .range(opsOffset, opsOffset + OPS_PER_PAGE - 1);
 
@@ -151,7 +148,7 @@ async function fetchOperations(append = false) {
     } finally {
         isFetchingOps = false;
         if (btn) {
-            btn.innerHTML = 'Ver Mais Partidas';
+            btn.innerHTML = 'CARREGAR ARQUIVOS';
             btn.disabled = false;
         }
     }
@@ -160,7 +157,7 @@ async function fetchOperations(append = false) {
 window.copyRiotId = function(btnElement, riotId) {
     if(navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(riotId).then(() => {
-            btnElement.innerHTML = 'Copiado! ✅';
+            btnElement.innerHTML = 'COPIADO! ✅';
             setTimeout(() => btnElement.innerHTML = `${riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>`, 2000);
         }).catch(e => console.error('Erro ao copiar:', e));
     } else {
@@ -170,7 +167,7 @@ window.copyRiotId = function(btnElement, riotId) {
         textArea.select();
         try {
             document.execCommand('copy');
-            btnElement.innerHTML = 'Copiado! ✅';
+            btnElement.innerHTML = 'COPIADO! ✅';
             setTimeout(() => btnElement.innerHTML = `${riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>`, 2000);
         } catch (err) {
             console.error('Falha ao copiar:', err);
@@ -180,15 +177,15 @@ window.copyRiotId = function(btnElement, riotId) {
 }
 
 function createPlayerCardHTML(player, isWaiting = false) {
-    const isWaitingClass = isWaiting ? 'is-waiting p-2' : 'p-2';
+    const isWaitingClass = isWaiting ? 'is-waiting' : '';
     const safeCard = safeUrl(player.card_url, 'https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png');
     const safeTracker = safeUrl(player.tracker_link, '#');
     const safeRankIcon = safeUrl(player.current_rank_icon, '');
     const safePeakIcon = safeUrl(player.peak_rank_icon, '');
 
-    let warningBadge = player.api_error ? `<span class="badge bg-warning text-dark ms-2">⚠️ Desatualizado</span>` : '';
-    let loneWolfBadge = player.lone_wolf ? `<span class="badge ms-2 text-dark bg-secondary" style="background-color: #768079 !important;" title="Jogou as últimas ranqueadas totalmente solo.">🐺 Lobo Solitário</span>` : '';
-    let dmBadge = player.dm_score > 0 ? `<span class="badge border border-danger text-danger ms-2" style="background-color: rgba(255, 70, 85, 0.1);" title="Pontos de Treino (Mata-Mata)">🎯 ${player.dm_score}</span>` : '';
+    let warningBadge = player.api_error ? `<span class="badge bg-warning text-dark ms-2 rounded-0">⚠️ OFF</span>` : '';
+    let loneWolfBadge = player.lone_wolf ? `<span class="badge ms-2 text-dark bg-secondary rounded-0" style="background-color: #768079 !important;" title="Jogou as últimas ranqueadas totalmente solo.">🐺 LOBO</span>` : '';
+    let dmBadge = player.dm_score > 0 ? `<span class="badge border border-danger text-danger ms-2 rounded-0" style="background-color: rgba(255, 70, 85, 0.1);" title="Pontos de Treino (Mata-Mata)">🎯 ${player.dm_score}</span>` : '';
     let opaqueClass = player.lone_wolf ? 'opaque-rank' : '';
 
     const eloHTML = safeRankIcon ? `<img src="${safeRankIcon}" alt="${player.currentRank}" class="${opaqueClass}" style="width: 20px; height: 20px;"> <span class="${opaqueClass}">${player.currentRank}</span>` : `<span class="${opaqueClass}">${player.currentRank}</span>`;
@@ -197,9 +194,9 @@ function createPlayerCardHTML(player, isWaiting = false) {
     const synergyPoints = player.synergy_score || 0;
     let synergyBadge = '';
     if (synergyPoints > 10) {
-        synergyBadge = `<span class="badge bg-danger ms-2" title="Jogador muito ativo com a comunidade">🔥 Sinergia: ${synergyPoints}</span>`;
+        synergyBadge = `<span class="badge bg-danger ms-2 rounded-0" title="Jogador muito ativo com a comunidade">🔥 SN: ${synergyPoints}</span>`;
     } else if (synergyPoints > 0) {
-        synergyBadge = `<span class="badge bg-secondary ms-2" title="Partidas jogadas em grupo">🤝 Sinergia: ${synergyPoints}</span>`;
+        synergyBadge = `<span class="badge bg-secondary ms-2 rounded-0" title="Partidas jogadas em grupo">🤝 SN: ${synergyPoints}</span>`;
     }
 
     return `
@@ -209,24 +206,24 @@ function createPlayerCardHTML(player, isWaiting = false) {
                 <div class="flex-grow-1">
                     <div class="fw-bold text-white mb-2 d-flex align-items-center flex-wrap gap-1" style="font-size: 1rem; line-height: 1;">
                         
-                        <span class="user-select-all" style="cursor: pointer;" onclick="window.copyRiotId(this, '${player.riotId}')" title="Clique para copiar e adicionar no Valorant" aria-label="Copiar ID ${player.riotId}">
+                        <span class="user-select-all text-uppercase" style="cursor: pointer; letter-spacing: 0.5px;" onclick="window.copyRiotId(this, '${player.riotId}')" title="Clique para copiar e adicionar no Valorant" aria-label="Copiar ID ${player.riotId}">
                             ${player.riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>
                         </span>
                         
-                        <span class="badge bg-secondary ms-1" style="font-size: 0.6rem;">LVL ${player.level || '--'}</span>
+                        <span class="badge bg-secondary ms-1 rounded-0" style="font-size: 0.6rem;">LVL ${player.level || '--'}</span>
                         ${synergyBadge}
                         ${dmBadge}
                         ${loneWolfBadge}
                         ${warningBadge}
                     </div>
-                    <div class="d-flex gap-4">
+                    <div class="d-flex gap-4 mt-2">
                         <div><div class="stat-label">Elo Atual</div><div class="stat-val d-flex align-items-center gap-2">${eloHTML}</div></div>
                         <div><div class="stat-label">Rank Máximo</div><div class="stat-val text-accent d-flex align-items-center gap-2">${peakHTML}</div></div>
                     </div>
                 </div>
                 <div class="ms-auto pe-2">
-                    <a href="${safeTracker}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver no Tracker.gg" aria-label="Ver perfil de ${player.riotId} no Tracker.gg">
-                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <a href="${safeTracker}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-0 border-0" title="Ver no Tracker.gg" aria-label="Ver perfil de ${player.riotId} no Tracker.gg">
+                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="var(--val-gray)" viewBox="0 0 16 16">
                           <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
                           <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
                         </svg>
@@ -243,7 +240,7 @@ function renderOperations(operations, append = false) {
     section.style.display = 'block';
 
     if(operations.length === 0 && !append) {
-        container.innerHTML = `<div class="col-12"><div class="alert bg-dark border-secondary text-muted text-center py-4">Nenhuma operação conjunta detetada recentemente.</div></div>`;
+        container.innerHTML = `<div class="col-12"><div class="alert rounded-0 border-secondary text-dark text-center py-4 fw-bold" style="background-color: rgba(15, 25, 35, 0.05);">Nenhuma operação conjunta detetada recentemente.</div></div>`;
         return;
     }
 
@@ -281,12 +278,12 @@ function renderOperations(operations, append = false) {
             squadHTML += `
                 <div class="d-flex align-items-center justify-content-between py-2 ${borderClass}">
                     <div class="d-flex align-items-center gap-3">
-                        <img src="${safeUrl(m.agentImg, '')}" class="rounded" style="width: 30px; height: 30px; object-fit: cover;" onerror="this.onerror=null; this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png';">
-                        <span class="fw-bold text-light text-truncate" style="max-width: 120px; font-size: 0.95rem;">${escapeHtml(m.riotId.split('#')[0])}</span>
+                        <img src="${safeUrl(m.agentImg, '')}" class="rounded-0 border border-secondary" style="width: 32px; height: 32px; object-fit: cover;" onerror="this.onerror=null; this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png';">
+                        <span class="fw-bold text-light text-truncate text-uppercase" style="max-width: 120px; font-size: 0.95rem; letter-spacing: 1px;">${escapeHtml(m.riotId.split('#')[0])}</span>
                     </div>
                     
                     <div class="d-flex align-items-center gap-4 font-monospace text-nowrap" style="font-size: 0.9rem;">
-                        <div style="width: 80px;" class="text-center bg-dark rounded px-2 py-1 border border-secondary border-opacity-25" aria-label="KDA: ${kills} abates, ${deaths} mortes, ${assists} assistências">${kdaFormatted}</div>
+                        <div style="width: 80px;" class="text-center bg-dark rounded-0 px-2 py-1 border border-secondary border-opacity-25" aria-label="KDA: ${kills} abates, ${deaths} mortes, ${assists} assistências">${kdaFormatted}</div>
                         <div style="width: 60px;" class="text-end" style="color: #adb5bd;" aria-label="Porcentagem de Headshots: ${m.hs}%"><span class="text-light">${m.hs}%</span> <span style="font-size:0.65rem" aria-hidden="true">HS</span></div>
                     </div>
                 </div>
@@ -296,18 +293,18 @@ function renderOperations(operations, append = false) {
         squadHTML += '</div>';
 
         html += `
-            <a href="https://tracker.gg/valorant/match/${op.id}" target="_blank" aria-label="Ver detalhes da partida ${op.map} no Tracker.gg" class="text-decoration-none mission-row ${resultClass} p-3 p-md-4 rounded d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; display: block;">
+            <a href="https://tracker.gg/valorant/match/${op.id}" target="_blank" aria-label="Ver detalhes da partida ${op.map} no Tracker.gg" class="text-decoration-none mission-row ${resultClass} p-3 p-md-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; display: block;">
                 
                 <div class="d-flex align-items-center gap-4" style="min-width: 220px;">
                     <div class="text-center" style="width: 80px;">
-                        <div class="fs-2 fw-bold ${resultColor} lh-1" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;" aria-label="Placar: ${op.score}">${escapeHtml(op.score)}</div>
+                        <div class="fs-1 fw-bold ${resultColor} lh-1" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;" aria-label="Placar: ${op.score}">${escapeHtml(op.score)}</div>
                         
-                        <div class="${resultColor} text-uppercase mt-2 fw-bold" style="font-size: 0.75rem; letter-spacing: 2px; opacity: 0.9;">${escapeHtml(op.result)}</div>
+                        <div class="${resultColor} text-uppercase mt-2 fw-bold" style="font-size: 0.85rem; letter-spacing: 2px; opacity: 0.9;">${escapeHtml(op.result)}</div>
                     </div>
                     <div class="border-start border-secondary border-opacity-50 ps-4">
                         <div class="fs-4 fw-bold text-white lh-1 mb-2 text-uppercase" style="letter-spacing: 1px;">${escapeHtml(op.map)}</div>
                         
-                        <div class="d-flex align-items-center gap-2" style="font-size: 0.85rem; color: #adb5bd;">
+                        <div class="d-flex align-items-center gap-2 fw-bold" style="font-size: 0.85rem; color: #adb5bd;">
                             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
                             ${date}
                         </div>
@@ -335,28 +332,29 @@ function renderRoles() {
         const isMainFull = data.current >= data.max;
         const formattedCurrent = String(data.current).padStart(2, '0');
         const formattedMax = String(data.max).padStart(2, '0');
-        const statusBadge = !isMainFull ? `<span class="slot-indicator fs-4">[ ${formattedCurrent} / ${formattedMax} ]</span>` : `<span class="slot-indicator fs-5 text-accent">/// VAGAS NA RESERVA</span>`;
+        const statusBadge = !isMainFull ? `<span class="slot-indicator fs-3">[ ${formattedCurrent} / ${formattedMax} ]</span>` : `<span class="slot-indicator fs-4 text-accent">/// VAGAS NA RESERVA</span>`;
 
         let playersHTML = data.players.map(p => createPlayerCardHTML(p, false)).join('');
         let waitlistHTML = data.waitlist.length > 0 ? `
             <div class="waitlist-section">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="waitlist-label">Fila de Reserva</span>
-                    <span class="badge bg-secondary">${data.waitlist.length} na escuta</span>
+                    <span class="badge bg-secondary rounded-0" style="font-family: 'Inter', sans-serif;">${data.waitlist.length} na escuta</span>
                 </div>
-                <div class="row g-2">${data.waitlist.map(p => createPlayerCardHTML(p, true)).join('')}</div>
+                <div class="row g-3">${data.waitlist.map(p => createPlayerCardHTML(p, true)).join('')}</div>
             </div>` : '';
 
         fullHTML += `
             <div class="row align-items-start role-row ${isMainFull ? 'role-full' : ''}">
                 <div class="col-md-3 mb-4 mb-md-0">
-                    <h3 class="role-title">${role}</h3><p class="mb-0 text-muted small">${data.desc}</p>
+                    <h3 class="role-title">${role}</h3>
+                    <p class="mb-0 text-muted small mt-2" style="max-width: 80%;">${data.desc}</p>
                 </div>
                 <div class="col-md-9">
-                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-3">
-                        <span class="text-uppercase text-muted small">Status Operacional</span>${statusBadge}
+                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-2 mb-4">
+                        <span class="text-uppercase text-muted small fw-bold" style="letter-spacing: 1px;">Status Operacional</span>${statusBadge}
                     </div>
-                    <div class="row g-3">${playersHTML}</div>${waitlistHTML}
+                    <div class="row g-4">${playersHTML}</div>${waitlistHTML}
                 </div>
             </div>`;
     }
@@ -404,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            btn.disabled = true; btn.innerHTML = "Enviando...";
+            btn.disabled = true; btn.innerHTML = "A ENVIAR...";
             try {
                 const { error } = await supabaseClient.from('players').insert([{ 
                     riot_id: riotId, role_raw: role, current_rank: 'Processando...' 
@@ -421,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } finally {
                 setTimeout(() => { 
                     btn.disabled = false; 
-                    btn.innerHTML = "Alistar-se";
+                    btn.innerHTML = "ALISTAR-SE";
                     isSubmittingForm = false;
                 }, 2000);
             }
