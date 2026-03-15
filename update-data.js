@@ -43,7 +43,7 @@ const chunkArray = (arr, size) => arr.length ? [arr.slice(0, size), ...chunkArra
 async function run() {
     try {
         console.log('--- PROTOCOLO V: SUPABASE SYNC ONLINE ---');
-        console.log('1. A buscar inscritos e memória de operações no banco de dados...');
+        console.log('1. A buscar inscritos e memória de operações...');
         
         const { data: records, error: dbError } = await supabase.from('players').select('*');
         if (dbError) throw new Error('Erro a ler jogadores do Supabase');
@@ -67,9 +67,7 @@ async function run() {
         let playerMatchStats = {}; 
         const headers = { 'Authorization': henrikApiKey };
 
-        console.log(`2. A sincronizar dados de ${playersToFetch.length} agentes na API Valorant...`);
-
-        // Processamento em Lotes (Batches) de 3 para proteger limites da API
+        console.log(`2. A sincronizar API (${playersToFetch.length} agentes)...`);
         const playerBatches = chunkArray(playersToFetch, 3); 
 
         for (const batch of playerBatches) {
@@ -85,6 +83,7 @@ async function run() {
                     riot_id: p.riotId, 
                     role_raw: p.role,
                     synergy_score: p.dbRecord.synergy_score || 0, 
+                    dm_score: p.dbRecord.dm_score || 0, // MVP MATA-MATA
                     tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
                     level: p.dbRecord.level,
                     card_url: p.dbRecord.card_url,
@@ -101,35 +100,46 @@ async function run() {
                 let hasNewMatches = false;
 
                 try {
-                    let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=15`, headers);
+                    // MVP MATA-MATA: Ampliamos para size=20 para não perder as ranqueadas se o jogador jogar muito DM
+                    let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=20`, headers);
 
                     if (listRes.status === 200) {
                         const listData = await listRes.json();
+                        
+                        // Separar Modos
                         const recentCompMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'competitive') : [];
+                        const recentDmMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'deathmatch') : [];
                         
                         playerMatchStats[normalizedPlayerId].comp = recentCompMatches.length;
 
+                        // Adicionar Ranqueadas ao Mapa Global
                         if (recentCompMatches.length > 0) {
                             for (const matchCandidate of recentCompMatches) {
                                 const matchId = matchCandidate.metadata.matchid;
-                                
-                                if (knownMatchIds.has(matchId)) {
-                                    playerMatchStats[normalizedPlayerId].group++;
-                                }
-
+                                if (knownMatchIds.has(matchId)) playerMatchStats[normalizedPlayerId].group++;
                                 if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
                                 
                                 hasNewMatches = true;
-
                                 let bestMatch = matchCandidate;
-                                if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) {
-                                    bestMatch.players = bestMatch.players.all_players;
-                                }
+                                if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) bestMatch.players = bestMatch.players.all_players;
                                 allMatchesMap.set(matchId, bestMatch);
                             }
                         }
+
+                        // MVP MATA-MATA: Adicionar DM ao Mapa Global
+                        if (recentDmMatches.length > 0) {
+                            for (const matchCandidate of recentDmMatches) {
+                                const matchId = matchCandidate.metadata.matchid;
+                                if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
+                                
+                                hasNewMatches = true;
+                                let bestMatch = matchCandidate;
+                                if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) bestMatch.players = bestMatch.players.all_players;
+                                allMatchesMap.set(matchId, bestMatch);
+                            }
+                        }
+
                     } else if (listRes.status === 404) {
-                        console.warn(`   ⚠️ [${p.riotId}] Não encontrado (404). Possível mudança de Riot ID.`);
                         playerData.api_error = true;
                     } else {
                         playerData.api_error = true;
@@ -164,85 +174,115 @@ async function run() {
                     }
 
                 } catch (err) {
-                    console.error(`   [${p.riotId}] Falha: ${err.message}`);
                     playerData.api_error = true;
                 }
 
                 finalPlayersData.push(playerData);
             }));
-            // Pausa estratégica de 3.5 segundos entre lotes para suavizar a carga na API (30 req/min)
             await delay(3500); 
         }
 
-        console.log(`3. A processar operações conjuntas e Gamificação...`);
+        console.log(`3. A processar operações conjuntas e Gamificação (Competitivo + DM)...`);
         let operations = [];
         let newSynergyPoints = {};
+        let newDmPoints = {}; // MVP MATA-MATA
 
         for (const [matchId, match] of allMatchesMap) {
             if (!match.players || !Array.isArray(match.players)) continue;
 
-            const squadMembers = match.players.filter(player => rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '')));
+            const mode = match.metadata.mode.toLowerCase();
 
-            if (squadMembers.length >= 2) {
-                const teamId = squadMembers[0].team; 
-                const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
+            // LÓGICA MATA-MATA (MVP)
+            if (mode === 'deathmatch') {
+                const myPlayersInDm = match.players.filter(player => rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '')));
                 
-                let finalResult = 'DERROTA';
-                if (match.teams) {
-                    if (match.teams.blue.rounds_won === match.teams.red.rounds_won) finalResult = 'EMPATE';
-                    else if (teamData && teamData.has_won) finalResult = 'VITÓRIA';
-                }
+                if (myPlayersInDm.length > 0) {
+                    const sortedLobby = [...match.players].sort((a, b) => b.stats.kills - a.stats.kills);
+                    const p1 = sortedLobby[0];
+                    const p2 = sortedLobby[1];
+                    const p3 = sortedLobby[2];
 
-                let basePoints = 0;
-                if (squadMembers.length === 2) basePoints = 1;
-                else if (squadMembers.length === 3) basePoints = 2;
-                else if (squadMembers.length >= 4) basePoints = 5; 
-
-                let earnedPoints = (finalResult === 'VITÓRIA') ? basePoints * 2 : basePoints;
-
-                squadMembers.forEach(m => {
-                    let nId = `${m.name}#${m.tag}`.toLowerCase().replace(/\s/g, '');
-                    newSynergyPoints[nId] = (newSynergyPoints[nId] || 0) + earnedPoints;
-                    if(playerMatchStats[nId]) playerMatchStats[nId].group++;
-                });
-                
-                operations.push({
-                    id: matchId, map: match.metadata.map, mode: match.metadata.mode,
-                    started_at: match.metadata.game_start * 1000, 
-                    score: match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A',
-                    result: finalResult, team_color: teamId,
-                    squad: squadMembers.map(m => {
-                        // FIX: Proteção contra NaN usando Fallbacks
-                        const hs = m.stats.headshots || 0;
-                        const bs = m.stats.bodyshots || 0;
-                        const ls = m.stats.legshots || 0;
-                        const totalHits = hs + bs + ls;
-                        const hsPercent = totalHits > 0 ? Math.round((hs / totalHits) * 100) : 0;
+                    myPlayersInDm.forEach(m => {
+                        let nId = `${m.name}#${m.tag}`.toLowerCase().replace(/\s/g, '');
+                        let points = m.stats.kills || 0; 
                         
-                        return {
-                            riotId: `${m.name}#${m.tag}`, agent: m.character, agentImg: m.assets.agent.small,
-                            kda: `${m.stats.kills}/${m.stats.deaths}/${m.stats.assists}`, hs: hsPercent
-                        };
-                    })
-                });
+                        if (p1 && m.name === p1.name && m.tag === p1.tag) points += 15;
+                        else if (p2 && m.name === p2.name && m.tag === p2.tag) points += 10;
+                        else if (p3 && m.name === p3.name && m.tag === p3.tag) points += 5;
+
+                        newDmPoints[nId] = (newDmPoints[nId] || 0) + points;
+                    });
+
+                    // Grava DM apenas para não processar de novo, mas não gera histórico de equipa
+                    operations.push({
+                        id: matchId, map: match.metadata.map, mode: 'Deathmatch',
+                        started_at: match.metadata.game_start * 1000, 
+                        score: 'TREINO', result: 'MATA-MATA', team_color: 'N/A',
+                        squad: [] 
+                    });
+                }
+            } 
+            // LÓGICA COMPETITIVA ORIGINAL
+            else if (mode === 'competitive') {
+                const squadMembers = match.players.filter(player => rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '')));
+                if (squadMembers.length >= 2) {
+                    const teamId = squadMembers[0].team; 
+                    const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
+                    
+                    let finalResult = 'DERROTA';
+                    if (match.teams) {
+                        if (match.teams.blue.rounds_won === match.teams.red.rounds_won) finalResult = 'EMPATE';
+                        else if (teamData && teamData.has_won) finalResult = 'VITÓRIA';
+                    }
+
+                    let basePoints = 0;
+                    if (squadMembers.length === 2) basePoints = 1;
+                    else if (squadMembers.length === 3) basePoints = 2;
+                    else if (squadMembers.length >= 4) basePoints = 5; 
+
+                    let earnedPoints = (finalResult === 'VITÓRIA') ? basePoints * 2 : basePoints;
+
+                    squadMembers.forEach(m => {
+                        let nId = `${m.name}#${m.tag}`.toLowerCase().replace(/\s/g, '');
+                        newSynergyPoints[nId] = (newSynergyPoints[nId] || 0) + earnedPoints;
+                        if(playerMatchStats[nId]) playerMatchStats[nId].group++;
+                    });
+                    
+                    operations.push({
+                        id: matchId, map: match.metadata.map, mode: match.metadata.mode,
+                        started_at: match.metadata.game_start * 1000, 
+                        score: match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A',
+                        result: finalResult, team_color: teamId,
+                        squad: squadMembers.map(m => {
+                            const hs = m.stats.headshots || 0;
+                            const bs = m.stats.bodyshots || 0;
+                            const ls = m.stats.legshots || 0;
+                            const totalHits = hs + bs + ls;
+                            const hsPercent = totalHits > 0 ? Math.round((hs / totalHits) * 100) : 0;
+                            return {
+                                riotId: `${m.name}#${m.tag}`, agent: m.character, agentImg: m.assets.agent.small,
+                                kda: `${m.stats.kills}/${m.stats.deaths}/${m.stats.assists}`, hs: hsPercent
+                            };
+                        })
+                    });
+                }
             }
         }
 
         finalPlayersData = finalPlayersData.map(player => {
             let nId = player.riot_id.toLowerCase().replace(/\s/g, '');
             const earnedPoints = newSynergyPoints[nId] || 0;
+            const earnedDm = newDmPoints[nId] || 0; // MVP MATA-MATA
             let stats = playerMatchStats[nId] || { comp: 0, group: 0 };
             
             let isLoneWolf = player.lone_wolf;
-            if (stats.comp > 0 && stats.group === 0) {
-                isLoneWolf = true; 
-            } else if (stats.group > 0) {
-                isLoneWolf = false; 
-            }
+            if (stats.comp > 0 && stats.group === 0) isLoneWolf = true; 
+            else if (stats.group > 0) isLoneWolf = false; 
 
             return {
                 ...player,
                 synergy_score: player.synergy_score + earnedPoints,
+                dm_score: player.dm_score + earnedDm, // Soma os pontos de treino
                 lone_wolf: isLoneWolf
             };
         });
@@ -257,7 +297,7 @@ async function run() {
                 score: op.score, result: op.result, team_color: op.team_color
             }, { onConflict: 'id' });
 
-            if (!opError) {
+            if (!opError && op.squad.length > 0) {
                 const squadData = op.squad.map(m => ({
                     operation_id: op.id, riot_id: m.riotId, agent: m.agent, agent_img: m.agentImg, kda: m.kda, hs_percent: m.hs
                 }));
@@ -267,17 +307,12 @@ async function run() {
         }
 
         console.log('5. Executando Purga de Agentes Inativos...');
-        // FIX: Formato ISO UTC para garantir compatibilidade de Timezone no Supabase
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
         const { data: purged, error: purgeError } = await supabase
-            .from('players')
-            .delete()
-            .eq('synergy_score', 0)
-            .lt('created_at', sevenDaysAgo)
-            .select();
+            .from('players').delete().eq('synergy_score', 0).lt('created_at', sevenDaysAgo).select();
             
         if (purgeError) console.error('   ❌ Erro na purga:', purgeError);
-        else if (purged && purged.length > 0) console.log(`   🧹 ${purged.length} recruta(s) removido(s) por falta de interação.`);
+        else if (purged && purged.length > 0) console.log(`   🧹 ${purged.length} recruta(s) removido(s).`);
         else console.log('   ✅ Nenhum recruta inativo para expurgar.');
 
         console.log('✅ Sincronização concluída com sucesso!');
