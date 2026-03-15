@@ -326,4 +326,41 @@ async function run() {
                 score: op.score, result: op.result, team_color: op.team_color
             }, { onConflict: 'id' });
 
-            if (!opError && op.squad
+            if (!opError && op.squad && op.squad.length > 0) {
+                const squadData = op.squad.map(m => ({
+                    operation_id: op.id, riot_id: m.riotId, agent: m.agent, agent_img: m.agentImg, kda: m.kda, hs_percent: m.hs
+                }));
+                await supabase.from('operation_squads').delete().eq('operation_id', op.id);
+                await supabase.from('operation_squads').insert(squadData);
+                
+                // DISPARO DE ALERTAS: OPERAÇÕES CONJUNTAS (TELEGRAM)
+                if (op.mode.toLowerCase() === 'competitive') {
+                    const agentes = op.squad.map(m => m.riotId.split('#')[0]).join(', ');
+                    const iconeResultado = op.result === 'VITÓRIA' ? '🟢' : (op.result === 'EMPATE' ? '🟡' : '🔴');
+                    
+                    const intelMessage = `🚨 *[PROTOCOLO V - INTEL]* 🚨\n\nOperação finalizada no setor *${op.map}*\n👥 *Esquadrão:* ${agentes}\n${iconeResultado} *Resultado:* ${op.result} (${op.score})\n\n[Aceder ao Terminal Principal](https://protocolov.com)`;
+                    
+                    await notificarTelegram(intelMessage);
+                    await delay(1000);
+                }
+            }
+        }
+
+        console.log('5. Executando Purga de Agentes Inativos...');
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        const { data: purged, error: purgeError } = await supabase
+            .from('players').delete().eq('synergy_score', 0).lt('created_at', sevenDaysAgo).select();
+            
+        if (purgeError) console.error('   ❌ Erro na purga:', purgeError);
+        else if (purged && purged.length > 0) console.log(`   🧹 ${purged.length} recruta(s) removido(s).`);
+        else console.log('   ✅ Nenhum recruta inativo para expurgar.');
+
+        console.log('✅ Sincronização concluída com sucesso!');
+
+    } catch (error) {
+        console.error('🔥 Erro fatal:', error);
+        process.exit(1);
+    }
+}
+
+run();
