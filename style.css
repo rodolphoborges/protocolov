@@ -168,3 +168,24 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
     border: 1px solid var(--val-gray);
     color: var(--val-light) !important;
 }
+
+/* --- ACESSIBILIDADE E UX --- */
+/* Respeita a preferência do dispositivo por redução de movimentos (evita tonturas) */
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-delay: -1ms !important;
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0s !important;
+        transition-delay: 0s !important;
+    }
+    
+    .fade-in-section {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    
+    .player-card, .mission-row, .btn-val {
+        transform: none !important;
+    }
+}
