@@ -32,7 +32,8 @@ A aplicação utiliza uma arquitetura *Serverless* e Híbrida:
 ## 🛠️ Guia de Configuração (Deploy Próprio)
 
 ### 1. Configurar o Supabase (Base de Dados)
-Vá ao **SQL Editor** e execute o script abaixo:
+1. Crie um projeto gratuito no [Supabase](https://supabase.com/).
+2. Vá ao **SQL Editor** e execute o script abaixo para criar as tabelas e ativar a segurança (RLS):
 
 ```sql
 -- Criar tabelas principais
@@ -78,10 +79,13 @@ ALTER TABLE players ENABLE ROW LEVEL SECURITY;
 ALTER TABLE operations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE operation_squads ENABLE ROW LEVEL SECURITY;
 
--- Leitura pública segura
 CREATE POLICY "Leitura Publica" ON players FOR SELECT USING (true);
 CREATE POLICY "Leitura Publica" ON operations FOR SELECT USING (true);
 CREATE POLICY "Leitura Publica" ON operation_squads FOR SELECT USING (true);
+
+-- AVISO: A política abaixo permite inscrições anónimas livres, o que é inseguro para produção escalável.
+-- Para proteção total contra Denial of Wallet, remova esta política e utilize uma Edge Function com CAPTCHA.
+CREATE POLICY "Permitir Inscricao Temporaria" ON players FOR INSERT WITH CHECK (true);
 
 -- AVISO DE SEGURANÇA: Para um ambiente em produção (Enterprise), não permita inserção anónima livre.
 -- Recomenda-se remover a política abaixo e utilizar uma Supabase Edge Function com CAPTCHA.
