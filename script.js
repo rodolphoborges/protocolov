@@ -13,7 +13,7 @@ const rolesConfig = {
 let opsOffset = 0;
 const OPS_PER_PAGE = 5;
 let isFetchingOps = false;
-let isSubmittingForm = false; // Flag anti-spam no frontend
+let isSubmittingForm = false;
 
 function escapeHtml(unsafe) {
     if (!unsafe) return "";
@@ -59,6 +59,7 @@ async function fetchCachedData() {
             player.riotId = escapeHtml(player.riot_id);
             player.currentRank = escapeHtml(player.current_rank || 'Pendente');
             
+            let isAssigned = false;
             for (let role in rolesConfig) {
                 const searchTerms = role === 'Controlador' ? ['controlador', 'smoker'] : [role.toLowerCase()];
                 if (searchTerms.some(term => roleRaw.includes(term))) {
@@ -68,8 +69,14 @@ async function fetchCachedData() {
                     } else {
                         rolesConfig[role].waitlist.push(player);
                     }
+                    isAssigned = true;
                     break;
                 }
+            }
+            
+            // Fallback de segurança: Se não encaixar em nenhuma função, vai para o Flex
+            if (!isAssigned) {
+                rolesConfig['Flex'].waitlist.push(player);
             }
         });
         
@@ -150,6 +157,30 @@ async function fetchOperations(append = false) {
     }
 }
 
+// Expomos a função de copiar globalmente para o onclick no HTML
+window.copyRiotId = function(btnElement, riotId) {
+    if(navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(riotId).then(() => {
+            btnElement.innerHTML = 'Copiado! ✅';
+            setTimeout(() => btnElement.innerHTML = `${riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>`, 2000);
+        }).catch(e => console.error('Erro ao copiar:', e));
+    } else {
+        // Fallback primitivo
+        const textArea = document.createElement("textarea");
+        textArea.value = riotId;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            btnElement.innerHTML = 'Copiado! ✅';
+            setTimeout(() => btnElement.innerHTML = `${riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>`, 2000);
+        } catch (err) {
+            console.error('Falha ao copiar:', err);
+        }
+        document.body.removeChild(textArea);
+    }
+}
+
 function createPlayerCardHTML(player, isWaiting = false) {
     const isWaitingClass = isWaiting ? 'is-waiting p-2' : 'p-2';
     const safeCard = safeUrl(player.card_url, 'https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png');
@@ -179,7 +210,7 @@ function createPlayerCardHTML(player, isWaiting = false) {
                 <div class="flex-grow-1">
                     <div class="fw-bold text-white mb-2 d-flex align-items-center flex-wrap gap-1" style="font-size: 1rem; line-height: 1;">
                         
-                        <span class="user-select-all" style="cursor: pointer;" onclick="navigator.clipboard.writeText('${player.riotId}'); this.innerHTML='Copiado! ✅'; setTimeout(() => this.innerHTML='${player.riotId} <span class=\\'fs-6 text-muted\\'>📋</span>', 2000);" title="Clique para copiar e adicionar no Valorant" aria-label="Copiar ID ${player.riotId}">
+                        <span class="user-select-all" style="cursor: pointer;" onclick="window.copyRiotId(this, '${player.riotId}')" title="Clique para copiar e adicionar no Valorant" aria-label="Copiar ID ${player.riotId}">
                             ${player.riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>
                         </span>
                         
@@ -358,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (isSubmittingForm) return; // Trava contra múltiplos cliques rápidos
+            if (isSubmittingForm) return; 
             isSubmittingForm = true;
 
             const riotId = document.getElementById('riotIdInput').value.trim();
@@ -387,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 feedback.innerHTML = `<span class="text-danger">Erro: ${err.message}</span>`;
             } finally {
-                setTimeout(() => { // Cooldown para libertar o botão
+                setTimeout(() => { 
                     btn.disabled = false; 
                     btn.innerHTML = "Alistar-se";
                     isSubmittingForm = false;
