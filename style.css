@@ -161,3 +161,10 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
     opacity: 1;
     filter: grayscale(0%);
 }
+
+/* Lobo Solitário Badge Contrast Fix */
+.badge.bg-secondary[title*="Lobo Solitário"] {
+    background-color: #3b423e !important; /* Um cinza mais escuro para contraste com o texto branco */
+    border: 1px solid var(--val-gray);
+    color: var(--val-light) !important;
+}
