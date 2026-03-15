@@ -15,177 +15,153 @@ body {
 
 h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: uppercase; line-height: 0.9; margin: 0; }
 
-.display-massive {
-    font-size: clamp(4rem, 15vw, 12rem);
-    color: var(--val-light);
-    text-shadow: -1px -1px 0 var(--val-dark), 1px -1px 0 var(--val-dark), -1px 1px 0 var(--val-dark), 1px 1px 0 var(--val-dark);
-    opacity: 0.1; position: absolute; top: -20px; left: -20px; z-index: 0; user-select: none;
+/* =========================================
+   BRUTALIST SYSTEM (PlayValorant UI)
+========================================= */
+.val-bg-text-massive {
+    position: fixed; top: -5vh; left: -2vw; font-family: 'Teko', sans-serif;
+    font-size: clamp(10rem, 35vw, 40rem); line-height: 0.8; color: transparent;
+    -webkit-text-stroke: 2px rgba(15, 25, 35, 0.05);
+    z-index: 0; pointer-events: none; user-select: none; font-weight: 700;
+    white-space: nowrap;
+}
+.bg-dark-section .val-bg-text-massive { -webkit-text-stroke: 2px rgba(236, 232, 225, 0.03); }
+
+.val-section-header {
+    font-family: 'Teko', sans-serif; font-size: 4rem; text-transform: uppercase;
+    line-height: 0.9; margin-bottom: 30px; position: relative; display: inline-block;
+    color: var(--val-dark);
+}
+.bg-dark-section .val-section-header { color: var(--val-light); }
+.val-section-header::after {
+    content: ''; position: absolute; bottom: -10px; left: 0; width: 60px; height: 8px; background-color: var(--val-red);
 }
 
-.section-header {
-    position: relative; z-index: 1; font-size: clamp(2.5rem, 6vw, 5rem);
-    color: var(--val-dark); border-bottom: 2px solid var(--val-dark);
-    padding-bottom: 10px; margin-bottom: 30px;
-}
+.decor-square { width: 10px; height: 10px; background-color: var(--val-red); display: inline-block; margin-right: 15px; }
 
-.text-accent { color: var(--val-red); }
+.content-wrapper { position: relative; z-index: 1; padding: 40px 0; }
 .bg-dark-section { background-color: var(--val-dark); color: var(--val-light); }
+.text-accent { color: var(--val-red); }
 
-.role-row { border-bottom: 1px solid rgba(15, 25, 35, 0.2); padding: 30px 0; transition: all 0.3s ease; }
-.role-title { font-size: 3rem; }
+/* =========================================
+   BOTÕES E FORMULÁRIOS
+========================================= */
+.btn-val {
+    display: inline-block; background-color: var(--val-red); color: var(--val-light); font-family: 'Teko', sans-serif;
+    font-size: 1.5rem; padding: 10px 30px; text-decoration: none; text-transform: uppercase; position: relative;
+    transition: 0.2s ease-in-out; border: none; cursor: pointer; line-height: 1; text-align: center;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.btn-val:hover { background-color: var(--val-dark); color: var(--val-light); transform: translateY(-2px); }
+.btn-val:disabled { background-color: var(--val-gray); cursor: not-allowed; transform: none; }
+
+.form-control.val-input {
+    border-radius: 0; border: 2px solid var(--val-gray); background-color: transparent;
+    color: var(--val-dark); font-family: 'Inter', sans-serif; padding: 10px 15px;
+    transition: all 0.2s ease;
+}
+.form-control.val-input:focus {
+    background-color: rgba(255,255,255,0.5); border-color: var(--val-red); box-shadow: none;
+}
+
+/* =========================================
+   CARDS DE JOGADORES (Titulares e Reservas)
+========================================= */
+.role-row { border-bottom: 1px solid rgba(236, 232, 225, 0.1); padding: 30px 0; transition: all 0.3s ease; }
+.role-title { font-size: 3.5rem; color: var(--val-light); }
 .slot-indicator { font-family: 'Teko', sans-serif; font-size: 2.5rem; color: var(--val-red); }
 .role-full .slot-indicator { color: var(--val-gray); text-decoration: line-through; }
 
-/* Cards Jogadores */
 .player-card {
-    background-color: rgba(15, 25, 35, 0.4); border: 1px solid var(--val-gray);
-    display: flex; align-items: center; gap: 15px; transition: 0.3s ease; height: 100%;
+    background-color: rgba(30, 30, 30, 0.9); border: none; border-left: 4px solid transparent;
+    display: flex; align-items: center; gap: 15px; transition: 0.2s ease; height: 100%;
+    clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%, 0 15px); padding: 15px;
 }
-.player-card:hover { border-color: var(--val-red); background-color: rgba(15, 25, 35, 0.8); transform: translateY(-2px); }
-.player-avatar { width: 64px; height: 64px; object-fit: cover; border: 1px solid var(--val-red); }
+.player-card:hover { border-left-color: var(--val-red); background-color: var(--val-dark); transform: translateX(5px); }
+.player-avatar { width: 64px; height: 64px; object-fit: cover; border: 2px solid var(--val-gray); border-radius: 0; }
 
-/* Fila de Espera */
 .waitlist-section { border-top: 1px dashed rgba(118, 128, 121, 0.4); margin-top: 20px; padding-top: 15px; }
-.waitlist-label { font-family: 'Teko', sans-serif; color: var(--val-gray); font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
-.player-card.is-waiting { opacity: 0.65; border-style: dashed; background-color: rgba(15, 25, 35, 0.15); }
-.player-card.is-waiting:hover { opacity: 1; border-color: var(--val-gray); background-color: rgba(15, 25, 35, 0.6); transform: translateY(-2px); }
-.player-card.is-waiting .player-avatar { width: 48px; height: 48px; border-color: var(--val-gray); }
+.waitlist-label { font-family: 'Teko', sans-serif; color: var(--val-gray); font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; }
 
-/* Operações (Partidas) */
-.op-card {
-    background-color: #fff;
-    border-left: 5px solid var(--val-gray);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    transition: transform 0.2s;
+.player-card.is-waiting { opacity: 0.65; background-color: rgba(15, 25, 35, 0.5); }
+.player-card.is-waiting:hover { opacity: 1; border-left-color: var(--val-gray); background-color: var(--val-dark); transform: translateX(5px); }
+.player-card.is-waiting .player-avatar { width: 48px; height: 48px; }
+
+/* =========================================
+   HISTÓRICO DE OPERAÇÕES
+========================================= */
+.mission-row {
+    background-color: var(--val-dark); border: none;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+    position: relative;
 }
-.op-card.win { border-left-color: #198754; } 
-.op-card.loss { border-left-color: var(--val-red); } 
+.mission-row::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+}
+.mission-row:hover { background-color: #1a2733; transform: translateY(-3px); }
 
-.op-header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-.op-map { font-family: 'Teko', sans-serif; font-size: 1.5rem; text-transform: uppercase; line-height: 1; }
-.op-date { font-size: 0.8rem; color: #666; }
-.op-score { font-family: 'Teko', sans-serif; font-size: 2rem; font-weight: bold; }
-.op-score.win { color: #198754; }
-.op-score.loss { color: var(--val-red); }
+.mission-win::before { background-color: #198754; }
+.mission-loss::before { background-color: var(--val-red); }
+.mission-draw::before { background-color: #ffce56; }
 
-.op-squad { padding: 10px; background-color: #fafafa; }
-.squad-member { display: flex; align-items: center; padding: 5px 0; border-bottom: 1px solid #eee; }
-.squad-member:last-child { border-bottom: none; }
-.agent-icon { width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; border: 1px solid #ccc; }
-.member-name { font-size: 0.9rem; font-weight: 600; flex-grow: 1; }
-.member-stats { font-size: 0.8rem; color: #555; font-family: monospace; }
+/* =========================================
+   MATA-MATA (Treino) - Grid e Cards
+========================================= */
+.leaderboard-grid { display: grid; grid-template-columns: 1fr; gap: 30px; margin-top: 50px; }
+@media (min-width: 992px) { .leaderboard-grid { grid-template-columns: 1fr 1fr; align-items: stretch; } }
 
+.mvp-card {
+    background-color: var(--val-red); color: var(--val-light);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 40px), calc(100% - 40px) 100%, 0 100%);
+    padding: 40px; position: relative; display: flex; flex-direction: column; justify-content: flex-end;
+    min-height: 400px; transition: transform 0.3s ease;
+}
+.mvp-card:hover { transform: translateY(-5px); }
+.mvp-card::before { content: 'MVP'; position: absolute; top: 20px; right: 20px; font-family: 'Teko', sans-serif; font-size: 6rem; opacity: 0.2; line-height: 0.8; }
+.mvp-avatar { width: 120px; height: 120px; border: 4px solid var(--val-light); object-fit: cover; margin-bottom: 20px; }
+.mvp-name { font-family: 'Teko', sans-serif; font-size: 4rem; line-height: 0.9; text-transform: uppercase; }
+.mvp-score { font-family: 'Teko', sans-serif; font-size: 6rem; font-weight: 700; line-height: 0.8; margin-top: 10px; }
+.mvp-score span { font-size: 1.5rem; letter-spacing: 2px; font-weight: 400; opacity: 0.8; }
+
+.contender-list { display: flex; flex-direction: column; gap: 15px; justify-content: center; }
+.contender-card {
+    background-color: var(--val-dark); color: var(--val-light); display: flex; align-items: center; padding: 15px 25px;
+    clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%, 0 15px);
+    position: relative; transition: all 0.2s ease; border-left: 4px solid transparent;
+}
+.contender-card:hover { background-color: #1a2733; border-left-color: var(--val-red); transform: translateX(10px); }
+.contender-rank { font-family: 'Teko', sans-serif; font-size: 2.5rem; color: var(--val-gray); width: 40px; text-align: left; line-height: 1; }
+.contender-avatar { width: 50px; height: 50px; border-radius: 0; object-fit: cover; margin-right: 20px; border: 1px solid var(--val-gray); }
+.contender-name { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 1.2rem; flex-grow: 1; text-transform: uppercase; }
+.contender-score { font-family: 'Teko', sans-serif; font-size: 3rem; color: var(--val-red); line-height: 1; }
+.contender-score span { font-size: 1rem; color: var(--val-gray); }
+
+.grid-lines {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 30%;
+    background-image: linear-gradient(90deg, transparent 95%, rgba(255,255,255,0.1) 100%);
+    background-size: 20px 100%; pointer-events: none;
+}
+
+/* =========================================
+   UTILITÁRIOS E MISC
+========================================= */
 .stat-label { font-size: 0.65rem; color: var(--val-gray); text-transform: uppercase; letter-spacing: 1px; }
 .stat-val { font-size: 0.9rem; color: var(--val-light); font-family: 'Inter', sans-serif; font-weight: 600; }
+.manifesto-text { font-size: 1.1rem; line-height: 1.6; color: var(--val-dark); font-weight: 500; }
+.manifesto-text strong { color: var(--val-red); }
+.icon-svg { width: 20px; height: 20px; fill: var(--val-red); margin-right: 10px; flex-shrink: 0;}
+.rule-item { display: flex; align-items: start; margin-bottom: 20px; font-weight: 500; }
 
-.btn-val {
-    display: inline-block; background-color: var(--val-red); color: var(--val-light); font-family: 'Teko', sans-serif;
-    font-size: 2rem; padding: 10px 40px; text-decoration: none; text-transform: uppercase; position: relative;
-    transition: 0.2s ease-in-out; border: 1px solid transparent; cursor: pointer;
-}
-.btn-val::before {
-    content: ''; position: absolute; top: 0; left: 0; width: 10px; height: 10px;
-    border-top: 2px solid var(--val-light); border-left: 2px solid var(--val-light);
-}
-.btn-val:hover { background-color: var(--val-dark); color: var(--val-light); border: 1px solid var(--val-red); }
-
-.manifesto-text { font-size: 1.1rem; line-height: 1.6; color: var(--val-gray); }
-.manifesto-text strong { color: var(--val-dark); }
-.bg-dark-section .manifesto-text strong { color: var(--val-light); }
+.opaque-rank { opacity: 0.35; filter: grayscale(100%); transition: all 0.3s ease; }
+.player-card:hover .opaque-rank { opacity: 1; filter: grayscale(0%); }
+.badge.bg-secondary[title*="Lobo Solitário"] { background-color: #3b423e !important; border: 1px solid var(--val-gray); color: var(--val-light) !important; }
 
 .fade-in-section { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; will-change: opacity, visibility; }
 .fade-in-section.is-visible { opacity: 1; transform: translateY(0); }
-.req-box { background-color: rgba(15, 25, 35, 0.05); border-left: 4px solid var(--val-red); padding: 15px 20px; text-align: left; margin: 0 auto 30px auto; max-width: 500px; }
-.icon-svg { width: 20px; height: 20px; fill: var(--val-red); margin-right: 10px; flex-shrink: 0;}
-.rule-item { display: flex; align-items: start; margin-bottom: 15px; }
 
-.text-warning { color: #ffce56 !important; }
-.border-warning { border-color: #ffce56 !important; }
-
-/* FIX DE VISIBILIDADE: Garante que textos secundários fiquem claros no fundo escuro */
-.bg-dark-section .text-muted {
-    color: rgba(236, 232, 225, 0.75) !important;
-}
-/* --- ESTILOS DO RELATÓRIO DE MISSÕES (TIMELINE) --- */
-.mission-row {
-    background-color: rgba(20, 20, 20, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: transform 0.2s ease, background-color 0.2s ease;
-}
-
-.mission-row:hover {
-    background-color: rgba(30, 30, 30, 0.95);
-    transform: translateX(5px); /* Dá um pequeno salto à direita ao passar o rato */
-}
-
-.mission-win {
-    border-left: 4px solid #198754; /* Verde Sucesso */
-    background: linear-gradient(90deg, rgba(25,135,84,0.05) 0%, rgba(0,0,0,0) 50%), rgba(20, 20, 20, 0.8);
-}
-
-.mission-loss {
-    border-left: 4px solid var(--val-red); /* Vermelho Valorant */
-    background: linear-gradient(90deg, rgba(255,70,85,0.05) 0%, rgba(0,0,0,0) 50%), rgba(20, 20, 20, 0.8);
-}
-
-.mission-draw {
-    border-left: 4px solid #ffce56; 
-    background: linear-gradient(90deg, rgba(255, 206, 86, 0.05) 0%, rgba(0,0,0,0) 50%), rgba(20, 20, 20, 0.8);
-}
-/* --- ESTILOS DOS AGENTES NA RESERVA --- */
-.is-waiting {
-    opacity: 0.55;
-    transform: scale(0.96);
-    filter: grayscale(40%);
-    transition: all 0.3s ease;
-}
-
-.is-waiting:hover {
-    opacity: 1;
-    transform: scale(1);
-    filter: grayscale(0%);
-    box-shadow: 0 4px 15px rgba(255, 70, 85, 0.2);
-    z-index: 10;
-}
-
-/* --- ESTILOS DO LOBO SOLITÁRIO --- */
-.opaque-rank {
-    opacity: 0.35;
-    filter: grayscale(100%);
-    transition: all 0.3s ease;
-}
-
-/* O rank volta ao normal quando se passa o rato por cima do card */
-.player-card:hover .opaque-rank {
-    opacity: 1;
-    filter: grayscale(0%);
-}
-
-/* Lobo Solitário Badge Contrast Fix */
-.badge.bg-secondary[title*="Lobo Solitário"] {
-    background-color: #3b423e !important; /* Um cinza mais escuro para contraste com o texto branco */
-    border: 1px solid var(--val-gray);
-    color: var(--val-light) !important;
-}
-
-/* --- ACESSIBILIDADE E UX --- */
-/* Respeita a preferência do dispositivo por redução de movimentos (evita tonturas) */
 @media (prefers-reduced-motion: reduce) {
-    *, ::before, ::after {
-        animation-delay: -1ms !important;
-        animation-duration: 1ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0s !important;
-        transition-delay: 0s !important;
-    }
-    
-    .fade-in-section {
-        opacity: 1 !important;
-        transform: none !important;
-    }
-    
-    .player-card, .mission-row, .btn-val {
-        transform: none !important;
-    }
+    *, ::before, ::after { animation-delay: -1ms !important; animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 0s !important; transition-delay: 0s !important; }
+    .fade-in-section { opacity: 1 !important; transform: none !important; }
+    .player-card, .mission-row, .btn-val, .mvp-card, .contender-card { transform: none !important; }
 }
