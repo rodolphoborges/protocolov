@@ -5,7 +5,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const REQUEST_DELAY = 3500; 
+const REQUEST_DELAY = 4000; // 4 segundos para evitar limites da API
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function smartFetch(url, headers, retries = 2) {
@@ -38,21 +38,29 @@ async function smartFetch(url, headers, retries = 2) {
     return response;
 }
 
-// --- MOTOR DE NOTIFICAÇÕES (WHATSAPP - CALLMEBOT) ---
-async function notificarWhatsApp(mensagem) {
-    const apiKey = process.env.WHATSAPP_API_KEY;
-    const groupId = process.env.WHATSAPP_GROUP_ID;
+// --- MOTOR DE NOTIFICAÇÕES (TELEGRAM) ---
+async function notificarTelegram(mensagem) {
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
     
-    if (!apiKey || !groupId) return;
+    if (!botToken || !chatId) return;
 
-    const textoCodificado = encodeURIComponent(mensagem);
-    const url = `https://api.callmebot.com/whatsapp.php?phone=${groupId}&text=${textoCodificado}&apikey=${apiKey}`;
+    const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
     
     try {
-        await fetch(url);
-        console.log("   📱 Transmissão enviada para a base (WhatsApp).");
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: mensagem,
+                parse_mode: 'Markdown',
+                disable_web_page_preview: true
+            })
+        });
+        console.log("   📡 Transmissão enviada para a base (Telegram).");
     } catch (error) {
-        console.error("   ❌ Falha na transmissão via WhatsApp:", error);
+        console.error("   ❌ Falha na transmissão via Telegram:", error);
     }
 }
 
@@ -99,7 +107,7 @@ async function run() {
                 riot_id: p.riotId, 
                 role_raw: p.role,
                 synergy_score: p.dbRecord.synergy_score || 0, 
-                dm_score: p.dbRecord.dm_score || 0, // MVP MATA-MATA
+                dm_score: p.dbRecord.dm_score || 0,
                 tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
                 level: p.dbRecord.level,
                 card_url: p.dbRecord.card_url,
@@ -116,19 +124,16 @@ async function run() {
             let hasNewMatches = false;
 
             try {
-                // MVP MATA-MATA: Ampliamos para size=20 para não perder as ranqueadas se o jogador jogar muito DM
                 let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=20`, headers);
 
                 if (listRes.status === 200) {
                     const listData = await listRes.json();
                     
-                    // Separar Modos
                     const recentCompMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'competitive') : [];
                     const recentDmMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'deathmatch') : [];
                     
                     playerMatchStats[normalizedPlayerId].comp = recentCompMatches.length;
 
-                    // Adicionar Ranqueadas ao Mapa Global
                     if (recentCompMatches.length > 0) {
                         for (const matchCandidate of recentCompMatches) {
                             const matchId = matchCandidate.metadata.matchid;
@@ -142,7 +147,6 @@ async function run() {
                         }
                     }
 
-                    // MVP MATA-MATA: Adicionar DM ao Mapa Global
                     if (recentDmMatches.length > 0) {
                         for (const matchCandidate of recentDmMatches) {
                             const matchId = matchCandidate.metadata.matchid;
@@ -188,7 +192,6 @@ async function run() {
                         }
                     }
                 }
-
             } catch (err) {
                 playerData.api_error = true;
             }
@@ -199,14 +202,13 @@ async function run() {
         console.log(`3. A processar operações conjuntas e Gamificação (Competitivo + DM)...`);
         let operations = [];
         let newSynergyPoints = {};
-        let newDmPoints = {}; // MVP MATA-MATA
+        let newDmPoints = {}; 
 
         for (const [matchId, match] of allMatchesMap) {
             if (!match.players || !Array.isArray(match.players)) continue;
 
             const mode = match.metadata.mode.toLowerCase();
 
-            // LÓGICA MATA-MATA (MVP)
             if (mode === 'deathmatch') {
                 const myPlayersInDm = match.players.filter(player => rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '')));
                 
@@ -227,7 +229,6 @@ async function run() {
                         newDmPoints[nId] = (newDmPoints[nId] || 0) + points;
                     });
 
-                    // Grava DM apenas para não processar de novo, mas não gera histórico de equipa
                     operations.push({
                         id: matchId, map: match.metadata.map, mode: 'Deathmatch',
                         started_at: match.metadata.game_start * 1000, 
@@ -236,7 +237,6 @@ async function run() {
                     });
                 }
             } 
-            // LÓGICA COMPETITIVA ORIGINAL
             else if (mode === 'competitive') {
                 const squadMembers = match.players.filter(player => rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '')));
                 if (squadMembers.length >= 2) {
@@ -283,27 +283,42 @@ async function run() {
             }
         }
 
+        let novosLobosSolitarios = [];
+
         finalPlayersData = finalPlayersData.map(player => {
             let nId = player.riot_id.toLowerCase().replace(/\s/g, '');
             const earnedPoints = newSynergyPoints[nId] || 0;
-            const earnedDm = newDmPoints[nId] || 0; // MVP MATA-MATA
+            const earnedDm = newDmPoints[nId] || 0; 
             let stats = playerMatchStats[nId] || { comp: 0, group: 0 };
             
             let isLoneWolf = player.lone_wolf;
-            if (stats.comp > 0 && stats.group === 0) isLoneWolf = true; 
-            else if (stats.group > 0) isLoneWolf = false; 
+            
+            // Verifica se o agente acabou de cometer a infração de SoloQ
+            if (stats.comp > 0 && stats.group === 0) {
+                if (!isLoneWolf) novosLobosSolitarios.push(player.riot_id.split('#')[0]);
+                isLoneWolf = true; 
+            } else if (stats.group > 0) {
+                isLoneWolf = false; 
+            } 
 
             return {
                 ...player,
                 synergy_score: player.synergy_score + earnedPoints,
-                dm_score: player.dm_score + earnedDm, // Soma os pontos de treino
+                dm_score: player.dm_score + earnedDm,
                 lone_wolf: isLoneWolf
             };
         });
         
-        console.log('4. Guardando dados no Supabase...');
+        console.log('4. A guardar dados no Supabase e a transmitir alertas...');
         const { error: pError } = await supabase.from('players').upsert(finalPlayersData, { onConflict: 'riot_id' });
         if (pError) console.error('Erro ao guardar jogadores:', pError);
+
+        // DISPARO DE ALERTAS: LOBOS SOLITÁRIOS
+        for (const agente of novosLobosSolitarios) {
+            const msgLobo = `🐺 *[ALERTA DE LOBO SOLITÁRIO]*\n\nO agente *${agente}* foi detetado a operar sozinho nas linhas inimigas (SoloQ).\n\nResgatem este operador para uma *Party* antes que a sanidade acabe!`;
+            await notificarTelegram(msgLobo);
+            await delay(1000); // Pausa para não causar spam na API do Telegram
+        }
 
         for (const op of operations) {
             const { error: opError } = await supabase.from('operations').upsert({
@@ -311,42 +326,4 @@ async function run() {
                 score: op.score, result: op.result, team_color: op.team_color
             }, { onConflict: 'id' });
 
-            if (!opError && op.squad && op.squad.length > 0) {
-                const squadData = op.squad.map(m => ({
-                    operation_id: op.id, riot_id: m.riotId, agent: m.agent, agent_img: m.agentImg, kda: m.kda, hs_percent: m.hs
-                }));
-                await supabase.from('operation_squads').delete().eq('operation_id', op.id);
-                await supabase.from('operation_squads').insert(squadData);
-                
-                // === ALERTA WHATSAPP: OPERAÇÃO CONCLUÍDA ===
-                if (op.mode.toLowerCase() === 'competitive') {
-                    // Limpa a tag para ficar mais legível no telemóvel
-                    const agentes = op.squad.map(m => m.riotId.split('#')[0]).join(', ');
-                    const iconeResultado = op.result === 'VITÓRIA' ? '🟢' : (op.result === 'EMPATE' ? '🟡' : '🔴');
-                    
-                    const intelMessage = `🚨 *[PROTOCOLO V - INTEL]* 🚨\n\nOperação finalizada no mapa *${op.map}*\n👥 *Esquadrão:* ${agentes}\n${iconeResultado} *Resultado:* ${op.result} (${op.score})\n\n🌐 Aceder ao Terminal: protocolov.com`;
-                    
-                    await notificarWhatsApp(intelMessage);
-                    await delay(1500); // Pausa de segurança para evitar rate limit do CallMeBot
-                }
-            }
-        }
-
-        console.log('5. Executando Purga de Agentes Inativos...');
-        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-        const { data: purged, error: purgeError } = await supabase
-            .from('players').delete().eq('synergy_score', 0).lt('created_at', sevenDaysAgo).select();
-            
-        if (purgeError) console.error('   ❌ Erro na purga:', purgeError);
-        else if (purged && purged.length > 0) console.log(`   🧹 ${purged.length} recruta(s) removido(s).`);
-        else console.log('   ✅ Nenhum recruta inativo para expurgar.');
-
-        console.log('✅ Sincronização concluída com sucesso!');
-
-    } catch (error) {
-        console.error('🔥 Erro fatal:', error);
-        process.exit(1);
-    }
-}
-
-run();
+            if (!opError && op.squad
