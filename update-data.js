@@ -38,7 +38,6 @@ async function smartFetch(url, headers, retries = 2) {
     return response;
 }
 
-// Função auxiliar para dividir o array em lotes (chunks)
 const chunkArray = (arr, size) => arr.length ? [arr.slice(0, size), ...chunkArray(arr.slice(size), size)] : [];
 
 async function run() {
@@ -70,8 +69,8 @@ async function run() {
 
         console.log(`2. A sincronizar dados de ${playersToFetch.length} agentes na API Valorant...`);
 
-        // Processamento em Lotes (Batches) para evitar Timeout no Actions
-        const playerBatches = chunkArray(playersToFetch, 3); // 3 pedidos em simultâneo
+        // Processamento em Lotes (Batches) de 3 para proteger limites da API
+        const playerBatches = chunkArray(playersToFetch, 3); 
 
         for (const batch of playerBatches) {
             await Promise.allSettled(batch.map(async (p) => {
@@ -102,7 +101,6 @@ async function run() {
                 let hasNewMatches = false;
 
                 try {
-                    // Aumentado para 15 partidas para evitar Falsos Positivos no Lobo Solitário
                     let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=15`, headers);
 
                     if (listRes.status === 200) {
@@ -130,6 +128,9 @@ async function run() {
                                 allMatchesMap.set(matchId, bestMatch);
                             }
                         }
+                    } else if (listRes.status === 404) {
+                        console.warn(`   ⚠️ [${p.riotId}] Não encontrado (404). Possível mudança de Riot ID.`);
+                        playerData.api_error = true;
                     } else {
                         playerData.api_error = true;
                     }
@@ -169,7 +170,8 @@ async function run() {
 
                 finalPlayersData.push(playerData);
             }));
-            await delay(1000); // Pausa estratégica entre lotes de 3 para não sobrecarregar a API
+            // Pausa estratégica de 3.5 segundos entre lotes para suavizar a carga na API (30 req/min)
+            await delay(3500); 
         }
 
         console.log(`3. A processar operações conjuntas e Gamificação...`);
@@ -210,12 +212,13 @@ async function run() {
                     score: match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A',
                     result: finalResult, team_color: teamId,
                     squad: squadMembers.map(m => {
-                        // CÓDIGO CORRIGIDO
+                        // FIX: Proteção contra NaN usando Fallbacks
                         const hs = m.stats.headshots || 0;
                         const bs = m.stats.bodyshots || 0;
                         const ls = m.stats.legshots || 0;
                         const totalHits = hs + bs + ls;
                         const hsPercent = totalHits > 0 ? Math.round((hs / totalHits) * 100) : 0;
+                        
                         return {
                             riotId: `${m.name}#${m.tag}`, agent: m.character, agentImg: m.assets.agent.small,
                             kda: `${m.stats.kills}/${m.stats.deaths}/${m.stats.assists}`, hs: hsPercent
@@ -264,12 +267,13 @@ async function run() {
         }
 
         console.log('5. Executando Purga de Agentes Inativos...');
+        // FIX: Formato ISO UTC para garantir compatibilidade de Timezone no Supabase
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
         const { data: purged, error: purgeError } = await supabase
             .from('players')
             .delete()
             .eq('synergy_score', 0)
-            .lt('created_at', sevenDaysAgo) // Exige que o "created_at" exista no Supabase (ver README abaixo)
+            .lt('created_at', sevenDaysAgo)
             .select();
             
         if (purgeError) console.error('   ❌ Erro na purga:', purgeError);
