@@ -215,3 +215,22 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
     color: var(--text-accent);
     font-weight: bold;
 }
+
+.telegram-link-header {
+    display: inline-flex;
+    align-items: center;
+    color: var(--val-red); /* Ou a cor que preferir */
+    text-decoration: none !important;
+    font-family: 'FF Mark', sans-serif;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    padding: 5px 10px;
+    border: 1px solid rgba(255, 70, 85, 0.2);
+    transition: 0.3s;
+}
+
+.telegram-link-header:hover {
+    background: rgba(255, 70, 85, 0.1);
+    border-color: var(--val-red);
+}
