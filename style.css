@@ -205,3 +205,13 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 @keyframes blinker-alt {
     50% { opacity: 0; }
 }
+
+@keyframes blinker-alt {
+    50% { opacity: 0; }
+}
+
+.blink-terminal {
+    animation: blinker-alt 1s step-end infinite;
+    color: var(--text-accent);
+    font-weight: bold;
+}
