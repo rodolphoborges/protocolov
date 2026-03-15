@@ -36,6 +36,44 @@ A aplicação utiliza uma arquitetura *Serverless* e Híbrida:
 2. Vá ao **SQL Editor** e execute o script abaixo para criar as tabelas e ativar a segurança (RLS):
 
 ```sql
+# Protocolo V 🎯
+
+O **Protocolo V** é uma plataforma web automatizada, desenvolvida para gerenciar o recrutamento e rastrear a performance de equipas fixas de Valorant. O foco do projeto é criar um ambiente estruturado para jogadores que procuram subir de elo na *ranqueada* e participar no torneio Premiere, focando na evolução tática e acompanhamento de sinergia.
+
+🌐 **Site Oficial:** [protocolov.com](https://protocolov.com)
+
+---
+
+## 🚀 Funcionalidades
+
+* **Recrutamento Nativo:** Formulário de inscrição integrado diretamente no site.
+* **Sincronização Automatizada:** O *backend* atualiza o elo, o nível e o histórico de partidas de todos os jogadores a cada 30 minutos, de forma 100% autónoma.
+* **Fila de Espera Inteligente:** Separação visual automática entre titulares e reservas.
+* **Histórico de Operações (Partidas):** Deteta automaticamente quando 2 ou mais agentes da *line-up* jogam juntos, registando o resultado.
+* **Sistema de Sinergia (Karma):** Recompensa automática com "Pontos de Sinergia".
+* **Paginação Dinâmica (*Lazy Loading*):** O histórico de operações carrega em blocos.
+* **Proteção contra *Rate Limit*:** Pausas dinâmicas perante bloqueios (Erro 429).
+* **Segurança e RLS:** Base de dados PostgreSQL (via Supabase) protegida por políticas RLS.
+
+---
+
+## ⚙️ Arquitetura do Sistema
+
+A aplicação utiliza uma arquitetura *Serverless* e Híbrida:
+1. **Frontend (UI & Leitura):** HTML, CSS e Vanilla JS puro. 
+2. **Backend (Processamento):** Um script Node.js (`update-data.js`) em ambiente isolado.
+3. **Automação (CI/CD):** GitHub Actions a cada 30 minutos.
+4. **Base de Dados:** Supabase (PostgreSQL).
+
+---
+
+## 🛠️ Guia de Configuração (Deploy Próprio)
+
+### 1. Configurar o Supabase (Base de Dados)
+1. Crie um projeto gratuito no [Supabase](https://supabase.com/).
+2. Vá ao **SQL Editor** e execute o script abaixo para criar as tabelas e ativar a segurança (RLS):
+
+```sql
 -- Criar tabelas principais
 CREATE TABLE players (
   riot_id TEXT PRIMARY KEY,
@@ -83,11 +121,7 @@ CREATE POLICY "Leitura Publica" ON players FOR SELECT USING (true);
 CREATE POLICY "Leitura Publica" ON operations FOR SELECT USING (true);
 CREATE POLICY "Leitura Publica" ON operation_squads FOR SELECT USING (true);
 
--- AVISO: A política abaixo permite inscrições anónimas livres, o que é inseguro para produção escalável.
--- Para proteção total contra Denial of Wallet, remova esta política e utilize uma Edge Function com CAPTCHA.
-CREATE POLICY "Permitir Inscricao Temporaria" ON players FOR INSERT WITH CHECK (true);
-
 -- AVISO DE SEGURANÇA: Para um ambiente em produção (Enterprise), não permita inserção anónima livre.
 -- Recomenda-se remover a política abaixo e utilizar uma Supabase Edge Function com CAPTCHA.
--- Se estiver em testes, pode manter esta política temporariamente:
+-- Se estiver em testes ou a iniciar o projeto, pode manter esta política temporariamente:
 CREATE POLICY "Permitir Inscricao" ON players FOR INSERT WITH CHECK (true);
