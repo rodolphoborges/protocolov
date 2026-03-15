@@ -13,6 +13,7 @@ const rolesConfig = {
 let opsOffset = 0;
 const OPS_PER_PAGE = 5;
 let isFetchingOps = false;
+let isSubmittingForm = false; // Flag anti-spam no frontend
 
 function escapeHtml(unsafe) {
     if (!unsafe) return "";
@@ -157,8 +158,6 @@ function createPlayerCardHTML(player, isWaiting = false) {
     const safePeakIcon = safeUrl(player.peak_rank_icon, '');
 
     let warningBadge = player.api_error ? `<span class="badge bg-warning text-dark ms-2">⚠️ Desatualizado</span>` : '';
-    
-    // Gamificação: Tag Lobo Solitário e Classe Opaca
     let loneWolfBadge = player.lone_wolf ? `<span class="badge ms-2 text-dark bg-secondary" style="background-color: #768079 !important;" title="Jogou as últimas ranqueadas totalmente solo.">🐺 Lobo Solitário</span>` : '';
     let opaqueClass = player.lone_wolf ? 'opaque-rank' : '';
 
@@ -180,8 +179,8 @@ function createPlayerCardHTML(player, isWaiting = false) {
                 <div class="flex-grow-1">
                     <div class="fw-bold text-white mb-2 d-flex align-items-center flex-wrap gap-1" style="font-size: 1rem; line-height: 1;">
                         
-                        <span class="user-select-all" style="cursor: pointer;" onclick="navigator.clipboard.writeText('${player.riotId}'); this.innerHTML='Copiado! ✅'; setTimeout(() => this.innerHTML='${player.riotId} <span class=\\'fs-6 text-muted\\'>📋</span>', 2000);" title="Clique para copiar e adicionar no Valorant">
-                            ${player.riotId} <span class="fs-6 text-muted">📋</span>
+                        <span class="user-select-all" style="cursor: pointer;" onclick="navigator.clipboard.writeText('${player.riotId}'); this.innerHTML='Copiado! ✅'; setTimeout(() => this.innerHTML='${player.riotId} <span class=\\'fs-6 text-muted\\'>📋</span>', 2000);" title="Clique para copiar e adicionar no Valorant" aria-label="Copiar ID ${player.riotId}">
+                            ${player.riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>
                         </span>
                         
                         <span class="badge bg-secondary ms-1" style="font-size: 0.6rem;">LVL ${player.level || '--'}</span>
@@ -195,8 +194,8 @@ function createPlayerCardHTML(player, isWaiting = false) {
                     </div>
                 </div>
                 <div class="ms-auto pe-2">
-                    <a href="${safeTracker}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver no Tracker.gg">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <a href="${safeTracker}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver no Tracker.gg" aria-label="Ver perfil de ${player.riotId} no Tracker.gg">
+                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                           <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
                           <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
                         </svg>
@@ -256,8 +255,8 @@ function renderOperations(operations, append = false) {
                     </div>
                     
                     <div class="d-flex align-items-center gap-4 font-monospace text-nowrap" style="font-size: 0.9rem;">
-                        <div style="width: 80px;" class="text-center bg-dark rounded px-2 py-1 border border-secondary border-opacity-25">${kdaFormatted}</div>
-                        <div style="width: 60px;" class="text-end" style="color: #adb5bd;"><span class="text-light">${m.hs}%</span> <span style="font-size:0.65rem">HS</span></div>
+                        <div style="width: 80px;" class="text-center bg-dark rounded px-2 py-1 border border-secondary border-opacity-25" aria-label="KDA: ${kills} abates, ${deaths} mortes, ${assists} assistências">${kdaFormatted}</div>
+                        <div style="width: 60px;" class="text-end" style="color: #adb5bd;" aria-label="Porcentagem de Headshots: ${m.hs}%"><span class="text-light">${m.hs}%</span> <span style="font-size:0.65rem" aria-hidden="true">HS</span></div>
                     </div>
                 </div>
             `;
@@ -266,11 +265,11 @@ function renderOperations(operations, append = false) {
         squadHTML += '</div>';
 
         html += `
-            <a href="https://tracker.gg/valorant/match/${op.id}" target="_blank" title="Ver detalhes da partida no Tracker.gg" class="text-decoration-none mission-row ${resultClass} p-3 p-md-4 rounded d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; display: block;">
+            <a href="https://tracker.gg/valorant/match/${op.id}" target="_blank" aria-label="Ver detalhes da partida ${op.map} no Tracker.gg" class="text-decoration-none mission-row ${resultClass} p-3 p-md-4 rounded d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; display: block;">
                 
                 <div class="d-flex align-items-center gap-4" style="min-width: 220px;">
                     <div class="text-center" style="width: 80px;">
-                        <div class="fs-2 fw-bold ${resultColor} lh-1" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;">${escapeHtml(op.score)}</div>
+                        <div class="fs-2 fw-bold ${resultColor} lh-1" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;" aria-label="Placar: ${op.score}">${escapeHtml(op.score)}</div>
                         
                         <div class="${resultColor} text-uppercase mt-2 fw-bold" style="font-size: 0.75rem; letter-spacing: 2px; opacity: 0.9;">${escapeHtml(op.result)}</div>
                     </div>
@@ -278,7 +277,7 @@ function renderOperations(operations, append = false) {
                         <div class="fs-4 fw-bold text-white lh-1 mb-2 text-uppercase" style="letter-spacing: 1px;">${escapeHtml(op.map)}</div>
                         
                         <div class="d-flex align-items-center gap-2" style="font-size: 0.85rem; color: #adb5bd;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
+                            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
                             ${date}
                         </div>
                     </div>
@@ -359,6 +358,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (isSubmittingForm) return; // Trava contra múltiplos cliques rápidos
+            isSubmittingForm = true;
+
             const riotId = document.getElementById('riotIdInput').value.trim();
             const role = document.getElementById('roleInput').value;
             const btn = document.getElementById('submitBtn');
@@ -366,6 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!/^[^#]{2,16}#[a-zA-Z0-9]{3,5}$/.test(riotId)) {
                 feedback.innerHTML = `<span class="text-warning">Formato inválido. Use Nome#TAG.</span>`;
+                isSubmittingForm = false;
                 return;
             }
 
@@ -384,7 +387,11 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 feedback.innerHTML = `<span class="text-danger">Erro: ${err.message}</span>`;
             } finally {
-                btn.disabled = false; btn.innerHTML = "Alistar-se";
+                setTimeout(() => { // Cooldown para libertar o botão
+                    btn.disabled = false; 
+                    btn.innerHTML = "Alistar-se";
+                    isSubmittingForm = false;
+                }, 2000);
             }
         });
     }
