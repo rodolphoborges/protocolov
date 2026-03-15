@@ -176,3 +176,32 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
     .fade-in-section { opacity: 1 !important; transform: none !important; }
     .player-card, .mission-row, .btn-val, .mvp-card, .contender-card { transform: none !important; }
 }
+/* Estilo para o link do Telegram no Header */
+.telegram-link-header {
+    color: #ff4655; /* Cor padrão do Valorant para alertas, ou use var(--neon-green) se preferir verde */
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 8px 15px;
+    transition: all 0.3s ease;
+    background: rgba(0,0,0,0.03);
+}
+
+.telegram-link-header:hover {
+    background: #000;
+    color: #fff;
+    border-color: #000;
+}
+
+/* Animação do [!] para chamar atenção de forma sutil */
+.blink-terminal {
+    animation: blinker-alt 1s step-end infinite;
+    margin-right: 5px;
+    color: var(--text-accent, #ff4655);
+}
+
+@keyframes blinker-alt {
+    50% { opacity: 0; }
+}
