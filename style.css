@@ -234,3 +234,9 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
     background: rgba(255, 70, 85, 0.1);
     border-color: var(--val-red);
 }
+
+@media (max-width: 768px) {
+    .val-section-header {
+        font-size: 3.5rem !important;
+    }
+}
