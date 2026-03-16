@@ -32,12 +32,12 @@ function getRankEmoji(rank = '') {
 // --- COMANDOS TÁTICOS ---
 
 bot.onText(/\/(start|ajuda|comandos)/, (msg) => {
-    const texto = `⚙️ *PROTOCOLO V: COMANDOS DE CAMPO*\\n\\n` +
-                `📢 /convocar - Mobilizar agentes para o Ponto de Inserção\\n` +
-                `👤 /perfil - Aceder ao dossiê de um agente\\n` +
-                `🏆 /ranking - Visualizar a elite do Protocolo\\n` +
-                `🎭 /unidade [alpha|omega|wingman] [RiotID] - Definir unidade tática\\n` +
-                `🌐 /site - Abrir o Terminal do QG\\n` +
+    const texto = `⚙️ *PROTOCOLO V: COMANDOS DE CAMPO*\n\n` +
+                `📢 /convocar - Mobilizar agentes para o Ponto de Inserção\n` +
+                `👤 /perfil - Aceder ao dossiê de um agente\n` +
+                `🏆 /ranking - Visualizar a elite do Protocolo\n` +
+                `🎭 /unidade [alpha|omega|wingman] [RiotID] - Definir unidade tática\n` +
+                `🌐 /site - Abrir o Terminal do QG\n` +
                 `❓ /ajuda - Protocolos de suporte`;
     bot.sendMessage(msg.chat.id, texto, { parse_mode: 'Markdown' });
 });
@@ -53,13 +53,14 @@ bot.onText(/\/unidade (\w+) (.+)/, async (msg, match) => {
         const { data: player } = await supabase.from('players').select('riot_id').ilike('riot_id', riotId).single();
         if (!player) return bot.sendMessage(msg.chat.id, "⚠️ Agente não localizado nos registos.");
 
-        await supabase.from('players').update({ faction: unidade }).eq('riot_id', player.riot_id);
+        // Atualização utilizando a nomenclatura correta (unit)
+        await supabase.from('players').update({ unit: unidade }).eq('riot_id', player.riot_id);
         
         let icone = '🧪'; // Viper
         if (unidade === 'OMEGA') icone = '🔥'; // Brimstone
         if (unidade === 'WINGMAN') icone = '🦎'; // Gekko
 
-        bot.sendMessage(msg.chat.id, `${icone} *[PROTOCOLO ATUALIZADO]*\\nAgente *${player.riot_id}* agora opera na Unidade *${unidade}*!`, { parse_mode: 'Markdown' });
+        bot.sendMessage(msg.chat.id, `${icone} *[PROTOCOLO ATUALIZADO]*\nAgente *${player.riot_id}* agora opera na Unidade *${unidade}*!`, { parse_mode: 'Markdown' });
     } catch (error) { bot.sendMessage(msg.chat.id, "🔥 Falha na sincronização de dados."); }
 });
 
