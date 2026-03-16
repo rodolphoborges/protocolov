@@ -103,6 +103,22 @@ async function fetchCachedData() {
 
         opsOffset = 0;
         await fetchOperations(false);
+        // NOVO: Busca de Sinalizadores Ativos no Radar
+        const now = Date.now();
+        const { data: calls } = await supabaseClient.from('active_calls')
+            .select('*')
+            .gt('expires_at', now)
+            .order('expires_at', { ascending: false })
+            .limit(1);
+        
+        const banner = document.getElementById('lobby-banner');
+        if (calls && calls.length > 0 && banner) {
+            document.getElementById('lobby-commander-text').innerText = `${escapeHtml(calls[0].commander)} ESTÁ A FORMAR ESQUADRÃO`;
+            document.getElementById('lobby-code-text').innerText = escapeHtml(calls[0].party_code);
+            banner.style.display = 'block';
+        } else if (banner) {
+            banner.style.display = 'none';
+        }
 
     } catch (error) {
         console.error('Falha ao carregar dados:', error);
