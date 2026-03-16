@@ -12,6 +12,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="style.css" rel="stylesheet"> 
+    <style>
+        .hover-opacity-link:hover { opacity: 1 !important; transition: 0.3s ease-in-out; }
+        .hover-opacity-link:hover a { text-shadow: 0 0 8px var(--val-red); }
+        .blink-warning { animation: blinker-alt 1s step-end infinite; }
+    </style>
 </head>
 <body>
 
@@ -176,6 +181,17 @@
             <div id="formFeedback" class="mt-3 small text-center fw-bold" aria-live="polite"></div>
         </form>
     </section>
+
+    <div class="container text-center my-5 pb-5">
+        <div class="d-flex align-items-center justify-content-center hover-opacity-link transition-all" style="cursor: pointer; opacity: 0.5;">
+            <div style="height: 1px; width: 50px; background: var(--val-red);"></div>
+            <a href="briefing.html" class="mx-3 text-uppercase fw-bold text-decoration-none" style="font-size: 0.75rem; letter-spacing: 2px; color: var(--val-light);">
+                <span style="color: var(--val-red);" class="blink-warning">[ ⚠ ]</span> Solicitar Re-briefing de Missão
+            </a>
+            <div style="height: 1px; width: 50px; background: var(--val-red);"></div>
+        </div>
+        <p class="text-muted small mt-2" style="font-size: 0.6rem; letter-spacing: 1px;">ACESSO RESTRITO A AGENTES EM TREINAMENTO</p>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
