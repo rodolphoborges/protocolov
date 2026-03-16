@@ -34,10 +34,10 @@ O **Protocolo V** é uma plataforma web automatizada de nível *Enterprise*, des
 2. Vá ao **SQL Editor** e execute o script abaixo para criar o esquema de dados e as políticas RLS:
 
 ```sql
--- 1. Criar a Tabela de Jogadores
 CREATE TABLE players (
   riot_id TEXT PRIMARY KEY,
   role_raw TEXT NOT NULL,
+  unit TEXT DEFAULT 'WINGMAN', -- Unidade Tática (Lore: ALPHA, OMEGA, WINGMAN)
   tracker_link TEXT,
   level INTEGER,
   card_url TEXT,
@@ -46,7 +46,7 @@ CREATE TABLE players (
   current_rank_icon TEXT,
   peak_rank_icon TEXT,
   synergy_score INTEGER DEFAULT 0,
-  dm_score INTEGER DEFAULT 0, -- Sistema de Pontuação da Sala de Treino
+  dm_score INTEGER DEFAULT 0,
   api_error BOOLEAN DEFAULT false,
   lone_wolf BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
