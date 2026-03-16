@@ -9,53 +9,50 @@
     <link href="style.css" rel="stylesheet"> 
     <style>
         :root { --val-red: #ff4655; --val-light: #ece8e1; --val-dark: #0f1923; --val-green: #bef33e; --tg-bg: #17212b; }
-        body { background-color: var(--val-dark); color: var(--val-light); font-family: 'Inter', sans-serif; }
+        body { background-color: var(--val-dark); color: var(--val-light); font-family: 'Inter', sans-serif; overflow-x: hidden; }
         
         .sync-bar-container { background: rgba(255,255,255,0.1); height: 4px; width: 100%; margin-bottom: 40px; }
         .sync-bar-fill { background: var(--val-green); height: 100%; width: 25%; transition: width 0.5s ease; box-shadow: 0 0 15px var(--val-green); }
 
-        .module-step { opacity: 0.4; transition: all 0.3s; filter: grayscale(1); pointer-events: none; display: none; }
-        .module-step.active { opacity: 1; filter: grayscale(0); pointer-events: all; display: block; }
+        .module-step { opacity: 0; display: none; transform: translateY(20px); transition: all 0.5s; }
+        .module-step.active { opacity: 1; display: block; transform: translateY(0); }
 
-        .tg-mockup { background-color: var(--tg-bg); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-        .instruction-box { background: rgba(255, 70, 85, 0.1); border-left: 4px solid var(--val-red); padding: 15px; margin-bottom: 20px; }
+        .tg-mockup { background-color: var(--tg-bg); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); position: relative; }
+        .instruction-box { background: rgba(255, 70, 85, 0.05); border-left: 4px solid var(--val-red); padding: 20px; margin-bottom: 25px; }
 
+        .agent-tag { font-family: 'Teko'; font-size: 1.2rem; letter-spacing: 2px; color: var(--val-green); text-transform: uppercase; }
+        
         .btn-next {
-            background: var(--val-green); color: var(--val-dark); font-weight: 800; border: none; padding: 12px 30px;
-            font-family: 'Teko', sans-serif; font-size: 1.4rem; text-transform: uppercase;
-            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); transition: 0.2s;
+            background: var(--val-red); color: white; font-weight: 800; border: none; padding: 12px 35px;
+            font-family: 'Teko', sans-serif; font-size: 1.5rem; text-transform: uppercase;
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); transition: 0.3s;
         }
-        .btn-next:hover { transform: scale(1.05); background: #fff; }
+        .btn-next:hover { background: var(--val-green); color: var(--val-dark); transform: scale(1.05); }
 
-        .tg-bubble { background: #242f3d; padding: 12px; border-radius: 0 12px 12px 12px; margin-top: 10px; font-size: 0.95rem; }
+        .tg-bubble { background: #242f3d; padding: 12px; border-radius: 0 12px 12px 12px; margin-top: 10px; font-size: 0.95rem; border-left: 3px solid var(--val-red); }
         .tg-user-bubble { background: #2b5278; padding: 10px; border-radius: 12px 12px 0 12px; margin-left: auto; width: fit-content; color: #fff; font-family: monospace; }
-        .final-access { display: none; text-align: center; animation: fadeIn 1s forwards; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body class="py-5">
 
-    <div class="container" style="max-width: 800px;">
-        <div class="text-center mb-4">
-            <h2 class="font-teko text-accent mb-0" style="letter-spacing: 2px;">TESTE DE APTIDÃO TÁTICA</h2>
-            <h1 class="font-teko" style="font-size: 3.5rem;">SINCRO DO <span style="color: var(--val-red);">TERMINAL</span></h1>
-            <p class="text-muted">Aprenda a operar o bot para não pipocar na hora do clutch.</p>
-        </div>
-
-        <div class="sync-bar-container">
-            <div id="syncBar" class="sync-bar-fill"></div>
+    <div class="container" style="max-width: 850px;">
+        <div class="text-center mb-5">
+            <h2 class="font-teko text-accent mb-0" style="letter-spacing: 3px;">INITIALIZING V-PROTOCOL</h2>
+            <h1 class="font-teko" style="font-size: 4rem; line-height: 0.9;">CADASTRO DE <span style="color: var(--val-red);">AGENTE</span></h1>
+            <div class="sync-bar-container mt-4">
+                <div id="syncBar" class="sync-bar-fill"></div>
+            </div>
         </div>
 
         <div id="step1" class="module-step active">
             <div class="instruction-box">
-                <h4 class="font-teko">MÓDULO 01: O INÍCIO DO ROUND</h4>
-                <p class="mb-0"><strong>Killjoy:</strong> "Para entrar na rede, você precisa dar o <i>buy</i> inicial. No Telegram, tudo começa com o <code>/start</code>. É aqui que o sistema valida quem é você no servidor."</p>
+                <span class="agent-tag">#05 CYPHER // VIGILÂNCIA</span>
+                <p class="mt-2 fs-5">"Eu vejo tudo, mas você ainda é um fantasma no meu sistema. Para começar a coleta de dados, você precisa 'dar as caras' no terminal. Use o comando de ignição."</p>
             </div>
-            
             <div class="tg-mockup mb-4">
                 <div class="tg-user-bubble">/start</div>
                 <div class="tg-bubble">
-                    🤖 <strong>Protocolo V:</strong> Terminal ativo. Olá, Agente. Suas credenciais foram aceitas. O que vamos grindar hoje?
+                    📟 <strong>CYPHER NETWORK:</strong> Criptografia quebrada. Identidade pré-aprovada. O banco de dados está aberto para você, não me faça me arrepender disso.
                 </div>
             </div>
             <button class="btn-next" onclick="nextStep(2)">AUTORIZAR ACESSO ></button>
@@ -63,43 +60,55 @@
 
         <div id="step2" class="module-step">
             <div class="instruction-box">
-                <h4 class="font-teko">MÓDULO 02: MONTANDO O LOBBY</h4>
-                <p class="mb-0"><strong>Brimstone:</strong> "Cansado de pegar aleatório que não dá um call? Abre o teu lobby no Valorant, copia o código e manda aqui. Eu vou espalhar esse código no site pra todo mundo colar no teu esquadrão."</p>
+                <span class="agent-tag">#01 BRIMSTONE // COMANDO</span>
+                <p class="mt-2 fs-5">"Recruta, o objetivo é simples: ninguém joga sozinho. Quando abrir um lobby, mande o código aqui. Eu vou disparar um sinalizador orbital no site pra reunir o esquadrão."</p>
             </div>
-            
             <div class="tg-mockup mb-4">
-                <div class="tg-user-bubble">/convocar ABC123 Bora de Ranked</div>
-                <div class="tg-bubble" style="border-left: 3px solid var(--val-red);">
-                    🚨 <strong>SINALIZADOR ATIVO:</strong> Seu lobby foi pinado no site! Prepare-se para a inserção.
+                <div class="tg-user-bubble">/convocar [CÓDIGO] [MENSAGEM]</div>
+                <div class="tg-bubble">
+                    🛰️ <strong>RADAR ATIVO:</strong> Call efetuado. Seu lobby foi pinado no painel principal. Aguarde os reforços, eles estão a caminho.
                 </div>
             </div>
-            <button class="btn-next" onclick="nextStep(3)">TESTAR RADAR ></button>
+            <button class="btn-next" onclick="nextStep(3)">TESTAR COMUNICAÇÃO ></button>
         </div>
 
         <div id="step3" class="module-step">
             <div class="instruction-box">
-                <h4 class="font-teko">MÓDULO 03: ESCOLHA DE UNIDADE</h4>
-                <p class="mb-0"><strong>Viper:</strong> "Você ainda é um <i>reserva</i>. Se quiser aparecer no Ranking de Sinergia e mostrar quem manda no servidor, escolha sua Unidade. Alpha ou Omega. Não seja um peso morto."</p>
+                <span class="agent-tag">#04 KILLJOY // ENGENHARIA</span>
+                <p class="mt-2 fs-5">"Minhas torretas não mentem, e meus dados também não. Use o terminal para analisar os stats de qualquer um. Sinergia alta ganha jogo, ego alto só perde round."</p>
             </div>
-            
+            <div class="tg-mockup mb-4">
+                <div class="tg-user-bubble">/perfil [RIOT_ID]</div>
+                <div class="tg-bubble">
+                    🛠️ <strong>BOT DE ALARME:</strong> Escaneando... Dados extraídos! Elo: Diamante 3 | Sinergia: 88%. Esse aí joga pro time, pode confiar o spike.
+                </div>
+            </div>
+            <button class="btn-next" onclick="nextStep(4)">VALIDAR DADOS ></button>
+        </div>
+
+        <div id="step4" class="module-step">
+            <div class="instruction-box">
+                <span class="agent-tag">#02 VIPER // CONTROLE</span>
+                <p class="mt-2 fs-5">"Chega de brincadeira. Se quer ser parte da elite, escolha um lado. Alpha ou Omega. Saia da reserva ou continue sendo apenas mais um no servidor."</p>
+            </div>
             <div class="tg-mockup mb-4">
                 <div class="tg-user-bubble">/unidade</div>
                 <div class="tg-bubble text-center">
                     <div class="d-grid gap-2">
-                        <div style="background: var(--val-red); padding: 8px; border-radius: 4px; font-weight: bold; font-family: 'Teko'; letter-spacing: 1px;">🐍 UNIDADE ALPHA (VIPER)</div>
-                        <div style="background: #444; padding: 8px; border-radius: 4px; font-weight: bold; font-family: 'Teko'; letter-spacing: 1px;">🔥 UNIDADE OMEGA (BRIM)</div>
+                        <div style="background: var(--val-red); padding: 10px; border-radius: 4px; font-weight: bold; font-family: 'Teko';">🐍 UNIDADE ALPHA (TOXINA)</div>
+                        <div style="background: #444; padding: 10px; border-radius: 4px; font-weight: bold; font-family: 'Teko';">🔥 UNIDADE OMEGA (FOGO)</div>
                     </div>
                 </div>
             </div>
-            <button class="btn-next" onclick="nextStep(4)">CONCLUIR TREINO ></button>
+            <button class="btn-next" onclick="nextStep(5)">FINALIZAR PROTOCOLO ></button>
         </div>
 
         <div id="finalStep" class="final-access">
             <div class="p-5" style="border: 2px solid var(--val-green); background: rgba(190, 243, 62, 0.05); clip-path: polygon(5% 0, 100% 0, 95% 100%, 0 100%);">
-                <h2 class="font-teko" style="color: var(--val-green); font-size: 3.5rem;">ACESSO LIBERADO</h2>
-                <p class="fs-5">Você passou no teste de campo. O sistema está 100% sincronizado. <br>Entra lá e mostra que você não é carregado.</p>
+                <h2 class="font-teko" style="color: var(--val-green); font-size: 4rem;">SINCRO CONCLUÍDA</h2>
+                <p class="fs-5">O Protocolo V está rodando. O radar está limpo e o seu esquadrão te espera.<br>Não decepcione a equipe.</p>
                 <a href="https://t.me/+t74UD9N3wiE0NTkx" target="_blank" class="btn-val fs-3 px-5 py-3 d-inline-block mt-3 shadow-lg">
-                    IR PARA O TERMINAL (TELEGRAM)
+                    ACESSAR QG (TELEGRAM)
                 </a>
             </div>
         </div>
@@ -107,16 +116,19 @@
 
     <script>
         function nextStep(step) {
-            const progress = (step / 4) * 100;
+            const progress = (step / 5) * 100;
             document.getElementById('syncBar').style.width = progress + '%';
 
-            if(step <= 3) {
-                document.getElementById('step' + (step-1)).classList.remove('active');
+            // Ocultar todos os passos
+            document.querySelectorAll('.module-step').forEach(s => s.classList.remove('active'));
+            
+            if(step <= 4) {
                 document.getElementById('step' + step).classList.add('active');
             } else {
-                document.getElementById('step3').classList.remove('active');
                 document.getElementById('finalStep').style.display = 'block';
                 document.getElementById('syncBar').style.width = '100%';
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                return;
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
