@@ -30,7 +30,8 @@ function getRankEmoji(rank = '') {
 
 function escapeMarkdown(text) {
     if (!text) return '';
-    return text.toString().replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+    // Protege apenas os caracteres que realmente quebram o Markdown clássico do Telegram (*, _, ` e [)
+    return text.toString().replace(/[_*`\[\]]/g, '\\$&');
 }
 
 // --- LÓGICA DE BOTÕES (CALLBACK) ---
