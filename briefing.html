@@ -3,153 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocolo V | Manual de Operações</title>
+    <title>Protocolo V | Terminal de Instruções</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="style.css" rel="stylesheet"> 
     <style>
-        :root { --val-red: #ff4655; --val-light: #ece8e1; --val-dark: #0f1923; --val-green: #bef33e; }
+        :root { --val-red: #ff4655; --val-light: #ece8e1; --val-dark: #0f1923; --val-green: #bef33e; --tg-bg: #17212b; }
         
+        body { background-color: var(--val-dark); color: var(--val-light); overflow-x: hidden; }
+
+        /* Card Estilo Terminal */
         .cmd-card {
-            background-color: rgba(15, 25, 35, 0.8);
-            border: 1px solid rgba(236, 232, 225, 0.1);
+            background: linear-gradient(135deg, rgba(23, 33, 43, 0.9) 0%, rgba(15, 25, 35, 1) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             border-left: 4px solid var(--val-red);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            overflow: hidden;
         }
 
         .cmd-card:hover {
+            transform: scale(1.02);
             border-left-color: var(--val-green);
-            background-color: var(--val-dark);
-            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .step-box {
+        /* Simulação de Chat Telegram */
+        .tg-mockup {
             display: none;
-            background: rgba(0, 0, 0, 0.3);
-            border-top: 1px dashed rgba(236, 232, 225, 0.2);
+            background-color: var(--tg-bg);
+            border-radius: 8px;
+            padding: 15px;
             margin-top: 15px;
-            padding-top: 15px;
-            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: slideDown 0.3s ease-out;
         }
 
-        .cmd-card.active .step-box { display: block; }
-        .cmd-card.active { border-left-color: var(--val-green); background: var(--val-dark); }
+        .cmd-card.active .tg-mockup { display: block; }
 
-        .step-number {
-            color: var(--val-green);
-            font-weight: bold;
-            font-family: monospace;
-            margin-right: 10px;
+        .tg-header { color: #5288c1; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .tg-msg { background: #242f3d; padding: 10px; border-radius: 0 10px 10px 10px; color: #fff; line-height: 1.4; border-left: 3px solid var(--val-red); }
+        .tg-btn { 
+            background: #2b5278; border: none; color: white; padding: 6px 12px; 
+            border-radius: 4px; font-size: 0.8rem; margin-top: 8px; width: 100%; text-align: center;
         }
 
-        .cmd-code {
-            font-family: monospace;
-            background-color: #000;
-            color: var(--val-green);
-            padding: 4px 10px;
-            font-weight: bold;
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-indicator {
             display: inline-block;
+            background: var(--val-green);
+            color: var(--val-dark);
+            padding: 2px 8px;
+            font-weight: 800;
+            font-size: 0.7rem;
             margin-bottom: 10px;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
         }
 
-        .lore-quote {
-            border-left: 2px solid var(--val-red);
-            padding-left: 15px;
-            font-style: italic;
-            color: #a0a0a0;
-            margin-bottom: 20px;
-        }
+        .font-teko { font-family: 'Teko', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
     </style>
 </head>
-<body class="bg-dark-section">
+<body class="py-5">
 
-    <div class="val-bg-text-massive" style="opacity: 0.02;">MANUAL</div>
-
-    <div class="container py-5 position-relative z-1 fade-in-section is-visible">
+    <div class="container fade-in-section is-visible">
         <div class="text-center mb-5">
-            <h1 class="val-section-header text-light border-0" style="font-size: 4rem;">MANUAL DE <span class="text-accent">CAMPO</span></h1>
-            <p class="text-muted fs-5">Selecione um protocolo abaixo para ver as instruções de execução.</p>
+            <div class="step-indicator">SISTEMA OPERACIONAL V.2.0</div>
+            <h1 class="font-teko" style="font-size: 4.5rem; line-height: 0.8;">MANUAL DE <span style="color: var(--val-red);">CAMPO</span></h1>
+            <p class="text-muted mt-3">Clique nos módulos para simular a resposta do Terminal.</p>
         </div>
 
-        <div class="row g-4">
-            <div class="col-md-6">
+        <div class="row g-4 justify-content-center">
+            
+            <div class="col-lg-5">
                 <div class="cmd-card p-4" onclick="toggleCard(this)">
-                    <div class="cmd-code">/convocar [CÓDIGO] [MISSÃO]</div>
-                    <h3 class="text-light font-teko">PROTOCOLO: REFORÇO ORBITAL</h3>
-                    <div class="lore-quote">"Não morra sozinho. Peça ajuda." - Brimstone</div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-accent fw-bold">/convocar</span>
+                        <small class="text-muted">REFORÇOS</small>
+                    </div>
+                    <h3 class="font-teko mt-2">Sinalizador Orbital</h3>
                     
-                    <div class="step-box">
-                        <div class="mb-2"><span class="step-number">01.</span> Crie um Grupo (Party) dentro do Valorant.</div>
-                        <div class="mb-2"><span class="step-number">02.</span> Copie o código de 6 dígitos gerado pelo jogo.</div>
-                        <div class="mb-2"><span class="step-number">03.</span> No Telegram, digite <code>/convocar</code> seguido do código.</div>
-                        <div class="mb-2"><span class="step-number">04.</span> O site exibirá um alerta vermelho para todos os membros.</div>
+                    <div class="tg-mockup">
+                        <div class="tg-header">🛰️ Protocolo V Bot</div>
+                        <div class="tg-msg">
+                            🚨 *[SINALIZADOR ORBITAL]*<br>
+                            🔥 *Brimstone:* "Agentes, entrem no jogo e usem o código abaixo."<br><br>
+                            🔑 Código: `NWV582`<br>
+                            🎯 Missão: Ranked nas Alturas
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6"><div class="tg-btn">🟢 Equipado</div></div>
+                            <div class="col-6"><div class="tg-btn">⏳ 5 min</div></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-lg-5">
                 <div class="cmd-card p-4" onclick="toggleCard(this)">
-                    <div class="cmd-code">/unidade</div>
-                    <h3 class="text-light font-teko">PROTOCOLO: ASCENSÃO DE PATENTE</h3>
-                    <div class="lore-quote">"A reserva é para os fracos. Escolha um lado." - Viper</div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-accent fw-bold">/unidade</span>
+                        <small class="text-muted">ASCENSÃO</small>
+                    </div>
+                    <h3 class="font-teko mt-2">Transferência de Base</h3>
                     
-                    <div class="step-box">
-                        <div class="mb-2"><span class="step-number">01.</span> Ative o comando no Terminal para ver as unidades.</div>
-                        <div class="mb-2"><span class="step-number">02.</span> Selecione <strong>ALPHA</strong> (Liderança) ou <strong>OMEGA</strong> (Assalto).</div>
-                        <div class="mb-2"><span class="step-number">03.</span> Procure seu nome na lista filtrada por elo.</div>
-                        <div class="mb-2"><span class="step-number">04.</span> Confirme a transferência para atualizar seu registro no site.</div>
+                    <div class="tg-mockup">
+                        <div class="tg-header">🐍 Protocolo V Bot</div>
+                        <div class="tg-msg">
+                            ⚡ *Killjoy:* "Para qual unidade deseja solicitar transferência imediata?"
+                        </div>
+                        <div class="tg-btn" style="background: #ff4655;">🐍 Transferir para ALPHA</div>
+                        <div class="tg-btn" style="background: #ff8c00;">🔥 Transferir para OMEGA</div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-lg-5">
                 <div class="cmd-card p-4" onclick="toggleCard(this)">
-                    <div class="cmd-code">/perfil [RIOT_ID]</div>
-                    <h3 class="text-light font-teko">PROTOCOLO: ANÁLISE DE DADOS</h3>
-                    <div class="lore-quote">"Eu sei tudo sobre você. Meus robôs viram." - Killjoy</div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-accent fw-bold">/perfil</span>
+                        <small class="text-muted">DOSSIÊ</small>
+                    </div>
+                    <h3 class="font-teko mt-2">Inteligência de Agente</h3>
                     
-                    <div class="step-box">
-                        <div class="mb-2"><span class="step-number">01.</span> Digite <code>/perfil</code> e uma parte do nome do agente.</div>
-                        <div class="mb-2"><span class="step-number">02.</span> O sistema extrai: Elo, Sinergia e Pontuação de Treino.</div>
-                        <div class="mb-2"><span class="step-number">03.</span> Use isso para analisar se o recruta presta para o seu time.</div>
+                    <div class="tg-mockup">
+                        <div class="tg-header">💻 Protocolo V Bot</div>
+                        <div class="tg-msg">
+                            👤 *AGENTE:* PITOCO#BR1<br>
+                            🟢 *ELO:* ASCENDENTE 2<br>
+                            📊 *SINERGIA:* 85%<br>
+                            🎯 *TREINO:* 420 pts
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-lg-5">
                 <div class="cmd-card p-4" onclick="toggleCard(this)">
-                    <div class="cmd-code">/ranking</div>
-                    <h3 class="text-light font-teko">PROTOCOLO: HIERARQUIA DE ELITE</h3>
-                    <div class="lore-quote">"Números não mentem. Você é útil ou é lixo?" - Viper</div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-accent fw-bold">/ranking</span>
+                        <small class="text-muted">ELITE</small>
+                    </div>
+                    <h3 class="font-teko mt-2">Hierarquia da Base</h3>
                     
-                    <div class="step-box">
-                        <div class="mb-2"><span class="step-number">01.</span> Dispare o comando para ver quem são os agentes ativos.</div>
-                        <div class="mb-2"><span class="step-number">02.</span> O Bot lista os Top 3 em Sinergia (Trabalho em Equipe).</div>
-                        <div class="mb-2"><span class="step-number">03.</span> Os nomes aparecem com o emoji de Elo atualizado via API.</div>
+                    <div class="tg-mockup">
+                        <div class="tg-header">🏆 Protocolo V Bot</div>
+                        <div class="tg-msg">
+                            🥇 1. Agente X - 98% Sinergia<br>
+                            🥈 2. Agente Y - 92% Sinergia<br>
+                            🥉 3. Agente Z - 89% Sinergia
+                        </div>
                     </div>
                 </div>
             </div>
+
         </div>
 
         <div class="text-center mt-5">
-            <a href="https://t.me/+t74UD9N3wiE0NTkx" target="_blank" class="btn-val fs-3 px-5 py-3">
-                INICIAR TRANSMISSÃO NO TELEGRAM
+            <p class="text-muted mb-4 small">FIM DA SIMULAÇÃO. SIGA PARA O TERMINAL REAL.</p>
+            <a href="https://t.me/+t74UD9N3wiE0NTkx" target="_blank" class="btn-val fs-3 px-5 py-3 shadow-lg">
+                ATIVAR TERMINAL TELEGRAM
             </a>
-            <p class="text-muted mt-3" style="font-size: 0.8rem; letter-spacing: 1px;">SISTEMA OPERACIONAL PROTOCOLO V © 2026</p>
         </div>
     </div>
 
     <script>
         function toggleCard(element) {
-            // Fecha outros cards abertos
-            document.querySelectorAll('.cmd-card').forEach(card => {
-                if (card !== element) card.classList.remove('active');
-            });
-            // Abre/Fecha o atual
-            element.classList.toggle('active');
+            const isActive = element.classList.contains('active');
+            document.querySelectorAll('.cmd-card').forEach(c => c.classList.remove('active'));
+            if (!isActive) element.classList.add('active');
         }
     </script>
 </body>
