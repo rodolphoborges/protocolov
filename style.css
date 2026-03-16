@@ -475,3 +475,32 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
     .d-flex.flex-wrap.align-items-center.gap-3 { flex-direction: column !important; align-items: stretch !important; gap: 15px !important; }
     .btn-val, .telegram-link-header { width: 100%; text-align: center; padding: 15px 10px; }
 }
+
+/* ... (mantenha o seu CSS brutalista original) */
+
+/* UNIDADE ALPHA: Assinatura da Viper (Verde Tóxico) */
+.alpha-theme { 
+    border-left-color: #00ff9d !important; 
+}
+.alpha-theme:hover { 
+    background-color: rgba(0, 255, 157, 0.05) !important; 
+    border-left-color: #00ff9d !important;
+}
+
+/* UNIDADE OMEGA: Assinatura do Brimstone (Vermelho Valorant/Fogo) */
+.omega-theme { 
+    border-left-color: #ff4655 !important; 
+}
+.omega-theme:hover { 
+    background-color: rgba(255, 70, 85, 0.05) !important; 
+    border-left-color: #ff4655 !important;
+}
+
+/* UNIDADE WINGMAN: Assinatura do Gekko (Verde-Lima Vibrante) */
+.wingman-theme { 
+    border-left-color: #bef33e !important; 
+}
+.wingman-theme:hover { 
+    background-color: rgba(190, 243, 62, 0.05) !important; 
+    border-left-color: #bef33e !important;
+}
