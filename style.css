@@ -236,3 +236,18 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
         padding: 15px 10px;
     }
 }
+
+/* =========================================
+   LORE THEMES (Alpha, Omega, Wingman)
+========================================= */
+.alpha-theme { border-left-color: #008CBA !important; }
+.alpha-theme:hover { background-color: rgba(0, 140, 186, 0.1) !important; transform: translateX(5px); }
+
+.omega-theme { border-left-color: var(--val-red) !important; }
+.omega-theme:hover { background-color: rgba(255, 70, 85, 0.1) !important; transform: translateX(5px); }
+
+.wingman-theme { border-left-color: #ffce56 !important; }
+.wingman-theme:hover { background-color: rgba(255, 206, 86, 0.1) !important; transform: translateX(5px); }
+
+/* Remove a largura forçada para os cards titulares se alinharem horizontalmente à nova estrutura de Squads */
+.role-row .col-md-8 .player-card { width: 100%; }
