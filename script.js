@@ -5,13 +5,13 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey
 const squadsConfig = {
     'ALPHA': { 
         title: 'UNIDADE ALPHA', 
-        desc: 'Sob o comando da Agente 02 - Viper. Precisão química e controle tático absoluto da Terra-1.', 
+        desc: 'Sob o comando da Agente 02 - Viper. Precisão química e controle tático absoluto.', 
         theme: 'alpha-theme',
         roles: { 'Controlador': null, 'Duelista': null, 'Iniciador': null, 'Sentinela': null, 'Flex': null } 
     },
     'OMEGA': { 
         title: 'UNIDADE ÔMEGA', 
-        desc: 'Sob o comando do Agente 01 - Brimstone. Força de elite e suporte orbital para extração na Terra-2.', 
+        desc: 'Sob o comando do Agente 01 - Brimstone. Força de elite e suporte orbital.', 
         theme: 'omega-theme',
         roles: { 'Controlador': null, 'Duelista': null, 'Iniciador': null, 'Sentinela': null, 'Flex': null } 
     }
