@@ -101,20 +101,33 @@ bot.on('callback_query', async (query) => {
     if (callbackData.startsWith('select_uni_')) {
         const unidade = callbackData.split('_')[2]; // ALPHA, OMEGA, WINGMAN
         
-        const { data } = await supabase.from('players').select('riot_id, current_rank').order('synergy_score', { ascending: false }).limit(30);
+        // NOVO: .neq('unit', unidade) impede que agentes já alocados apareçam na lista
+        const { data } = await supabase.from('players')
+            .select('riot_id, current_rank')
+            .neq('unit', unidade)
+            .order('synergy_score', { ascending: false })
+            .limit(30);
+
+        if (!data || data.length === 0) {
+            bot.editMessageText(`⚠️ *[SISTEMA]* Todos os agentes disponíveis já estão alocados na Unidade *${unidade}*.`, {
+                chat_id: chatId, 
+                message_id: messageId,
+                parse_mode: 'Markdown'
+            });
+            return bot.answerCallbackQuery(query.id);
+        }
+
         const botoesGrade = [];
-        if (data) {
-            for (let i = 0; i < data.length; i += 2) {
-                const linha = [];
-                [data[i], data[i + 1]].forEach(p => {
-                    if (p) {
-                        const rawNick = p.riot_id.split('#')[0];
-                        const emoji = getRankEmoji(p.current_rank);
-                        linha.push({ text: `${emoji} ${rawNick}`, callback_data: `uni_${unidade}_${rawNick}` });
-                    }
-                });
-                botoesGrade.push(linha);
-            }
+        for (let i = 0; i < data.length; i += 2) {
+            const linha = [];
+            [data[i], data[i + 1]].forEach(p => {
+                if (p) {
+                    const rawNick = p.riot_id.split('#')[0];
+                    const emoji = getRankEmoji(p.current_rank);
+                    linha.push({ text: `${emoji} ${rawNick}`, callback_data: `uni_${unidade}_${rawNick}` });
+                }
+            });
+            botoesGrade.push(linha);
         }
         
         bot.editMessageText(`🔄 *[SISTEMA]* Boa! Agora selecione na lista abaixo quem será transferido para a Unidade *${unidade}*:`, {
