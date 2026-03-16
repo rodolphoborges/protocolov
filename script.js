@@ -463,9 +463,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (error.code === '23505') throw new Error("Este Riot ID já está na base!");
                     throw error;
                 }
-                feedback.innerHTML = `<span class="text-success">Inscrição recebida! Aguarde a atualização (até 30m).</span>`;
+                
+                // NOVO: Feedback rápido e redirecionamento para o Briefing
+                feedback.innerHTML = `<span class="text-success">Criptografia aceita. Redirecionando para o QG...</span>`;
                 form.reset();
-                fetchCachedData();
+                
+                setTimeout(() => { 
+                    window.location.href = 'briefing.html'; // Redireciona o recruta
+                }, 1500);
+
             } catch (err) {
                 feedback.innerHTML = `<span class="text-danger">Erro: ${err.message}</span>`;
             } finally {
