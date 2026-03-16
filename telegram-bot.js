@@ -97,7 +97,36 @@ bot.on('callback_query', async (query) => {
         bot.answerCallbackQuery(query.id);
     }
 
-    // --- TRANSFERÊNCIA DE UNIDADE (NOVO) ---
+    // --- SELEÇÃO INTERATIVA DE UNIDADE (PASSO 1) ---
+    if (callbackData.startsWith('select_uni_')) {
+        const unidade = callbackData.split('_')[2]; // ALPHA, OMEGA, WINGMAN
+        
+        const { data } = await supabase.from('players').select('riot_id, current_rank').order('synergy_score', { ascending: false }).limit(30);
+        const botoesGrade = [];
+        if (data) {
+            for (let i = 0; i < data.length; i += 2) {
+                const linha = [];
+                [data[i], data[i + 1]].forEach(p => {
+                    if (p) {
+                        const rawNick = p.riot_id.split('#')[0];
+                        const emoji = getRankEmoji(p.current_rank);
+                        linha.push({ text: `${emoji} ${rawNick}`, callback_data: `uni_${unidade}_${rawNick}` });
+                    }
+                });
+                botoesGrade.push(linha);
+            }
+        }
+        
+        bot.editMessageText(`🔄 *[SISTEMA]* Boa! Agora selecione na lista abaixo quem será transferido para a Unidade *${unidade}*:`, {
+            chat_id: chatId, 
+            message_id: messageId,
+            parse_mode: 'Markdown', 
+            reply_markup: { inline_keyboard: botoesGrade }
+        });
+        return bot.answerCallbackQuery(query.id);
+    }
+
+    // --- TRANSFERÊNCIA DE UNIDADE FINAL (PASSO 2) ---
     if (callbackData.startsWith('uni_')) {
         const partes = callbackData.split('_');
         const unidade = partes[1]; // ALPHA, OMEGA, WINGMAN
@@ -128,14 +157,13 @@ bot.onText(/\/(start|ajuda|comandos)/, (msg) => {
                 `📢 /convocar - Chama agentes para o lobby\n` +
                 `👤 /perfil - Inspeciona o dossiê de um agente\n` +
                 `🏆 /ranking - Avaliação de desempenho das equipes\n` +
-                `🎭 /unidade [alpha|omega|wingman] - Solicita transferência de Unidade Tática\n` +
+                `🎭 /unidade - Solicita transferência de Unidade Tática\n` +
                 `🌐 /site - Acessa o QG Principal\n` +
                 `❓ /ajuda - Repete esta transmissão`;
     bot.sendMessage(msg.chat.id, texto, { parse_mode: 'Markdown' });
 });
 
 bot.onText(/\/site/, (msg) => {
-    // CORREÇÃO: O inline_keyboard agora está encapsulado no reply_markup
     bot.sendMessage(msg.chat.id, `🔗 *Brimstone:* "O terminal principal está online. Acesse os relatórios por aqui:"`, { 
         parse_mode: 'Markdown',
         reply_markup: {
@@ -190,7 +218,6 @@ bot.onText(/\/(perfil|agente)(.*)/, async (msg, match) => {
 
     let dbQuery = supabase.from('players').select('riot_id, current_rank').order('synergy_score', { ascending: false }).limit(30);
 
-    // Se o utilizador digitou algo, filtramos por esse termo
     if (argumento) {
         const busca = argumento.split('#')[0];
         dbQuery = dbQuery.ilike('riot_id', `%${busca}%`);
@@ -202,16 +229,13 @@ bot.onText(/\/(perfil|agente)(.*)/, async (msg, match) => {
         return bot.sendMessage(chatId, "⚠️ *Brimstone:* Registro não encontrado na base de dados. Revise as credenciais.", { parse_mode: 'Markdown' });
     }
 
-    // Se o jogador procurou por um nome exato e achou apenas 1, já envia o dossiê direto.
     if (data.length === 1 && argumento) {
         const rawNick = data[0].riot_id.split('#')[0];
-        // Forçamos a chamada à callback de perfil para reciclar o código
         return bot.emit('callback_query', {
             id: 'mock', message: msg, from: msg.from, data: `perfil_${rawNick}`
         });
     }
 
-    // Se há vários resultados (ou se ele não digitou nada), exibe a grelha de botões interativos
     const botoesGrade = [];
     for (let i = 0; i < data.length; i += 2) {
         const linha = [];
@@ -233,14 +257,13 @@ bot.onText(/\/(perfil|agente)(.*)/, async (msg, match) => {
 });
 
 // --- COMANDO DE TRANSFERÊNCIA DE UNIDADE ---
-// A regex agora aceita `/unidade` sozinho, ou `/unidade ALPHA`, ou `/unidade ALPHA Nome`
 bot.onText(/^\/unidade(?:\s+(\w+))?(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const unidade = match[1] ? match[1].toUpperCase() : null;
     const argumento = match[2] ? match[2].trim() : null;
     const validas = ['ALPHA', 'OMEGA', 'WINGMAN'];
 
-    // CENÁRIO 1: O recruta não sabe usar bots e apenas clicou no comando "/unidade" no texto
+    // CENÁRIO 1: Recruta digitou apenas "/unidade"
     if (!unidade) {
         return bot.sendMessage(chatId, `💻 *Killjoy:* "Opa, você não especificou a unidade! Sem problema, eu facilito para você. Para qual divisão você deseja solicitar transferência?"`, {
             parse_mode: 'Markdown',
@@ -254,12 +277,12 @@ bot.onText(/^\/unidade(?:\s+(\w+))?(?:\s+(.*))?/, async (msg, match) => {
         });
     }
     
-    // CENÁRIO 2: Ele digitou uma unidade inválida
+    // CENÁRIO 2: Unidade inválida (Ex: /unidade TESTE)
     if (!validas.includes(unidade)) {
         return bot.sendMessage(chatId, "❌ *Brimstone:* Código de Unidade inválido. Tente ALPHA, OMEGA ou WINGMAN.", { parse_mode: 'Markdown' });
     }
 
-    // CENÁRIO 3: Ele digitou a unidade (ex: /unidade ALPHA), mas não disse o nome. (Mostra a lista de agentes)
+    // CENÁRIO 3: Digitou a unidade, mas não o nome (Ex: /unidade ALPHA)
     if (!argumento) {
         const { data } = await supabase.from('players').select('riot_id, current_rank').order('synergy_score', { ascending: false }).limit(30);
         const botoesGrade = [];
@@ -279,7 +302,7 @@ bot.onText(/^\/unidade(?:\s+(\w+))?(?:\s+(.*))?/, async (msg, match) => {
         return bot.sendMessage(chatId, `🔄 *[SISTEMA]* Selecione o agente que será transferido para a Unidade *${unidade}*:`, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: botoesGrade } });
     }
 
-    // CENÁRIO 4: Ele digitou o comando completo clássico (ex: /unidade ALPHA Pitoco)
+    // CENÁRIO 4: Comando completo (Ex: /unidade ALPHA Ousadia)
     try {
         const { data } = await supabase.from('players').select('*').ilike('riot_id', `%${argumento}%`).limit(1);
         if (!data || data.length === 0) return bot.sendMessage(chatId, "⚠️ *Brimstone:* Não encontrei esse Riot ID nos nossos registros.", { parse_mode: 'Markdown' });
