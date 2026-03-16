@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,72 +9,26 @@
     <link href="style.css" rel="stylesheet"> 
     <style>
         :root { --val-red: #ff4655; --val-light: #ece8e1; --val-dark: #0f1923; --val-green: #bef33e; --tg-bg: #17212b; }
-        
         body { background-color: var(--val-dark); color: var(--val-light); font-family: 'Inter', sans-serif; }
+        
+        .sync-bar-container { background: rgba(255,255,255,0.1); height: 4px; width: 100%; margin-bottom: 40px; }
+        .sync-bar-fill { background: var(--val-green); height: 100%; width: 25%; transition: width 0.5s ease; box-shadow: 0 0 15px var(--val-green); }
 
-        /* Progress Bar de Sincronização */
-        .sync-bar-container {
-            background: rgba(255,255,255,0.1);
-            height: 4px;
-            width: 100%;
-            margin-bottom: 40px;
-        }
-        .sync-bar-fill {
-            background: var(--val-green);
-            height: 100%;
-            width: 25%;
-            transition: width 0.5s ease;
-            box-shadow: 0 0 15px var(--val-green);
-        }
+        .module-step { opacity: 0.4; transition: all 0.3s; filter: grayscale(1); pointer-events: none; display: none; }
+        .module-step.active { opacity: 1; filter: grayscale(0); pointer-events: all; display: block; }
 
-        .module-step { opacity: 0.4; transition: all 0.3s; filter: grayscale(1); pointer-events: none; }
-        .module-step.active { opacity: 1; filter: grayscale(0); pointer-events: all; }
-
-        .tg-mockup {
-            background-color: var(--tg-bg);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-        }
-
-        .instruction-box {
-            background: rgba(255, 70, 85, 0.1);
-            border-left: 4px solid var(--val-red);
-            padding: 15px;
-            margin-bottom: 20px;
-        }
+        .tg-mockup { background-color: var(--tg-bg); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        .instruction-box { background: rgba(255, 70, 85, 0.1); border-left: 4px solid var(--val-red); padding: 15px; margin-bottom: 20px; }
 
         .btn-next {
-            background: var(--val-green);
-            color: var(--val-dark);
-            font-weight: 800;
-            border: none;
-            padding: 10px 25px;
-            font-family: 'Teko', sans-serif;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+            background: var(--val-green); color: var(--val-dark); font-weight: 800; border: none; padding: 12px 30px;
+            font-family: 'Teko', sans-serif; font-size: 1.4rem; text-transform: uppercase;
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); transition: 0.2s;
         }
+        .btn-next:hover { transform: scale(1.05); background: #fff; }
 
-        .tg-bubble {
-            background: #242f3d;
-            padding: 12px;
-            border-radius: 0 12px 12px 12px;
-            margin-top: 10px;
-            font-size: 0.9rem;
-            position: relative;
-        }
-        .tg-user-bubble {
-            background: #2b5278;
-            padding: 10px;
-            border-radius: 12px 12px 0 12px;
-            margin-left: auto;
-            width: fit-content;
-            color: #fff;
-            font-family: monospace;
-        }
-
+        .tg-bubble { background: #242f3d; padding: 12px; border-radius: 0 12px 12px 12px; margin-top: 10px; font-size: 0.95rem; }
+        .tg-user-bubble { background: #2b5278; padding: 10px; border-radius: 12px 12px 0 12px; margin-left: auto; width: fit-content; color: #fff; font-family: monospace; }
         .final-access { display: none; text-align: center; animation: fadeIn 1s forwards; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -83,9 +37,9 @@
 
     <div class="container" style="max-width: 800px;">
         <div class="text-center mb-4">
-            <h2 class="font-teko text-accent mb-0">SISTEMA DE TREINO VIRTUAL</h2>
-            <h1 class="font-teko" style="font-size: 3.5rem;">INFILTRAÇÃO NO <span style="color: var(--val-red);">TERMINAL</span></h1>
-            <p class="text-muted">Completa os módulos abaixo para sincronizar a tua conta com o QG.</p>
+            <h2 class="font-teko text-accent mb-0" style="letter-spacing: 2px;">TESTE DE APTIDÃO TÁTICA</h2>
+            <h1 class="font-teko" style="font-size: 3.5rem;">SINCRO DO <span style="color: var(--val-red);">TERMINAL</span></h1>
+            <p class="text-muted">Aprenda a operar o bot para não pipocar na hora do clutch.</p>
         </div>
 
         <div class="sync-bar-container">
@@ -94,58 +48,58 @@
 
         <div id="step1" class="module-step active">
             <div class="instruction-box">
-                <h4 class="font-teko">MÓDULO 01: ATIVAÇÃO</h4>
-                <p class="small mb-0"><strong>Killjoy:</strong> "Primeiro, tens de acordar o sistema. No Telegram, o comando de ignição é sempre o Start."</p>
+                <h4 class="font-teko">MÓDULO 01: O INÍCIO DO ROUND</h4>
+                <p class="mb-0"><strong>Killjoy:</strong> "Para entrar na rede, você precisa dar o <i>buy</i> inicial. No Telegram, tudo começa com o <code>/start</code>. É aqui que o sistema valida quem é você no servidor."</p>
             </div>
             
             <div class="tg-mockup mb-4">
                 <div class="tg-user-bubble">/start</div>
                 <div class="tg-bubble">
-                    🤖 <strong>Protocolo V:</strong> Sistema Online. Bem-vindo, Agente. O que pretendes fazer hoje?
+                    🤖 <strong>Protocolo V:</strong> Terminal ativo. Olá, Agente. Suas credenciais foram aceitas. O que vamos grindar hoje?
                 </div>
             </div>
-            <button class="btn-next" onclick="nextStep(2)">Compreendido. Próximo Módulo ></button>
+            <button class="btn-next" onclick="nextStep(2)">AUTORIZAR ACESSO ></button>
         </div>
 
         <div id="step2" class="module-step">
             <div class="instruction-box">
-                <h4 class="font-teko">MÓDULO 02: REFORÇOS</h4>
-                <p class="small mb-0"><strong>Brimstone:</strong> "Se estiveres no jogo e precisares de malta, usa o código da party. Isto vai criar um alerta no site em tempo real!"</p>
+                <h4 class="font-teko">MÓDULO 02: MONTANDO O LOBBY</h4>
+                <p class="mb-0"><strong>Brimstone:</strong> "Cansado de pegar aleatório que não dá um call? Abre o teu lobby no Valorant, copia o código e manda aqui. Eu vou espalhar esse código no site pra todo mundo colar no teu esquadrão."</p>
             </div>
             
             <div class="tg-mockup mb-4">
-                <div class="tg-user-bubble">/convocar ABC123 Ranked PT</div>
+                <div class="tg-user-bubble">/convocar ABC123 Bora de Ranked</div>
                 <div class="tg-bubble" style="border-left: 3px solid var(--val-red);">
-                    🚨 <strong>ALERTA DISPARADO:</strong> O teu pedido de reforços foi enviado para o radar do site oficial!
+                    🚨 <strong>SINALIZADOR ATIVO:</strong> Seu lobby foi pinado no site! Prepare-se para a inserção.
                 </div>
             </div>
-            <button class="btn-next" onclick="nextStep(3)">Sincronizar Radar ></button>
+            <button class="btn-next" onclick="nextStep(3)">TESTAR RADAR ></button>
         </div>
 
         <div id="step3" class="module-step">
             <div class="instruction-box">
-                <h4 class="font-teko">MÓDULO 03: ESPECIALIZAÇÃO</h4>
-                <p class="small mb-0"><strong>Viper:</strong> "Não fiques na reserva. Escolhe uma Unidade (Alpha ou Omega) para seres listado no Ranking de Elite."</p>
+                <h4 class="font-teko">MÓDULO 03: ESCOLHA DE UNIDADE</h4>
+                <p class="mb-0"><strong>Viper:</strong> "Você ainda é um <i>reserva</i>. Se quiser aparecer no Ranking de Sinergia e mostrar quem manda no servidor, escolha sua Unidade. Alpha ou Omega. Não seja um peso morto."</p>
             </div>
             
             <div class="tg-mockup mb-4">
                 <div class="tg-user-bubble">/unidade</div>
                 <div class="tg-bubble text-center">
                     <div class="d-grid gap-2">
-                        <div style="background: var(--val-red); padding: 5px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">🐍 UNIDADE ALPHA</div>
-                        <div style="background: #444; padding: 5px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">🔥 UNIDADE OMEGA</div>
+                        <div style="background: var(--val-red); padding: 8px; border-radius: 4px; font-weight: bold; font-family: 'Teko'; letter-spacing: 1px;">🐍 UNIDADE ALPHA (VIPER)</div>
+                        <div style="background: #444; padding: 8px; border-radius: 4px; font-weight: bold; font-family: 'Teko'; letter-spacing: 1px;">🔥 UNIDADE OMEGA (BRIM)</div>
                     </div>
                 </div>
             </div>
-            <button class="btn-next" onclick="nextStep(4)">Finalizar Encriptação ></button>
+            <button class="btn-next" onclick="nextStep(4)">CONCLUIR TREINO ></button>
         </div>
 
         <div id="finalStep" class="final-access">
-            <div class="p-4" style="border: 2px solid var(--val-green); background: rgba(190, 243, 62, 0.05);">
-                <h2 class="font-teko" style="color: var(--val-green); font-size: 3rem;">SINCRONIZAÇÃO COMPLETA</h2>
-                <p>Estás pronto para entrar na rede real. Lembra-te: o que acontece no terminal, fica no terminal.</p>
-                <a href="https://t.me/+t74UD9N3wiE0NTkx" target="_blank" class="btn-val fs-3 px-5 py-3 d-inline-block mt-3">
-                    ENTRAR NO QG (TELEGRAM)
+            <div class="p-5" style="border: 2px solid var(--val-green); background: rgba(190, 243, 62, 0.05); clip-path: polygon(5% 0, 100% 0, 95% 100%, 0 100%);">
+                <h2 class="font-teko" style="color: var(--val-green); font-size: 3.5rem;">ACESSO LIBERADO</h2>
+                <p class="fs-5">Você passou no teste de campo. O sistema está 100% sincronizado. <br>Entra lá e mostra que você não é carregado.</p>
+                <a href="https://t.me/+t74UD9N3wiE0NTkx" target="_blank" class="btn-val fs-3 px-5 py-3 d-inline-block mt-3 shadow-lg">
+                    IR PARA O TERMINAL (TELEGRAM)
                 </a>
             </div>
         </div>
@@ -153,20 +107,17 @@
 
     <script>
         function nextStep(step) {
-            // Atualiza Barra
             const progress = (step / 4) * 100;
             document.getElementById('syncBar').style.width = progress + '%';
 
-            // Esconde atual, mostra próximo
             if(step <= 3) {
-                document.getElementById('step' + (step-1)).style.display = 'none';
+                document.getElementById('step' + (step-1)).classList.remove('active');
                 document.getElementById('step' + step).classList.add('active');
             } else {
-                document.getElementById('step3').style.display = 'none';
+                document.getElementById('step3').classList.remove('active');
                 document.getElementById('finalStep').style.display = 'block';
                 document.getElementById('syncBar').style.width = '100%';
             }
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
