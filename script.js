@@ -67,28 +67,28 @@ async function fetchCachedData() {
 
         playersData.forEach(player => {
             let roleRaw = player.role_raw.toLowerCase();
-            let faction = player.faction || 'WINGMAN'; 
+            let unit = player.unit || 'WINGMAN'; 
             
             player.riotId = escapeHtml(player.riot_id);
             player.currentRank = escapeHtml(player.current_rank || 'Pendente');
             
             let assigned = false;
             
-            if (squadsConfig[faction]) {
-                const rolesKeys = Object.keys(squadsConfig[faction].roles);
+            if (squadsConfig[unit]) {
+                const rolesKeys = Object.keys(squadsConfig[unit].roles);
                 for (let role of rolesKeys) {
                     const searchTerms = role === 'Controlador' ? ['controlador', 'smoker'] : [role.toLowerCase()];
                     if (searchTerms.some(term => roleRaw.includes(term))) {
-                        if (squadsConfig[faction].roles[role] === null) {
-                            squadsConfig[faction].roles[role] = player;
+                        if (squadsConfig[unit].roles[role] === null) {
+                            squadsConfig[unit].roles[role] = player;
                             assigned = true;
                         }
                         break; 
                     }
                 }
 
-                if (!assigned && roleRaw.includes('flex') && squadsConfig[faction].roles['Flex'] === null) {
-                    squadsConfig[faction].roles['Flex'] = player;
+                if (!assigned && roleRaw.includes('flex') && squadsConfig[unit].roles['Flex'] === null) {
+                    squadsConfig[unit].roles['Flex'] = player;
                     assigned = true;
                 }
             }
@@ -138,10 +138,12 @@ async function fetchOperations(append = false) {
                 const sortedSquad = op.operation_squads.map(sq => ({
                     riotId: sq.riot_id, agent: sq.agent, agentImg: sq.agent_img, kda: sq.kda, hs: sq.hs_percent
                 })).sort((a, b) => {
-                    const [k1, d1] = a.kda.split('/').map(Number);
-                    const [k2, d2] = b.kda.split('/').map(Number);
-                    if (k2 !== k1) return k2 - k1; 
-                    return d1 - d2; 
+                    const [k1, d1, a1] = a.kda.split('/').map(Number);
+                    const [k2, d2, a2] = b.kda.split('/').map(Number);
+                    
+                    if (k2 !== k1) return k2 - k1; // 1. Mais Kills
+                    if (d1 !== d2) return d1 - d2; // 2. Menos Deaths
+                    return a2 - a1;                // 3. Mais Assists
                 });
 
                 return {
@@ -209,14 +211,13 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
     let dmBadge = player.dm_score > 0 ? `<span class="badge border border-danger text-danger ms-2 rounded-0" style="background-color: rgba(255, 70, 85, 0.1);" title="Pontos de Treino (Mata-Mata)">🎯 ${player.dm_score}</span>` : '';
     let opaqueClass = player.lone_wolf ? 'opaque-rank' : '';
 
-    // NOVA IDENTIDADE VISUAL: Badges de Facção com SVGs Brutalistas
-    let factionBadge = '';
-    if (player.faction === 'ALPHA') {
-        factionBadge = `<span class="badge rounded-0 border border-info text-info ms-2" style="background-color: rgba(0, 140, 186, 0.1);" title="SQUAD ALPHA"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13h-13L12 6.5z"/></svg>ALPHA</span>`;
-    } else if (player.faction === 'OMEGA') {
-        factionBadge = `<span class="badge rounded-0 border border-danger text-danger ms-2" style="background-color: rgba(255, 70, 85, 0.1);" title="SQUAD ÔMEGA"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>ÔMEGA</span>`;
+    let unitBadge = '';
+    if (player.unit === 'ALPHA') {
+        unitBadge = `<span class="badge rounded-0 border border-info text-info ms-2" style="background-color: rgba(0, 140, 186, 0.1);" title="SQUAD ALPHA"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13h-13L12 6.5z"/></svg>ALPHA</span>`;
+    } else if (player.unit === 'OMEGA') {
+        unitBadge = `<span class="badge rounded-0 border border-danger text-danger ms-2" style="background-color: rgba(255, 70, 85, 0.1);" title="SQUAD ÔMEGA"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>ÔMEGA</span>`;
     } else {
-        factionBadge = `<span class="badge rounded-0 border border-warning text-warning ms-2" style="background-color: rgba(255, 206, 86, 0.1);" title="ESQUADRÃO WINGMAN"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>WINGMAN</span>`;
+        unitBadge = `<span class="badge rounded-0 border border-warning text-warning ms-2" style="background-color: rgba(255, 206, 86, 0.1);" title="ESQUADRÃO WINGMAN"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>WINGMAN</span>`;
     }
 
     const eloHTML = safeRankIcon ? `<img src="${safeRankIcon}" alt="${player.currentRank}" class="${opaqueClass}" style="width: 20px; height: 20px;"> <span class="${opaqueClass}">${player.currentRank}</span>` : `<span class="${opaqueClass}">${player.currentRank}</span>`;
@@ -243,7 +244,7 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
                             ${player.riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>
                         </span>
                         <span class="badge bg-secondary ms-1 rounded-0" style="font-size: 0.6rem;">LVL ${player.level || '--'}</span>
-                        ${factionBadge}
+                        ${unitBadge}
                         ${synergyBadge}
                         ${dmBadge}
                         ${loneWolfBadge}
@@ -356,7 +357,7 @@ function renderSquads() {
     const container = document.getElementById('squads-container');
     let fullHTML = '';
 
-    for (const [faction, data] of Object.entries(squadsConfig)) {
+    for (const [unit, data] of Object.entries(squadsConfig)) {
         let playersHTML = '';
         let count = 0;
         
@@ -375,9 +376,9 @@ function renderSquads() {
         fullHTML += `
             <div class="row align-items-start role-row mb-5">
                 <div class="col-md-4 mb-4 mb-md-0">
-                    <h3 class="role-title ${faction === 'ALPHA' ? 'text-info' : 'text-danger'}">${data.title}</h3>
+                    <h3 class="role-title ${unit === 'ALPHA' ? 'text-info' : 'text-danger'}">${data.title}</h3>
                     <p class="mb-0 text-muted small mt-2" style="max-width: 90%;">${data.desc}</p>
-                    <div class="mt-4 border-start border-4 ${faction === 'ALPHA' ? 'border-info' : 'border-danger'} ps-3">
+                    <div class="mt-4 border-start border-4 ${unit === 'ALPHA' ? 'border-info' : 'border-danger'} ps-3">
                         <span class="fs-4 fw-bold font-monospace">${count}/5</span><br>
                         <span class="text-uppercase small text-muted">Prontidão de Combate</span>
                     </div>
@@ -438,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const riotId = document.getElementById('riotIdInput').value.trim();
             const role = document.getElementById('roleInput').value;
-            const faction = document.getElementById('factionInput').value;
+            const unit = document.getElementById('unitInput').value;
             const btn = document.getElementById('submitBtn');
             const feedback = document.getElementById('formFeedback');
 
@@ -453,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const { error } = await supabaseClient.from('players').insert([{ 
                     riot_id: riotId, 
                     role_raw: role, 
-                    faction: faction,
+                    unit: unit,
                     current_rank: 'Processando...' 
                 }]);
                 
