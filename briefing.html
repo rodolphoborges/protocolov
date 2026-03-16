@@ -4,116 +4,153 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Protocolo V | Manual de Operações</title>
-    <meta name="theme-color" content="#ff4655">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="style.css" rel="stylesheet"> 
     <style>
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 70, 85, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(255, 70, 85, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 70, 85, 0); }
-        }
+        :root { --val-red: #ff4655; --val-light: #ece8e1; --val-dark: #0f1923; --val-green: #bef33e; }
+        
         .cmd-card {
-            background-color: rgba(15, 25, 35, 0.6);
-            border: 1px solid rgba(118, 128, 121, 0.3);
+            background-color: rgba(15, 25, 35, 0.8);
+            border: 1px solid rgba(236, 232, 225, 0.1);
             border-left: 4px solid var(--val-red);
-            transition: all 0.3s ease;
-            height: 100%;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
+
         .cmd-card:hover {
+            border-left-color: var(--val-green);
             background-color: var(--val-dark);
-            border-left-color: #bef33e;
-            transform: translateX(5px);
+            transform: translateY(-5px);
         }
+
+        .step-box {
+            display: none;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px dashed rgba(236, 232, 225, 0.2);
+            margin-top: 15px;
+            padding-top: 15px;
+            font-size: 0.95rem;
+        }
+
+        .cmd-card.active .step-box { display: block; }
+        .cmd-card.active { border-left-color: var(--val-green); background: var(--val-dark); }
+
+        .step-number {
+            color: var(--val-green);
+            font-weight: bold;
+            font-family: monospace;
+            margin-right: 10px;
+        }
+
         .cmd-code {
             font-family: monospace;
             background-color: #000;
-            color: #bef33e;
-            padding: 4px 8px;
-            font-size: 1.1rem;
-            letter-spacing: 1px;
+            color: var(--val-green);
+            padding: 4px 10px;
             font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .lore-quote {
+            border-left: 2px solid var(--val-red);
+            padding-left: 15px;
+            font-style: italic;
+            color: #a0a0a0;
+            margin-bottom: 20px;
         }
     </style>
 </head>
-<body class="bg-dark-section" style="min-height: 100vh; display: flex; flex-direction: column;">
+<body class="bg-dark-section">
 
-    <div class="val-bg-text-massive" style="opacity: 0.03; top: 0;">ONBOARDING</div>
+    <div class="val-bg-text-massive" style="opacity: 0.02;">MANUAL</div>
 
-    <div class="container flex-grow-1 d-flex flex-column py-5 position-relative z-1 fade-in-section is-visible">
-        <div class="row justify-content-center mb-5">
-            <div class="col-lg-10 text-center">
-                <div class="d-flex align-items-center justify-content-center mb-3">
-                    <div class="decor-square" style="background-color: #bef33e;"></div>
-                    <span class="text-uppercase fw-bold" style="letter-spacing: 2px; color: #bef33e;">ALISTAMENTO CONCLUÍDO</span>
-                    <div class="decor-square ms-3" style="background-color: #bef33e;"></div>
-                </div>
-                
-                <h1 class="val-section-header text-light mb-2" style="font-size: 5rem; border: none;">STATUS: <span style="color: #bef33e;">WINGMAN (RESERVA)</span></h1>
-                <p class="fs-5 text-muted mx-auto" style="max-width: 700px;">Sua criptografia foi aceita. O Protocolo V exige proatividade. Você está na reserva tática até se apresentar no QG Oficial.</p>
-            </div>
+    <div class="container py-5 position-relative z-1 fade-in-section is-visible">
+        <div class="text-center mb-5">
+            <h1 class="val-section-header text-light border-0" style="font-size: 4rem;">MANUAL DE <span class="text-accent">CAMPO</span></h1>
+            <p class="text-muted fs-5">Selecione um protocolo abaixo para ver as instruções de execução.</p>
         </div>
 
-        <div class="row justify-content-center mb-5">
-            <div class="col-lg-10">
-                <h2 class="role-title mb-4" style="font-size: 3rem; color: var(--val-light);">O TERMINAL TÁTICO <span class="text-accent">///</span> TELEGRAM</h2>
-                <p class="fs-5 text-light mb-5">Toda a comunicação, formação de esquadrões e inteligência do Protocolo V acontece no nosso bot do Telegram. Aprenda a operar o arsenal de comandos antes de entrar no campo de batalha:</p>
-
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="cmd-card p-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <span class="cmd-code">/convocar [CÓDIGO]</span>
-                            </div>
-                            <h4 class="text-uppercase text-light" style="font-family: 'Teko', sans-serif; font-size: 2rem;">Sinalizador Orbital</h4>
-                            <p class="text-muted mb-2"><strong>Brimstone:</strong> "Precisa de reforços? Crie uma party no Valorant e envie este comando com o código do lobby. Eu dispararei um alerta global para todos os agentes."</p>
-                            <small class="text-accent fw-bold">Ex: /convocar NWV582 Bora Ranked</small>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="cmd-card p-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <span class="cmd-code">/unidade</span>
-                            </div>
-                            <h4 class="text-uppercase text-light" style="font-family: 'Teko', sans-serif; font-size: 2rem;">Transferência de Base</h4>
-                            <p class="text-muted mb-0"><strong>Gekko:</strong> "Wingman é legal, mas se quiser subir de nível, use isso para escolher entrar na Liderança <strong>ALPHA</strong> (Viper) ou <strong>ÔMEGA</strong> (Brimstone)."</p>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="cmd-card p-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <span class="cmd-code">/perfil</span>
-                            </div>
-                            <h4 class="text-uppercase text-light" style="font-family: 'Teko', sans-serif; font-size: 2rem;">Dossiê de Inteligência</h4>
-                            <p class="text-muted mb-0"><strong>Killjoy:</strong> "Posso quebrar a criptografia de qualquer agente para você. Use o comando para puxar os stats de Sinergia, Treino e o Elo atual do seu alvo."</p>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="cmd-card p-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <span class="cmd-code">/ranking</span>
-                            </div>
-                            <h4 class="text-uppercase text-light" style="font-family: 'Teko', sans-serif; font-size: 2rem;">Relatório de Elite</h4>
-                            <p class="text-muted mb-0"><strong>Viper:</strong> "Não me faça perder tempo. Quer saber quem realmente importa na linha de frente? Este comando mostra os Top 3 em Sinergia e Mata-Mata."</p>
-                        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="cmd-card p-4" onclick="toggleCard(this)">
+                    <div class="cmd-code">/convocar [CÓDIGO] [MISSÃO]</div>
+                    <h3 class="text-light font-teko">PROTOCOLO: REFORÇO ORBITAL</h3>
+                    <div class="lore-quote">"Não morra sozinho. Peça ajuda." - Brimstone</div>
+                    
+                    <div class="step-box">
+                        <div class="mb-2"><span class="step-number">01.</span> Crie um Grupo (Party) dentro do Valorant.</div>
+                        <div class="mb-2"><span class="step-number">02.</span> Copie o código de 6 dígitos gerado pelo jogo.</div>
+                        <div class="mb-2"><span class="step-number">03.</span> No Telegram, digite <code>/convocar</code> seguido do código.</div>
+                        <div class="mb-2"><span class="step-number">04.</span> O site exibirá um alerta vermelho para todos os membros.</div>
                     </div>
                 </div>
             </div>
+
+            <div class="col-md-6">
+                <div class="cmd-card p-4" onclick="toggleCard(this)">
+                    <div class="cmd-code">/unidade</div>
+                    <h3 class="text-light font-teko">PROTOCOLO: ASCENSÃO DE PATENTE</h3>
+                    <div class="lore-quote">"A reserva é para os fracos. Escolha um lado." - Viper</div>
+                    
+                    <div class="step-box">
+                        <div class="mb-2"><span class="step-number">01.</span> Ative o comando no Terminal para ver as unidades.</div>
+                        <div class="mb-2"><span class="step-number">02.</span> Selecione <strong>ALPHA</strong> (Liderança) ou <strong>OMEGA</strong> (Assalto).</div>
+                        <div class="mb-2"><span class="step-number">03.</span> Procure seu nome na lista filtrada por elo.</div>
+                        <div class="mb-2"><span class="step-number">04.</span> Confirme a transferência para atualizar seu registro no site.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="cmd-card p-4" onclick="toggleCard(this)">
+                    <div class="cmd-code">/perfil [RIOT_ID]</div>
+                    <h3 class="text-light font-teko">PROTOCOLO: ANÁLISE DE DADOS</h3>
+                    <div class="lore-quote">"Eu sei tudo sobre você. Meus robôs viram." - Killjoy</div>
+                    
+                    <div class="step-box">
+                        <div class="mb-2"><span class="step-number">01.</span> Digite <code>/perfil</code> e uma parte do nome do agente.</div>
+                        <div class="mb-2"><span class="step-number">02.</span> O sistema extrai: Elo, Sinergia e Pontuação de Treino.</div>
+                        <div class="mb-2"><span class="step-number">03.</span> Use isso para analisar se o recruta presta para o seu time.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="cmd-card p-4" onclick="toggleCard(this)">
+                    <div class="cmd-code">/ranking</div>
+                    <h3 class="text-light font-teko">PROTOCOLO: HIERARQUIA DE ELITE</h3>
+                    <div class="lore-quote">"Números não mentem. Você é útil ou é lixo?" - Viper</div>
+                    
+                    <div class="step-box">
+                        <div class="mb-2"><span class="step-number">01.</span> Dispare o comando para ver quem são os agentes ativos.</div>
+                        <div class="mb-2"><span class="step-number">02.</span> O Bot lista os Top 3 em Sinergia (Trabalho em Equipe).</div>
+                        <div class="mb-2"><span class="step-number">03.</span> Os nomes aparecem com o emoji de Elo atualizado via API.</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="row justify-content-center text-center mt-4">
-            <div class="col-lg-8 border-top border-secondary border-opacity-25 pt-5">
-                <h3 class="role-title mb-4" style="color: var(--val-light);">PRONTO PARA A INSERÇÃO?</h3>
-                <p class="text-muted mb-4">Clique no botão abaixo para acessar o Terminal. Não se esqueça de digitar <span class="text-accent fw-bold">/start</span> assim que entrar.</p>
-                <a href="https://t.me/+t74UD9N3wiE0NTkx" target="_blank" class="btn-val fs-3 py-3 px-5 shadow-lg d-inline-block" style="animation: pulse 2s infinite;">
-                    ACESSAR QG NO TELEGRAM
-                </a>
-            </div>
+        <div class="text-center mt-5">
+            <a href="https://t.me/+t74UD9N3wiE0NTkx" target="_blank" class="btn-val fs-3 px-5 py-3">
+                INICIAR TRANSMISSÃO NO TELEGRAM
+            </a>
+            <p class="text-muted mt-3" style="font-size: 0.8rem; letter-spacing: 1px;">SISTEMA OPERACIONAL PROTOCOLO V © 2026</p>
         </div>
     </div>
+
+    <script>
+        function toggleCard(element) {
+            // Fecha outros cards abertos
+            document.querySelectorAll('.cmd-card').forEach(card => {
+                if (card !== element) card.classList.remove('active');
+            });
+            // Abre/Fecha o atual
+            element.classList.toggle('active');
+        }
+    </script>
 </body>
 </html>
