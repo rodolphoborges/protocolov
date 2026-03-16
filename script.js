@@ -4,14 +4,14 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey
 
 const squadsConfig = {
     'ALPHA': { 
-        title: 'SQUAD ALPHA', 
-        desc: 'Defensores da Terra-1. Operações de Retenção e Segurança.', 
+        title: 'UNIDADE ALPHA', 
+        desc: 'Sob o comando da Agente 02 - Viper. Precisão química e controle tático absoluto da Terra-1.', 
         theme: 'alpha-theme',
         roles: { 'Controlador': null, 'Duelista': null, 'Iniciador': null, 'Sentinela': null, 'Flex': null } 
     },
     'OMEGA': { 
-        title: 'SQUAD ÔMEGA', 
-        desc: 'Invasores da Terra-2. Operações de Extração de Radianita.', 
+        title: 'UNIDADE ÔMEGA', 
+        desc: 'Sob o comando do Agente 01 - Brimstone. Força de elite e suporte orbital para extração na Terra-2.', 
         theme: 'omega-theme',
         roles: { 'Controlador': null, 'Duelista': null, 'Iniciador': null, 'Sentinela': null, 'Flex': null } 
     }
@@ -391,17 +391,17 @@ function renderSquads() {
     if (esquadraoWingman.length > 0) {
         let wingmanHTML = esquadraoWingman.map(p => createPlayerCardHTML(p, true, 'wingman-theme')).join('');
         fullHTML += `
-            <div class="waitlist-section p-4 mb-5" style="background-color: rgba(255, 206, 86, 0.05); border: 1px solid rgba(255, 206, 86, 0.2);">
+            <div class="waitlist-section p-4 mb-5" style="background-color: rgba(190, 243, 62, 0.05); border: 1px solid rgba(190, 243, 62, 0.2);">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
                     <div>
-                        <h3 class="role-title" style="color: #ffce56;">ESQUADRÃO WINGMAN</h3>
-                        <p class="text-muted small mb-0">Força-tarefa de reserva. Aguardando convocação para cobrir baixas nos SQUADS principais.</p>
+                        <h3 class="role-title" style="color: #bef33e;">UNIDADE WINGMAN</h3>
+                        <p class="text-muted small mb-0">Mobilização rápida via Agente 22 - Gekko. Força de suporte aguardando ordens para inserção imediata.</p>
                     </div>
-                    <span class="badge rounded-0 mt-3 mt-md-0" style="background-color: #ffce56; color: var(--val-dark); font-family: 'Inter', sans-serif; font-weight: 800;">${esquadraoWingman.length} AGENTES NA ESCUTA</span>
+                    <span class="badge rounded-0 mt-3 mt-md-0" style="background-color: #bef33e; color: var(--val-dark); font-family: 'Inter', sans-serif; font-weight: 800;">${esquadraoWingman.length} AGENTES NA ESCUTA</span>
                 </div>
                 <div class="row g-3">${wingmanHTML}</div>
             </div>`;
-    }
+}
 
     container.innerHTML = fullHTML;
 }
