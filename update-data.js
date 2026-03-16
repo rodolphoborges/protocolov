@@ -5,7 +5,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const REQUEST_DELAY = 4000; // 4 segundos para evitar limites da API
+const REQUEST_DELAY = 4000;
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function smartFetch(url, headers, retries = 2) {
@@ -38,7 +38,6 @@ async function smartFetch(url, headers, retries = 2) {
     return response;
 }
 
-// --- MOTOR DE NOTIFICAÇÕES (TELEGRAM) ---
 async function notificarTelegram(mensagem) {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -106,10 +105,11 @@ async function run() {
             let playerData = {
                 riot_id: p.riotId, 
                 role_raw: p.role,
+                faction: p.dbRecord.faction || 'WINGMAN', // PRESERVA A FACÇÃO OU DEFINE COMO WINGMAN
                 synergy_score: p.dbRecord.synergy_score || 0, 
                 dm_score: p.dbRecord.dm_score || 0,
-                dm_score_monthly: p.dbRecord.dm_score_monthly || 0, // NOVO
-                dm_score_total: p.dbRecord.dm_score_total || 0,     // NOVO
+                dm_score_monthly: p.dbRecord.dm_score_monthly || 0, 
+                dm_score_total: p.dbRecord.dm_score_total || 0,     
                 tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
                 level: p.dbRecord.level,
                 card_url: p.dbRecord.card_url,
@@ -295,7 +295,6 @@ async function run() {
             
             let isLoneWolf = player.lone_wolf;
             
-            // Verifica se o agente acabou de cometer a infração de SoloQ
             if (stats.comp > 0 && stats.group === 0) {
                 if (!isLoneWolf) novosLobosSolitarios.push(player.riot_id.split('#')[0]);
                 isLoneWolf = true; 
@@ -315,11 +314,10 @@ async function run() {
         const { error: pError } = await supabase.from('players').upsert(finalPlayersData, { onConflict: 'riot_id' });
         if (pError) console.error('Erro ao guardar jogadores:', pError);
 
-        // DISPARO DE ALERTAS: LOBOS SOLITÁRIOS
         for (const agente of novosLobosSolitarios) {
             const msgLobo = `🐺 *[ALERTA DE LOBO SOLITÁRIO]*\n\nO agente *${agente}* foi detetado a operar sozinho nas linhas inimigas (SoloQ).\n\nResgatem este operador para uma *Party* antes que a sanidade acabe!`;
             await notificarTelegram(msgLobo);
-            await delay(1000); // Pausa para não causar spam na API do Telegram
+            await delay(1000); 
         }
 
         for (const op of operations) {
@@ -335,7 +333,6 @@ async function run() {
                 await supabase.from('operation_squads').delete().eq('operation_id', op.id);
                 await supabase.from('operation_squads').insert(squadData);
                 
-                // DISPARO DE ALERTAS: OPERAÇÕES CONJUNTAS (TELEGRAM)
                 if (op.mode.toLowerCase() === 'competitive') {
                     const agentes = op.squad.map(m => m.riotId.split('#')[0]).join(', ');
                     const iconeResultado = op.result === 'VITÓRIA' ? '🟢' : (op.result === 'EMPATE' ? '🟡' : '🔴');
