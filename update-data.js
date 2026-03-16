@@ -105,7 +105,7 @@ async function run() {
             let playerData = {
                 riot_id: p.riotId, 
                 role_raw: p.role,
-                faction: p.dbRecord.faction || 'WINGMAN', // PRESERVA A FACÇÃO OU DEFINE COMO WINGMAN
+                unit: p.dbRecord.unit || 'WINGMAN', // PRESERVA A UNIDADE TÁTICA OU DEFINE COMO WINGMAN
                 synergy_score: p.dbRecord.synergy_score || 0, 
                 dm_score: p.dbRecord.dm_score || 0,
                 dm_score_monthly: p.dbRecord.dm_score_monthly || 0, 
@@ -243,7 +243,7 @@ async function run() {
                 const squadMembers = match.players.filter(player => rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '')));
                 if (squadMembers.length >= 2) {
                     const teamId = squadMembers[0].team; 
-                    const teamData = match.teams ? match.teams[teamId.toLowerCase()] : null;
+                    const teamData = (match.teams && teamId) ? match.teams[teamId.toLowerCase()] : null; // CORREÇÃO: Prevenção de Remakes
                     
                     let finalResult = 'DERROTA';
                     if (match.teams) {
@@ -302,10 +302,13 @@ async function run() {
                 isLoneWolf = false; 
             } 
 
+            // CORREÇÃO: Adicionadas as somas para dm_score_monthly e dm_score_total
             return {
                 ...player,
                 synergy_score: player.synergy_score + earnedPoints,
                 dm_score: player.dm_score + earnedDm,
+                dm_score_monthly: player.dm_score_monthly + earnedDm,
+                dm_score_total: player.dm_score_total + earnedDm,
                 lone_wolf: isLoneWolf
             };
         });
