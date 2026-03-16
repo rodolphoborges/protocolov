@@ -39,24 +39,36 @@ bot.onText(/\/faccao (\w+) (.+)/, async (msg, match) => {
     }
 
     try {
-        const { data: player, error: fetchError } = await supabase
-            .from('players').select('riot_id').ilike('riot_id', riotId).single();
+           // Passo 1: Busca o jogador para descobrir como está escrito exatamente no banco
+           const { data: player, error: fetchError } = await supabase
+               .from('players').select('riot_id').ilike('riot_id', riotId).single();
 
-        if (fetchError || !player) {
-            return bot.sendMessage(chatId, `⚠️ Agente *${riotId}* não encontrado. Cadastre-se no site primeiro.`, { parse_mode: 'Markdown' });
-        }
+           if (fetchError || !player) {
+               return bot.sendMessage(chatId, `⚠️ Agente *${riotId}* não encontrado. Cadastre-se no site primeiro.`, { parse_mode: 'Markdown' });
+           }
 
-        const { error: updateError } = await supabase
-            .from('players').update({ faction: faccaoEscolhida }).ilike('riot_id', riotId);
+           // Passo 2: Atualiza usando o ID exato (com .eq) e exige confirmação (.select)
+           const { data: updatedData, error: updateError } = await supabase
+               .from('players')
+               .update({ faction: faccaoEscolhida })
+               .eq('riot_id', player.riot_id)
+               .select();
 
-        if (updateError) throw updateError;
+           if (updateError) throw updateError;
 
-        let icone = faccaoEscolhida === 'ALPHA' ? '🔵' : (faccaoEscolhida === 'OMEGA' ? '🔴' : '⭐');
-        bot.sendMessage(chatId, `${icone} *[ATUALIZAÇÃO]*\nAgente *${player.riot_id}* transferido para *${faccaoEscolhida}*!`, { parse_mode: 'Markdown' });
+           // Se não atualizou nenhuma linha, é problema de chave/permissão
+           if (!updatedData || updatedData.length === 0) {
+               console.error("Falha silenciosa no Supabase: 0 linhas afetadas.");
+               return bot.sendMessage(chatId, `❌ Erro de permissão ao gravar no banco. Verifique a sua SUPABASE_SERVICE_KEY no Render.`);
+           }
 
-    } catch (error) {
-        bot.sendMessage(chatId, `🔥 Erro crítico ao acessar os servidores.`);
-    }
+           let icone = faccaoEscolhida === 'ALPHA' ? '🔵' : (faccaoEscolhida === 'OMEGA' ? '🔴' : '⭐');
+           bot.sendMessage(chatId, `${icone} *[ATUALIZAÇÃO]*\nAgente *${player.riot_id}* transferido para *${faccaoEscolhida}*!`, { parse_mode: 'Markdown' });
+
+       } catch (error) {
+           console.error("Erro no catch:", error);
+           bot.sendMessage(chatId, `🔥 Erro crítico ao acessar os servidores.`);
+       }
 });
 
 // --- O TRUQUE PARA O RENDER (WEB SERVER) ---
