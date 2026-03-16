@@ -30,7 +30,7 @@ function getRankEmoji(rank = '') {
 
 function escapeMarkdown(text) {
     if (!text) return '';
-    // Protege apenas os caracteres que realmente quebram o Markdown clássico do Telegram (*, _, ` e [)
+    // Protege apenas os caracteres que realmente quebram o Markdown clássico
     return text.toString().replace(/[_*`\[\]]/g, '\\$&');
 }
 
@@ -38,9 +38,9 @@ function escapeMarkdown(text) {
 bot.on('callback_query', async (query) => {
     const chatId = query.message.chat.id;
     const messageId = query.message.message_id;
-    const clickerName = escapeMarkdown(query.from.first_name);
     const callbackData = query.data;
 
+    // --- RECRUTAMENTO / LOBBY ---
     if (callbackData.startsWith('sq_')) {
         let textoAtual = query.message.text;
         const partes = callbackData.split('_');
@@ -84,14 +84,39 @@ bot.on('callback_query', async (query) => {
         bot.answerCallbackQuery(query.id);
     }
 
+    // --- PERFIL DE AGENTE ---
     if (callbackData.startsWith('perfil_')) {
         const nickRaw = callbackData.replace('perfil_', '');
         const { data } = await supabase.from('players').select('*').ilike('riot_id', `${nickRaw}%`).limit(1);
         if (data && data[0]) {
             const p = data[0];
             const safeNick = escapeMarkdown(p.riot_id);
-            const msg = `💻 *[TERMINAL DA KILLJOY]*\n\n_"Deixa eu dar uma olhada no registro desse aí..."_\n\n📂 *AGENTE:* ${safeNick}\n🏅 *Rank:* ${p.current_rank}\n🤝 *Sinergia:* ${p.synergy_score} pts\n🎯 *Mata-mata:* ${p.dm_score || 0} pts\n🛡️ *Unidade:* ${p.unit}`;
+            const msg = `💻 *[TERMINAL DA KILLJOY]*\n\n_"Dados extraídos com sucesso."_\n\n📂 *AGENTE:* ${safeNick}\n🏅 *Rank:* ${p.current_rank}\n🤝 *Sinergia:* ${p.synergy_score} pts\n🎯 *Treino:* ${p.dm_score || 0} pts\n🛡️ *Unidade:* ${p.unit}`;
             bot.sendMessage(chatId, msg, { parse_mode: 'Markdown' });
+        }
+        bot.answerCallbackQuery(query.id);
+    }
+
+    // --- TRANSFERÊNCIA DE UNIDADE (NOVO) ---
+    if (callbackData.startsWith('uni_')) {
+        const partes = callbackData.split('_');
+        const unidade = partes[1]; // ALPHA, OMEGA, WINGMAN
+        const nickRaw = partes.slice(2).join('_');
+        
+        const { data } = await supabase.from('players').select('*').ilike('riot_id', `${nickRaw}%`).limit(1);
+        if (data && data[0]) {
+            const player = data[0];
+            await supabase.from('players').update({ unit: unidade }).eq('riot_id', player.riot_id);
+            
+            const safeNick = escapeMarkdown(player.riot_id);
+            let msgLore = '';
+            if (unidade === 'ALPHA') msgLore = `🐍 *Viper:* "Interessante... Transferência autorizada. Bem-vindo à Unidade Alpha, ${safeNick}. Seja letal, não cometa erros."`;
+            else if (unidade === 'OMEGA') msgLore = `🔥 *Brimstone:* "Excelente escolha. A Unidade Ômega conta com a sua força, ${safeNick}. Mantenha a linha de frente segura."`;
+            else msgLore = `🦎 *Gekko:* "Aí sim, ${safeNick}! Wingman tá felizão. Fica na reserva tática com a gente."`;
+
+            bot.sendMessage(chatId, `🔄 *[PROTOCOLO DE TRANSFERÊNCIA]*\n\n${msgLore}`, { parse_mode: 'Markdown' });
+            // Apaga os botões da mensagem anterior para evitar duplo clique
+            bot.editMessageReplyMarkup({ inline_keyboard: [] }, { chat_id: chatId, message_id: messageId });
         }
         bot.answerCallbackQuery(query.id);
     }
@@ -103,15 +128,19 @@ bot.onText(/\/(start|ajuda|comandos)/, (msg) => {
                 `📢 /convocar - Chama agentes para o lobby\n` +
                 `👤 /perfil - Inspeciona o dossiê de um agente\n` +
                 `🏆 /ranking - Avaliação de desempenho das equipes\n` +
-                `🎭 /unidade [alpha|omega|wingman] [SeuRiotID] - Solicita transferência de Unidade Tática\n` +
+                `🎭 /unidade [alpha|omega|wingman] - Solicita transferência de Unidade Tática\n` +
                 `🌐 /site - Acessa o QG Principal\n` +
                 `❓ /ajuda - Repete esta transmissão`;
     bot.sendMessage(msg.chat.id, texto, { parse_mode: 'Markdown' });
 });
 
 bot.onText(/\/site/, (msg) => {
+    // CORREÇÃO: O inline_keyboard agora está encapsulado no reply_markup
     bot.sendMessage(msg.chat.id, `🔗 *Brimstone:* "O terminal principal está online. Acesse os relatórios por aqui:"`, { 
-        inline_keyboard: [[{ text: "🖥️ Acessar QG", url: "https://protocolov.com" }]] 
+        parse_mode: 'Markdown',
+        reply_markup: {
+            inline_keyboard: [[{ text: "🖥️ Acessar QG", url: "https://protocolov.com" }]] 
+        }
     });
 });
 
@@ -159,19 +188,63 @@ bot.onText(/\/(perfil|agente)(.*)/, async (msg, match) => {
     const chatId = msg.chat.id;
     const argumento = match[2].trim();
 
+    let dbQuery = supabase.from('players').select('riot_id, current_rank').order('synergy_score', { ascending: false }).limit(30);
+
+    // Se o utilizador digitou algo, filtramos por esse termo
     if (argumento) {
         const busca = argumento.split('#')[0];
-        const { data } = await supabase.from('players').select('*').ilike('riot_id', `${busca}%`).limit(1);
-        if (data && data[0]) {
-            const p = data[0];
-            const safeNick = escapeMarkdown(p.riot_id);
-            bot.sendMessage(chatId, `💻 *[TERMINAL DA KILLJOY]*\n\n_"Dados extraídos com sucesso."_\n\n📂 *AGENTE:* ${safeNick}\n🏅 *Rank:* ${p.current_rank}\n🤝 *Sinergia:* ${p.synergy_score} pts\n🎯 *Treino:* ${p.dm_score || 0} pts\n🛡️ *Unidade:* ${p.unit}`, { parse_mode: 'Markdown' });
-        } else { 
-            bot.sendMessage(chatId, "⚠️ *Brimstone:* Registro não encontrado. Revise as credenciais."); 
-        }
-    } else {
-        const { data } = await supabase.from('players').select('riot_id, synergy_score, dm_score, current_rank').order('synergy_score', { ascending: false }).limit(10);
-        
+        dbQuery = dbQuery.ilike('riot_id', `%${busca}%`);
+    }
+
+    const { data } = await dbQuery;
+
+    if (!data || data.length === 0) {
+        return bot.sendMessage(chatId, "⚠️ *Brimstone:* Registro não encontrado na base de dados. Revise as credenciais.", { parse_mode: 'Markdown' });
+    }
+
+    // Se o jogador procurou por um nome exato e achou apenas 1, já envia o dossiê direto.
+    if (data.length === 1 && argumento) {
+        const rawNick = data[0].riot_id.split('#')[0];
+        // Forçamos a chamada à callback de perfil para reciclar o código
+        return bot.emit('callback_query', {
+            id: 'mock', message: msg, from: msg.from, data: `perfil_${rawNick}`
+        });
+    }
+
+    // Se há vários resultados (ou se ele não digitou nada), exibe a grelha de botões interativos
+    const botoesGrade = [];
+    for (let i = 0; i < data.length; i += 2) {
+        const linha = [];
+        [data[i], data[i + 1]].forEach(p => {
+            if (p) {
+                const rawNick = p.riot_id.split('#')[0];
+                const emoji = getRankEmoji(p.current_rank);
+                linha.push({ text: `${emoji} ${rawNick}`, callback_data: `perfil_${rawNick}` });
+            }
+        });
+        botoesGrade.push(linha);
+    }
+    
+    let menuMsg = argumento 
+        ? `💻 *Killjoy:* "Encontrei vários agentes correspondentes a '${escapeMarkdown(argumento)}'. Selecione o alvo:"`
+        : `💻 *Killjoy:* "Acessei o banco de dados. Selecione um agente abaixo para quebrar a criptografia do dossiê:"`;
+
+    bot.sendMessage(chatId, menuMsg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: botoesGrade } });
+});
+
+bot.onText(/\/unidade (\w+)(.*)/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const unidade = match[1].toUpperCase();
+    const argumento = match[2].trim();
+    const validas = ['ALPHA', 'OMEGA', 'WINGMAN'];
+    
+    if (!validas.includes(unidade)) {
+        return bot.sendMessage(chatId, "❌ *Brimstone:* Código de Unidade inválido. Tente ALPHA, OMEGA ou WINGMAN.", { parse_mode: 'Markdown' });
+    }
+
+    // Se ele NÃO digitou o nome (ex: apenas /unidade ALPHA), mostra os botões interativos
+    if (!argumento) {
+        const { data } = await supabase.from('players').select('riot_id, current_rank').order('synergy_score', { ascending: false }).limit(30);
         const botoesGrade = [];
         if (data) {
             for (let i = 0; i < data.length; i += 2) {
@@ -179,45 +252,33 @@ bot.onText(/\/(perfil|agente)(.*)/, async (msg, match) => {
                 [data[i], data[i + 1]].forEach(p => {
                     if (p) {
                         const rawNick = p.riot_id.split('#')[0];
-                        const safeNick = escapeMarkdown(rawNick);
                         const emoji = getRankEmoji(p.current_rank);
-                        linha.push({ text: `${emoji} ${safeNick}`, callback_data: `perfil_${rawNick}` });
+                        linha.push({ text: `${emoji} ${rawNick}`, callback_data: `uni_${unidade}_${rawNick}` });
                     }
                 });
                 botoesGrade.push(linha);
             }
         }
-        const menuMsg = `💻 *Killjoy:* "Acessei o banco de dados. Selecione um agente abaixo para quebrar a criptografia do dossiê:"`;
-        bot.sendMessage(chatId, menuMsg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: botoesGrade } });
+        return bot.sendMessage(chatId, `🔄 *[SISTEMA]* Selecione o agente que será transferido para a Unidade *${unidade}*:`, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: botoesGrade } });
     }
-});
 
-bot.onText(/\/unidade (\w+) (.+)/, async (msg, match) => {
-    const unidade = match[1].toUpperCase();
-    const riotId = match[2].trim();
-    const validas = ['ALPHA', 'OMEGA', 'WINGMAN'];
-    
-    if (!validas.includes(unidade)) return bot.sendMessage(msg.chat.id, "❌ *Brimstone:* Código de Unidade inválido. Tente ALPHA, OMEGA ou WINGMAN.");
-
+    // Se ele já digitou o nome direto (ex: /unidade ALPHA Pitoco)
     try {
-        const { data: player } = await supabase.from('players').select('riot_id').ilike('riot_id', riotId).single();
-        if (!player) return bot.sendMessage(msg.chat.id, "⚠️ *Brimstone:* Não encontrei esse Riot ID nos nossos registros de recrutamento.");
-
-        await supabase.from('players').update({ unit: unidade }).eq('riot_id', player.riot_id);
-        const safeNick = escapeMarkdown(player.riot_id);
+        const { data } = await supabase.from('players').select('*').ilike('riot_id', `%${argumento}%`).limit(1);
+        if (!data || data.length === 0) return bot.sendMessage(chatId, "⚠️ *Brimstone:* Não encontrei esse Riot ID nos nossos registros.", { parse_mode: 'Markdown' });
         
+        const player = data[0];
+        await supabase.from('players').update({ unit: unidade }).eq('riot_id', player.riot_id);
+        
+        const safeNick = escapeMarkdown(player.riot_id);
         let msgLore = '';
-        if (unidade === 'ALPHA') {
-            msgLore = `🐍 *Viper:* "Interessante... Transferência autorizada. Bem-vindo à Unidade Alpha, ${safeNick}. Seja letal, não cometa erros, ou eu mesma limpo o seu registro."`;
-        } else if (unidade === 'OMEGA') {
-            msgLore = `🔥 *Brimstone:* "Excelente escolha. A Unidade Ômega conta com a sua força, ${safeNick}. Mantenha a linha de frente segura e a moral alta."`;
-        } else {
-            msgLore = `🦎 *Gekko:* "Aí sim, ${safeNick}! Wingman tá felizão. Fica na reserva tática com a gente até a hora do show."`;
-        }
+        if (unidade === 'ALPHA') msgLore = `🐍 *Viper:* "Interessante... Transferência autorizada. Bem-vindo à Unidade Alpha, ${safeNick}. Seja letal, não cometa erros."`;
+        else if (unidade === 'OMEGA') msgLore = `🔥 *Brimstone:* "Excelente escolha. A Unidade Ômega conta com a sua força, ${safeNick}. Mantenha a linha de frente segura."`;
+        else msgLore = `🦎 *Gekko:* "Aí sim, ${safeNick}! Wingman tá felizão. Fica na reserva tática com a gente."`;
 
-        bot.sendMessage(msg.chat.id, `🔄 *[PROTOCOLO DE TRANSFERÊNCIA]*\n\n${msgLore}`, { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, `🔄 *[PROTOCOLO DE TRANSFERÊNCIA]*\n\n${msgLore}`, { parse_mode: 'Markdown' });
     } catch (error) { 
-        bot.sendMessage(msg.chat.id, "🔥 *Killjoy:* O sistema do Supabase encontrou uma falha na sincronização."); 
+        bot.sendMessage(chatId, "🔥 *Killjoy:* O sistema do Supabase encontrou uma falha na sincronização.", { parse_mode: 'Markdown' }); 
     }
 });
 
