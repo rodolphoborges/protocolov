@@ -438,8 +438,9 @@ document.addEventListener('DOMContentLoaded', () => {
             isSubmittingForm = true;
 
             const riotId = document.getElementById('riotIdInput').value.trim();
+            
             const role = document.getElementById('roleInput').value;
-            const unit = document.getElementById('unitInput').value;
+          //  const unit = document.getElementById('unitInput').value;
             const btn = document.getElementById('submitBtn');
             const feedback = document.getElementById('formFeedback');
 
@@ -454,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const { error } = await supabaseClient.from('players').insert([{ 
                     riot_id: riotId, 
                     role_raw: role, 
-                    unit: unit,
+                    unit: 'WINGMAN',
                     current_rank: 'Processando...' 
                 }]);
                 
