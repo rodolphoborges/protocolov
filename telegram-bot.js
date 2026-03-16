@@ -185,15 +185,40 @@ bot.onText(/\/site/, (msg) => {
     });
 });
 
-bot.onText(/\/(convocar|reforco)(.*)/, (msg, match) => {
+bot.onText(/\/(convocar|reforco)(?:\s+([a-zA-Z0-9]{4,6}))?(?:\s+(.*))?/, async (msg, match) => {
+    const chatId = msg.chat.id;
     const comandante = escapeMarkdown(msg.from.first_name);
-    const objetivo = match[2].trim() ? escapeMarkdown(match[2].trim()) : 'Formar squad para operação tática.';
-    const exp = Date.now() + (10 * 60 * 1000);
+    const codigo = match[2] ? match[2].toUpperCase() : null;
+    const objetivo = match[3] ? escapeMarkdown(match[3].trim()) : 'Formar squad para operação tática.';
+    const agora = Date.now();
+
+    // 1. Verifica se já existe um chamado aberto e válido
+    try {
+        const { data: ativo } = await supabase.from('active_calls').select('*').gt('expires_at', agora).limit(1);
+        
+        if (ativo && ativo.length > 0) {
+            const chamada = ativo[0];
+            const minRestantes = Math.ceil((chamada.expires_at - agora) / 60000);
+            return bot.sendMessage(chatId, `🛑 *Brimstone:* "Negativo, ${comandante}. O espaço aéreo já está ocupado. Junte-se ao esquadrão atual (Código: \`${chamada.party_code}\`) ou aguarde ${minRestantes} minutos para um novo sinalizador."`, { parse_mode: 'Markdown' });
+        }
+    } catch (e) {
+        console.error("Erro ao checar calls:", e);
+    }
+
+    // 2. Exige o código do grupo caso o agente não tenha passado
+    if (!codigo) {
+        return bot.sendMessage(chatId, `⚠️ *Killjoy:* "Faltou o código do grupo! Como os agentes vão entrar no seu lobby? Use o formato: \`/convocar [CÓDIGO] [MENSAGEM]\`. Exemplo: \`/convocar NWV582 Bora Ranked\`"`, { parse_mode: 'Markdown' });
+    }
+
+    const exp = agora + (15 * 60 * 1000); // 15 minutos de validade para o lobby
     const horaF = new Date(exp - (3 * 60 * 60 * 1000)).toISOString().substr(11, 5);
 
-    const texto = `🚨 *[SINALIZADOR ORBITAL]* 🚨\n\n🔥 *Brimstone:* "O comandante ${comandante} solicitou apoio aéreo e reforços. Quem está pronto para o salto?"\n\n🎯 *Missão:* ${objetivo}\n⏱️ *Ponto de Extração:* ${horaF} (UTC)\n\n🟢 *Agentes a postos:*\n- ${msg.from.first_name}\n\n⏳ *Em trânsito:*\n- (Aguardando resposta...)`;
+    // 3. Regista o novo chamado no banco de dados para o site ler
+    await supabase.from('active_calls').insert([{ commander: msg.from.first_name, party_code: codigo, expires_at: exp }]);
+
+    const texto = `🚨 *[SINALIZADOR ORBITAL]* 🚨\n\n🔥 *Brimstone:* "Atenção agentes, ${comandante} abriu um lobby! Entrem no jogo e insiram o código abaixo para inserção imediata."\n\n🔑 *Código do Lobby:* \`${codigo}\`\n🎯 *Missão:* ${objetivo}\n⏱️ *Expira às:* ${horaF} (UTC)\n\n🟢 *Agentes a postos:*\n- ${comandante}\n\n⏳ *Em trânsito:*\n- (Aguardando resposta...)`;
     
-    bot.sendMessage(msg.chat.id, texto, {
+    bot.sendMessage(chatId, texto, {
         parse_mode: 'Markdown',
         reply_markup: {
             inline_keyboard: [
