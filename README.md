@@ -1,91 +1,77 @@
-# Protocolo V 🎯
+# 🎯 Protocolo V | Sistema Tático para Valorant
 
-O **Protocolo V** é uma plataforma web automatizada de nível *Enterprise*, desenvolvida para gerir o recrutamento, a sinergia e o treino mecânico de equipas fixas de Valorant. O projeto utiliza uma estética de *Brutalismo Geométrico* (inspirada na interface oficial da Riot Games) e um motor de dados assíncrono para garantir estabilidade e precisão.
+![Status](https://img.shields.io/badge/Status-Ativo-success?style=for-the-badge&color=ff4655)
+![Stack](https://img.shields.io/badge/Stack-Node.js_|_Vanilla_JS_|_Supabase-informational?style=for-the-badge&color=0f1923)
+![API](https://img.shields.io/badge/API-HenrikDev-blue?style=for-the-badge)
 
-🌐 **Site Oficial:** [protocolov.com](https://protocolov.com)
+O **Protocolo V** não é apenas uma lista de jogadores; é um ecossistema completo de rastreamento, gamificação e recrutamento focado em jogadores de Valorant que buscam evolução tática e desejam escapar da toxicidade da *Solo Queue*. 
+
+O sistema monitora automaticamente o desempenho dos agentes, recompensa o jogo em equipe (Sinergia) e gerencia vagas limitadas em esquadrões de elite, operando com uma estética Brutalista Geométrica inspirada na interface nativa do Valorant.
 
 ---
 
 ## 🚀 Funcionalidades Principais
 
-* **Recrutamento Nativo:** Formulário de inscrição integrado e protegido.
-* **Sincronização Autónoma (ETL):** O *backend* em Node.js atualiza o elo, nível, estatísticas e histórico de partidas de todos os jogadores a cada 30 minutos via GitHub Actions.
-* **Sistema de Sinergia (Gamificação Competitiva):** O motor deteta automaticamente quando 2 ou mais agentes jogam juntos (Ranked) e recompensa-os com "Pontos de Sinergia" (vitórias dobram os pontos).
-* **Sala de Treino (Mata-Mata):** Uma página dedicada (`treino.html`) com uma *Leaderboard* semanal de Deathmatch. Recompensa o esforço mecânico (1 Kill = 1 Ponto) e aplica um bónus de pódio (+15, +10, +5).
-* **UI/UX Brutalista:** Design System unificado (`style.css`) com cantos cortados (*clip-paths*), alto contraste e respeito por acessibilidade (`prefers-reduced-motion`).
-* **Resiliência Avançada:** Proteção contra limites de taxa da API (Erro 429), gestão inteligente de *cache* e tratamento estrito de *Timezones* (UTC).
-* **Purga Automática:** Limpeza automática da base de dados (jogadores inativos ou "Lobos Solitários" são expurgados após 7 dias sem Sinergia).
+* 📝 **Alistamento Automatizado:** Interface web em que novos agentes se inscrevem via Riot ID, escolhendo a sua função principal.
+* 🤖 **Bot de Comando (Telegram):** Bot integrado para solicitar transferências de unidade, validar vagas ocupadas e receber alertas automáticos do servidor sobre missões concluídas.
+* 📊 **Rastreamento Automático (Henrik API):** Um script autónomo (`update-data.js`) rastreia o histórico de partidas dos agentes cadastrados para calcular pontos e extrair estatísticas de combate (KDA, HS%).
+* ⚔️ **Leaderboard de Treino (Mata-Mata):** Ranking dinâmico (Semanal, Mensal e Geral) que rastreia o desempenho no modo Deathmatch para incentivar o aquecimento antes das ranqueadas.
+* 🐺 **Sistema Anti-SoloQ (Lobo Solitário):** Identifica e marca publicamente no site os agentes que insistem em jogar partidas competitivas sozinhos.
+* 🧹 **Expurgo Automático:** Agentes que não geram pontos de sinergia nos primeiros 7 dias após o alistamento são automaticamente removidos da base de dados.
+* 🚨 **Sinalizador Orbital:** Deteta agentes à procura de grupo e exibe um alerta de convocação diretamente no topo do site (Lobby Banner).
 
 ---
 
-## ⚙️ Arquitetura do Sistema (Híbrida / Serverless)
+## 🎖️ Hierarquia e Unidades Táticas
 
-1. **Frontend (UI & Leitura):** HTML, CSS puro e Vanilla JS (`index.html`, `treino.html`, `script.js`).
-2. **Backend (Processamento):** Script Node.js isolado (`update-data.js`).
-3. **Automação (CI/CD):** Execução agendada a cada 30 minutos via *GitHub Actions* (`update.yml`).
-4. **Base de Dados:** PostgreSQL hospedado no *Supabase*, protegido por políticas RLS.
+O Protocolo é dividido em três divisões operacionais. As Unidades Alpha e Ômega possuem **vagas limitadas (1 agente por função)**. A disputa pela titularidade é resolvida automaticamente pelo sistema com base no **Synergy Score (Sinergia)**.
+
+* 🐍 **UNIDADE ALPHA (Elite):** Sob o comando da Agente 02 (Viper). Foco em precisão química e controlo absoluto.
+* 🔥 **UNIDADE ÔMEGA (Elite):** Sob o comando do Agente 01 (Brimstone). Força de elite e suporte orbital.
+* 🦎 **ESQUADRÃO WINGMAN (Reserva Tática):** Sob o comando do Agente 22 (Gekko). Divisão com vagas ilimitadas. Agentes que tentam entrar na Alpha/Ômega mas possuem menos pontos que o atual titular, aguardam na Wingman ostentando a marca visual de "RESERVA".
 
 ---
 
-## 🛠️ Guia de Configuração (Deploy Próprio)
+## 📈 Sistema de Pontuação (Gamificação)
 
-### 1. Configurar o Supabase (Base de Dados)
-1. Crie um projeto gratuito no [Supabase](https://supabase.com/).
-2. Vá ao **SQL Editor** e execute o script abaixo para criar o esquema de dados e as políticas RLS:
+### 1. Synergy Score (Pontos de Sinergia)
+Pontos conquistados exclusivamente a jogar Ranqueadas (Competitivo) em conjunto com outros membros do Protocolo V. O sistema organiza os titulares das unidades com base nesta pontuação.
+* **Duos:** +1 Ponto
+* **Trios:** +2 Pontos
+* **Squad Fechado (4 ou 5 agentes):** +5 Pontos
+* *Modificador Tático:* **Vitórias DOBRAM** a pontuação adquirida na operação.
 
-```sql
-CREATE TABLE players (
-  riot_id TEXT PRIMARY KEY,
-  role_raw TEXT NOT NULL,
-  unit TEXT DEFAULT 'WINGMAN', -- Unidade Tática (Lore: ALPHA, OMEGA, WINGMAN)
-  tracker_link TEXT,
-  level INTEGER,
-  card_url TEXT,
-  current_rank TEXT,
-  peak_rank TEXT,
-  current_rank_icon TEXT,
-  peak_rank_icon TEXT,
-  synergy_score INTEGER DEFAULT 0,
-  dm_score INTEGER DEFAULT 0,
-  api_error BOOLEAN DEFAULT false,
-  lone_wolf BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-);
+### 2. Deathmatch Score (Pontos de Treino)
+Monitorizados na "Sala de Treino", recompensam o desempenho no modo Mata-Mata.
+* **Regra Base:** 1 Abate (Kill) = 1 Ponto.
+* **Bónus de Pódio:** Top 1 (+15 pts), Top 2 (+10 pts), Top 3 (+5 pts).
+* *Reset Automático:* Rotinas agendadas apagam os pontos semanais e mensais para manter a competitividade fresca.
 
--- 2. Criar a Tabela de Operações (Partidas)
-CREATE TABLE operations (
-  id TEXT PRIMARY KEY,
-  map TEXT NOT NULL,
-  mode TEXT,
-  started_at BIGINT NOT NULL,
-  score TEXT,
-  result TEXT,
-  team_color TEXT
-);
+---
 
--- 3. Criar a Tabela de Esquadrões (Estatísticas Individuais por Operação)
-CREATE TABLE operation_squads (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  operation_id TEXT REFERENCES operations(id) ON DELETE CASCADE,
-  riot_id TEXT,
-  agent TEXT,
-  agent_img TEXT,
-  kda TEXT,
-  hs_percent INTEGER
-);
+## 🛠️ Arquitetura e Tecnologias (Tech Stack)
 
--- Ativar RLS (Row Level Security)
-ALTER TABLE players ENABLE ROW LEVEL SECURITY;
-ALTER TABLE operations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE operation_squads ENABLE ROW LEVEL SECURITY;
+O projeto possui uma arquitetura híbrida (Frontend Estático + Backend/Workers em Node.js):
 
--- Políticas de Leitura (Públicas e Seguras para o Frontend)
-CREATE POLICY "Leitura Publica" ON players FOR SELECT USING (true);
-CREATE POLICY "Leitura Publica" ON operations FOR SELECT USING (true);
-CREATE POLICY "Leitura Publica" ON operation_squads FOR SELECT USING (true);
+* **Frontend:** HTML5, CSS3 (variáveis de cor e `clip-path` para estilo Brutalista), JavaScript Vanilla (integração via CDN do Supabase Client).
+* **Backend / Automação:** Node.js, Express (Healthcheck), `node-telegram-bot-api`.
+* **CI/CD & Cron Jobs:** GitHub Actions (`update.yml`, `reset-dm.yml`) para executar a extração de dados e resets de forma invisível a cada 30 minutos.
+* **Base de Dados:** Supabase (PostgreSQL) gerindo as tabelas `players`, `operations`, `operation_squads` e `active_calls`.
+* **Integrações Externas:** * [HenrikDev API](https://github.com/Henrik-3/unofficial-valorant-api) (Dados de Partidas, MMR, Imagens do Valorant).
+  * [Telegram Bot API](https://core.telegram.org/bots/api) (Painel de controlo e relatórios).
 
--- AVISO DE SEGURANÇA: A política abaixo permite inscrições anónimas livres no formulário.
--- Para um ambiente em produção (Enterprise), remova esta política e utilize uma Edge Function com CAPTCHA.
--- Se estiver em testes ou a iniciar o projeto, mantenha esta política temporariamente:
-CREATE POLICY "Permitir Inscricao" ON players FOR INSERT WITH CHECK (true);
+---
+
+## ⚙️ Como Configurar e Instalar o Projeto
+
+### Pré-requisitos
+* Node.js v18 ou superior
+* Uma conta ativa no [Supabase](https://supabase.com/)
+* Um Token de Bot do Telegram (gerado via `@BotFather`)
+* Uma Chave de API da HenrikDev
+
+### 1. Clonar o Repositório e Instalar Dependências
+```bash
+git clone [https://github.com/seu-usuario/protocolov.git](https://github.com/seu-usuario/protocolov.git)
+cd protocolov
+npm install
