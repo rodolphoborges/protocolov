@@ -16,18 +16,6 @@ if (!token || !supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 const bot = new TelegramBot(token, { polling: true });
 
-const rankEmojis = {
-    'Radiante': '✨', 'Imortal': '👺', 'Ascendente': '🟢', 'Diamante': '💎',
-    'Platina': '💠', 'Ouro': '🥇', 'Prata': '🥈', 'Bronze': '🥉', 'Ferro': '🧱'
-};
-
-function getRankEmoji(rank = '') {
-    for (const [key, emoji] of Object.entries(rankEmojis)) {
-        if (rank.includes(key)) return emoji;
-    }
-    return '👤';
-}
-
 function escapeMarkdown(text) {
     if (!text) return '';
     return text.toString().replace(/[_*`\[\]]/g, '\\$&');
@@ -39,10 +27,10 @@ bot.on('callback_query', async (query) => {
     const messageId = query.message.message_id;
     const callbackData = query.data;
 
-    // --- TRANSFERÊNCIA DE UNIDADE FINAL (PASSO 2) ---
+    // TRANSFERÊNCIA DE UNIDADE FINAL
     if (callbackData.startsWith('uni_')) {
         const partes = callbackData.split('_');
-        const unidadeAlvo = partes[1]; // ALPHA, OMEGA, WINGMAN
+        const unidadeAlvo = partes[1]; 
         const nickRaw = partes.slice(2).join('_');
         
         try {
@@ -52,7 +40,6 @@ bot.on('callback_query', async (query) => {
             const player = players[0];
             const safeNick = escapeMarkdown(player.riot_id);
 
-            // NOVO: Validação de Vaga Tática (Exceto para Wingman que é ilimitada)
             let avisoReserva = "";
             if (unidadeAlvo !== 'WINGMAN') {
                 const { data: ocupante } = await supabase
@@ -83,11 +70,16 @@ bot.on('callback_query', async (query) => {
         }
         bot.answerCallbackQuery(query.id);
     }
-
-    // [Outros callbacks como perfil_ e select_uni_ permanecem iguais ao original...]
 });
 
-// --- COMANDO DE TRANSFERÊNCIA DE UNIDADE ---
+// --- COMANDO /START ---
+bot.onText(/^\/start/, (msg) => {
+    const chatId = msg.chat.id;
+    const mensagem = `🟢 *TERMINAL PROTOCOLO V ONLINE* 🟢\n\nBem-vindo ao sistema de comando tático.\n\n*Comandos Disponíveis:*\n/unidade - Solicitar transferência de esquadrão\n/ranking - Ver o Top 10 de Sinergia\n/perfil [Nome] - Buscar o dossiê de um agente`;
+    bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown' });
+});
+
+// --- COMANDO /UNIDADE ---
 bot.onText(/^\/unidade(?:\s+(\w+))?(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const unidade = match[1] ? match[1].toUpperCase() : null;
@@ -116,7 +108,6 @@ bot.onText(/^\/unidade(?:\s+(\w+))?(?:\s+(.*))?/, async (msg, match) => {
             
             const player = data[0];
             
-            // Validação de vaga também no comando direto por texto
             let aviso = "";
             if (unidade !== 'WINGMAN') {
                 const { data: ocupante } = await supabase.from('players')
@@ -129,15 +120,51 @@ bot.onText(/^\/unidade(?:\s+(\w+))?(?:\s+(.*))?/, async (msg, match) => {
             }
 
             await supabase.from('players').update({ unit: unidade }).eq('riot_id', player.riot_id);
-            bot.sendMessage(chatId, `🔄 *[SISTEMA]* Transferência de *${player.riot_id}* para *${unidade}* concluída.${aviso}`, { parse_mode: 'Markdown' });
+            bot.sendMessage(chatId, `🔄 *[SISTEMA]* Transferência de *${escapeMarkdown(player.riot_id)}* para *${unidade}* concluída.${aviso}`, { parse_mode: 'Markdown' });
         } catch (error) { 
             bot.sendMessage(chatId, "🔥 *Killjoy:* Falha na sincronização.", { parse_mode: 'Markdown' }); 
         }
     }
 });
 
-// [Resto dos comandos /start, /ranking, /perfil permanecem iguais...]
+// --- COMANDO /RANKING ---
+bot.onText(/^\/ranking/, async (msg) => {
+    const chatId = msg.chat.id;
+    try {
+        const { data, error } = await supabase.from('players').select('riot_id, synergy_score, unit').order('synergy_score', { ascending: false }).limit(10);
+        if (error) throw error;
+        
+        let rankMsg = `🏆 *TOP 10 SINERGIA - PROTOCOLO V* 🏆\n\n`;
+        data.forEach((p, i) => {
+            rankMsg += `${i + 1}. *${escapeMarkdown(p.riot_id.split('#')[0])}* - ${p.synergy_score} pts (${p.unit})\n`;
+        });
+        bot.sendMessage(chatId, rankMsg, { parse_mode: 'Markdown' });
+    } catch (err) {
+        bot.sendMessage(chatId, "❌ Erro ao acessar o banco de dados.", { parse_mode: 'Markdown' });
+    }
+});
 
+// --- COMANDO /PERFIL ---
+bot.onText(/^\/perfil(?:\s+(.*))?/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const argumento = match[1] ? match[1].trim() : null;
+
+    if (!argumento) return bot.sendMessage(chatId, "⚠️ Precisas de informar o nome do agente. Ex: `/perfil Ousadia`", { parse_mode: 'Markdown' });
+
+    try {
+        const { data } = await supabase.from('players').select('*').ilike('riot_id', `%${argumento}%`).limit(1);
+        if (!data || data.length === 0) return bot.sendMessage(chatId, "⚠️ Agente não encontrado nos registos do Protocolo.", { parse_mode: 'Markdown' });
+        
+        const p = data[0];
+        const msgPerfil = `👤 *DOSSIÊ DO AGENTE*\n\n*Riot ID:* ${escapeMarkdown(p.riot_id)}\n*Unidade:* ${p.unit}\n*Função:* ${p.role_raw}\n*Rank:* ${p.current_rank}\n*Sinergia:* ${p.synergy_score} pts\n*Treino (DM):* ${p.dm_score_total || p.dm_score} pts\n*Lobo Solitário:* ${p.lone_wolf ? 'Sim 🐺' : 'Não'}`;
+        
+        bot.sendMessage(chatId, msgPerfil, { parse_mode: 'Markdown' });
+    } catch (err) {
+        bot.sendMessage(chatId, "❌ Erro ao extrair o dossiê.", { parse_mode: 'Markdown' });
+    }
+});
+
+// --- SERVIDOR EXPRESS (Mantém o bot online em alojamentos na nuvem) ---
 const app = express();
 app.get('/', (req, res) => res.send('✅ Sistema Vital do Protocolo V: ONLINE'));
 app.listen(process.env.PORT || 3000, () => console.log('🌐 Terminal Ativo na Nuvem.'));
