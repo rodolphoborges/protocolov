@@ -79,21 +79,64 @@ bot.onText(/^\/start/, (msg) => {
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown' });
 });
 
-// --- COMANDO /UNIDADE ---
-bot.onText(/^\/unidade(?:\s+(\w+))?(?:\s+(.*))?/, async (msg, match) => {
+// --- COMANDO /VINCULAR (NOVO) ---
+bot.onText(/^\/vincular(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
+    const telegramId = msg.from.id;
+    const riotId = match[1] ? match[1].trim() : null;
+
+    if (!riotId) {
+        return bot.sendMessage(chatId, "⚠️ *Killjoy:* Informa o teu Riot ID para vincular o rádio. Ex: `/vincular OUSADIA#013`", { parse_mode: 'Markdown' });
+    }
+
+    try {
+        // Verifica se o agente existe
+        const { data: players } = await supabase.from('players').select('*').ilike('riot_id', `%${riotId}%`).limit(1);
+        
+        if (!players || players.length === 0) {
+            return bot.sendMessage(chatId, "⚠️ *Brimstone:* ID não encontrado. Já fizeste o alistamento no site?", { parse_mode: 'Markdown' });
+        }
+
+        const player = players[0];
+
+        // Verifica se a conta já está vinculada a outro Telegram
+        if (player.telegram_id && player.telegram_id !== telegramId) {
+            return bot.sendMessage(chatId, "❌ *Cypher:* Este Riot ID já está sob o controlo de outro dispositivo de rádio.", { parse_mode: 'Markdown' });
+        }
+
+        // Atualiza a base com o telegram_id
+        await supabase.from('players').update({ telegram_id: telegramId }).eq('riot_id', player.riot_id);
+        bot.sendMessage(chatId, `✅ *RÁDIO VINCULADO:* Identidade confirmada como *${escapeMarkdown(player.riot_id)}*. A partir de agora, os teus comandos de transferência usarão esta identidade automaticamente.`, { parse_mode: 'Markdown' });
+
+    } catch (err) {
+        bot.sendMessage(chatId, "🔥 *Falha nos servidores do Protocolo.* Tenta novamente.", { parse_mode: 'Markdown' });
+    }
+});
+
+// --- COMANDO /UNIDADE (ATUALIZADO E BLINDADO) ---
+bot.onText(/^\/unidade(?:\s+(\w+))?/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const telegramId = msg.from.id;
     const unidade = match[1] ? match[1].toUpperCase() : null;
-    const argumento = match[2] ? match[2].trim() : null;
     const validas = ['ALPHA', 'OMEGA', 'WINGMAN'];
 
+    // 1. Identificar quem está a dar a ordem pelo ID do Telegram
+    const { data: userRecord } = await supabase.from('players').select('*').eq('telegram_id', telegramId).limit(1);
+
+    if (!userRecord || userRecord.length === 0) {
+        return bot.sendMessage(chatId, "🔒 *Acesso Negado:* O teu rádio não está vinculado a nenhum agente. Usa o comando `/vincular TeuNick#TAG` primeiro.", { parse_mode: 'Markdown' });
+    }
+
+    const player = userRecord[0];
+
     if (!unidade) {
-        return bot.sendMessage(chatId, `💻 *Killjoy:* "Para qual divisão desejas solicitar transferência?"`, {
+        return bot.sendMessage(chatId, `💻 *Killjoy:* "Agente ${escapeMarkdown(player.riot_id.split('#')[0])}, para qual divisão desejas transferência?"`, {
             parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: "🐍 Transferir para ALPHA", callback_data: "select_uni_ALPHA" }],
-                    [{ text: "🔥 Transferir para ÔMEGA", callback_data: "select_uni_OMEGA" }],
-                    [{ text: "🦎 Voltar para WINGMAN", callback_data: "select_uni_WINGMAN" }]
+                    [{ text: "🐍 Transferir para ALPHA", callback_data: `uni_ALPHA_${player.riot_id}` }],
+                    [{ text: "🔥 Transferir para ÔMEGA", callback_data: `uni_OMEGA_${player.riot_id}` }],
+                    [{ text: "🦎 Voltar para WINGMAN", callback_data: `uni_WINGMAN_${player.riot_id}` }]
                 ]
             }
         });
@@ -101,29 +144,23 @@ bot.onText(/^\/unidade(?:\s+(\w+))?(?:\s+(.*))?/, async (msg, match) => {
     
     if (!validas.includes(unidade)) return bot.sendMessage(chatId, "❌ *Brimstone:* Código de Unidade inválido.", { parse_mode: 'Markdown' });
 
-    if (argumento) {
-        try {
-            const { data } = await supabase.from('players').select('*').ilike('riot_id', `%${argumento}%`).limit(1);
-            if (!data || data.length === 0) return bot.sendMessage(chatId, "⚠️ *Brimstone:* Não encontrei esse ID.", { parse_mode: 'Markdown' });
+    // 2. Executar a transferência para o agente verificado
+    try {
+        let aviso = "";
+        if (unidade !== 'WINGMAN') {
+            const { data: ocupante } = await supabase.from('players')
+                .select('synergy_score').eq('unit', unidade).eq('role_raw', player.role_raw).neq('riot_id', player.riot_id)
+                .order('synergy_score', { ascending: false }).limit(1);
             
-            const player = data[0];
-            
-            let aviso = "";
-            if (unidade !== 'WINGMAN') {
-                const { data: ocupante } = await supabase.from('players')
-                    .select('synergy_score').eq('unit', unidade).eq('role_raw', player.role_raw).neq('riot_id', player.riot_id)
-                    .order('synergy_score', { ascending: false }).limit(1);
-                
-                if (ocupante && ocupante.length > 0 && ocupante[0].synergy_score > player.synergy_score) {
-                    aviso = `\n\n⚠️ *NOTA:* Vaga ocupada. Entrarás como *Reserva*.`;
-                }
+            if (ocupante && ocupante.length > 0 && ocupante[0].synergy_score > player.synergy_score) {
+                aviso = `\n\n⚠️ *NOTA:* A vaga na unidade já está ocupada. Ficarás como *Reserva*.`;
             }
-
-            await supabase.from('players').update({ unit: unidade }).eq('riot_id', player.riot_id);
-            bot.sendMessage(chatId, `🔄 *[SISTEMA]* Transferência de *${escapeMarkdown(player.riot_id)}* para *${unidade}* concluída.${aviso}`, { parse_mode: 'Markdown' });
-        } catch (error) { 
-            bot.sendMessage(chatId, "🔥 *Killjoy:* Falha na sincronização.", { parse_mode: 'Markdown' }); 
         }
+
+        await supabase.from('players').update({ unit: unidade }).eq('riot_id', player.riot_id);
+        bot.sendMessage(chatId, `🔄 *[SISTEMA]* Transferência do agente *${escapeMarkdown(player.riot_id)}* para *${unidade}* concluída.${aviso}`, { parse_mode: 'Markdown' });
+    } catch (error) { 
+        bot.sendMessage(chatId, "🔥 *Killjoy:* Falha na sincronização.", { parse_mode: 'Markdown' }); 
     }
 });
 
