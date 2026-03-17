@@ -17,7 +17,7 @@ const squadsConfig = {
     }
 };
 
-let esquadraoWingman = []; 
+let esquadraoWingman = []; // Fila de Reserva
 let opsOffset = 0;
 const OPS_PER_PAGE = 5;
 let isFetchingOps = false;
@@ -43,37 +43,16 @@ function updateLastSyncTime(playersData) {
             }
         });
     }
+
     const statusEl = document.getElementById('last-updated-status');
     if (statusEl) {
-        if(lastUpdated) {
+        if (lastUpdated) {
             const diffMins = Math.floor((new Date() - lastUpdated) / 60000);
             const timeText = diffMins <= 0 ? "agora mesmo" : `há ${diffMins} min`;
             statusEl.innerHTML = `<span class="badge rounded-0 bg-dark border border-secondary text-muted px-3 py-2" style="font-family: 'Teko', sans-serif; font-size: 1.1rem; letter-spacing: 1px;">Sincronizado ${timeText}</span>`;
         } else {
             statusEl.innerHTML = `<span class="badge rounded-0 bg-dark border border-secondary text-muted px-3 py-2" style="font-family: 'Teko', sans-serif; font-size: 1.1rem; letter-spacing: 1px;">SINCRO: ${new Date().toLocaleTimeString()}</span>`;
         }
-    }
-}
-
-window.copyRiotId = function(btnElement, riotId) {
-    if(navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(riotId).then(() => {
-            btnElement.innerHTML = 'COPIADO! ✅';
-            setTimeout(() => btnElement.innerHTML = `${riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>`, 2000);
-        }).catch(e => console.error('Erro ao copiar:', e));
-    } else {
-        const textArea = document.createElement("textarea");
-        textArea.value = riotId;
-        document.body.appendChild(textArea);
-        textArea.select();
-        try {
-            document.execCommand('copy');
-            btnElement.innerHTML = 'COPIADO! ✅';
-            setTimeout(() => btnElement.innerHTML = `${riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>`, 2000);
-        } catch (err) {
-            console.error('Falha ao copiar:', err);
-        }
-        document.body.removeChild(textArea);
     }
 }
 
@@ -113,6 +92,7 @@ async function fetchCachedData() {
                         break; 
                     }
                 }
+
                 if (!assigned && roleRaw.includes('flex') && squadsConfig[unit].roles['Flex'] === null) {
                     squadsConfig[unit].roles['Flex'] = player;
                     assigned = true;
@@ -130,7 +110,7 @@ async function fetchCachedData() {
         opsOffset = 0;
         await fetchOperations(false);
         
-        // Busca de Sinalizadores
+        // Busca de Sinalizadores Ativos no Radar
         const now = Date.now();
         const { data: calls } = await supabaseClient.from('active_calls')
             .select('*')
@@ -154,127 +134,6 @@ async function fetchCachedData() {
                 A carregar sistema ou base de dados vazia. Tente recarregar.
             </div>`;
     }
-}
-
-// O VISUAL BRUTALISTA ORIGINAL RESTAURADO:
-function renderSquads() {
-    const container = document.getElementById('squads-container');
-    if (!container) return;
-    
-    // Layout lado a lado para Alpha e Ômega
-    let html = '<div class="row">';
-
-    Object.entries(squadsConfig).forEach(([id, config]) => {
-        let rolesHtml = '';
-        Object.entries(config.roles).forEach(([roleName, player]) => {
-            rolesHtml += renderPlayerSlot(roleName, player);
-        });
-
-        html += `
-            <div class="col-md-6 mb-4">
-                <div class="card bg-black border-secondary h-100 squad-card ${config.theme}">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <h3 class="t-valorant text-white">${config.title}</h3>
-                            <span class="badge bg-dark border border-secondary text-muted" style="font-size:0.6rem">STATUS: ATIVO</span>
-                        </div>
-                        <p class="small text-muted mb-4" style="font-size: 0.85rem; height: 40px;">${config.desc}</p>
-                        <div class="roles-grid">${rolesHtml}</div>
-                    </div>
-                </div>
-            </div>`;
-    });
-    
-    html += '</div>';
-
-    // O container da Unidade Wingman é injetado aqui dinamicamente
-    html += `
-        <div class="mt-5 waitlist-section p-4 mb-5" style="background-color: rgba(190, 243, 62, 0.05); border: 1px solid rgba(190, 243, 62, 0.2);">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-                <div>
-                    <h3 class="role-title" style="color: #bef33e;">UNIDADE WINGMAN</h3>
-                    <p class="text-muted small mb-0">Mobilização rápida via Agente 22 - Gekko. Força de suporte aguardando ordens para inserção imediata.</p>
-                </div>
-                <span class="badge rounded-0 mt-3 mt-md-0" style="background-color: #bef33e; color: var(--val-dark); font-family: 'Inter', sans-serif; font-weight: 800;">${esquadraoWingman.length} AGENTES NA ESCUTA</span>
-            </div>
-            <div class="row g-3" id="wingman-list"></div>
-        </div>`;
-
-    container.innerHTML = html;
-    
-    // Agora o script pode encontrar o 'wingman-list' para o preencher
-    renderWingman();
-}
-
-function renderPlayerSlot(role, player) {
-    if (!player) {
-        return `
-            <div class="d-flex align-items-center mb-3 opacity-25">
-                <div class="role-icon-placeholder me-3"></div>
-                <div>
-                    <div class="small text-muted text-uppercase" style="font-size: 0.6rem; letter-spacing:1px;">${role}</div>
-                    <div class="text-secondary small">AGUARDANDO VAGA...</div>
-                </div>
-            </div>`;
-    }
-    
-    let warningBadge = player.api_error ? `<span class="badge bg-warning text-dark ms-2 rounded-0" style="font-size: 0.5rem;">⚠️ OFF</span>` : '';
-    let loneWolfBadge = player.lone_wolf ? `<span class="badge ms-2 text-dark bg-secondary rounded-0" style="font-size: 0.5rem; background-color: #768079 !important;" title="Lobo Solitário">🐺</span>` : '';
-    let dmBadge = player.dm_score > 0 ? `<span class="badge border border-danger text-danger ms-2 rounded-0" style="font-size: 0.5rem; background-color: rgba(255, 70, 85, 0.1);" title="Pontos DM">🎯 ${player.dm_score}</span>` : '';
-
-    return `
-        <div class="d-flex align-items-center mb-3 player-slot-hover" style="transition: transform 0.2s;">
-            <img src="${safeUrl(player.card_url, 'https://media.valorant-api.com/playercards/default/smallart.png')}" class="player-mini-card me-3 border border-secondary" style="width: 48px; height: 48px; object-fit: cover;">
-            <div>
-                <div class="small text-info fw-bold" style="font-size:0.65rem; letter-spacing:1px;">${role.toUpperCase()}</div>
-                <div class="t-valorant text-white d-flex align-items-center flex-wrap" style="font-size:1.1rem; line-height: 1;">
-                    <span class="user-select-all" style="cursor: pointer;" onclick="window.copyRiotId(this, '${player.riot_id}')" title="Copiar ID">${escapeHtml(player.riot_id.split('#')[0])}</span>
-                    ${dmBadge}${loneWolfBadge}${warningBadge}
-                </div>
-                <div class="d-flex align-items-center gap-2 mt-1">
-                    <img src="${player.current_rank_icon}" width="14" onerror="this.style.display='none'">
-                    <span class="small text-muted" style="font-size: 0.75rem;">${player.currentRank} (SN: ${player.synergy_score || 0})</span>
-                </div>
-            </div>
-        </div>`;
-}
-
-function renderWingman() {
-    const list = document.getElementById('wingman-list');
-    if (!list) return;
-
-    if (esquadraoWingman.length === 0) {
-        list.innerHTML = '<div class="col-12 text-center text-muted py-4">Nenhum agente na reserva orbital.</div>';
-        return;
-    }
-
-    list.innerHTML = esquadraoWingman.map(p => {
-        const isReservaElite = p.unit !== 'WINGMAN';
-        const statusLabel = isReservaElite ? `RESERVA ${p.unit}` : 'AGENTE WINGMAN';
-        const badgeColor = isReservaElite ? 'var(--val-red)' : 'var(--val-gray)';
-        
-        let warningBadge = p.api_error ? `<span class="badge bg-warning text-dark ms-1 rounded-0" style="font-size: 0.5rem;">⚠️ OFF</span>` : '';
-        let loneWolfBadge = p.lone_wolf ? `<span class="badge ms-1 text-dark bg-secondary rounded-0" style="font-size: 0.5rem; background-color: #768079 !important;" title="Lobo Solitário">🐺</span>` : '';
-
-        return `
-        <div class="col-lg-4 col-md-6 mb-3">
-            <div class="card bg-dark border-secondary player-card is-waiting" style="clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);">
-                <div class="card-body d-flex align-items-center p-2">
-                    <img src="${safeUrl(p.card_url, '')}" class="wingman-thumb me-3" style="width: 45px; height: 45px; object-fit: cover;" onerror="this.src='https://media.valorant-api.com/playercards/default/smallart.png';">
-                    <div class="overflow-hidden w-100">
-                        <div class="text-white text-truncate fw-bold small d-flex align-items-center" style="letter-spacing:0.5px;">
-                            <span class="user-select-all" style="cursor: pointer;" onclick="window.copyRiotId(this, '${escapeHtml(p.riot_id)}')">${escapeHtml(p.riot_id.split('#')[0])}</span>
-                            ${loneWolfBadge}${warningBadge}
-                        </div>
-                        <div class="d-flex align-items-center gap-2 mt-1">
-                             <span class="badge rounded-0" style="font-size: 0.55rem; background-color: ${badgeColor};">${statusLabel}</span>
-                             <span class="text-muted text-truncate" style="font-size: 0.6rem;">${p.role_raw}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-    }).join('');
 }
 
 async function fetchOperations(append = false) {
@@ -305,9 +164,9 @@ async function fetchOperations(append = false) {
                     const [k1, d1, a1] = a.kda.split('/').map(Number);
                     const [k2, d2, a2] = b.kda.split('/').map(Number);
                     
-                    if (k2 !== k1) return k2 - k1;
-                    if (d1 !== d2) return d1 - d2;
-                    return a2 - a1;
+                    if (k2 !== k1) return k2 - k1; // 1. Mais Kills
+                    if (d1 !== d2) return d1 - d2; // 2. Menos Deaths
+                    return a2 - a1;                // 3. Mais Assists
                 });
 
                 return {
@@ -342,11 +201,104 @@ async function fetchOperations(append = false) {
     }
 }
 
+window.copyRiotId = function(btnElement, riotId) {
+    if(navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(riotId).then(() => {
+            btnElement.innerHTML = 'COPIADO! ✅';
+            setTimeout(() => btnElement.innerHTML = `${riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>`, 2000);
+        }).catch(e => console.error('Erro ao copiar:', e));
+    } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = riotId;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            btnElement.innerHTML = 'COPIADO! ✅';
+            setTimeout(() => btnElement.innerHTML = `${riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>`, 2000);
+        } catch (err) {
+            console.error('Falha ao copiar:', err);
+        }
+        document.body.removeChild(textArea);
+    }
+}
+
+function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
+    const safeCard = safeUrl(player.card_url, 'https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png');
+    const safeTracker = safeUrl(player.tracker_link, '#');
+    const safeRankIcon = safeUrl(player.current_rank_icon, '');
+    const safePeakIcon = safeUrl(player.peak_rank_icon, '');
+
+    let warningBadge = player.api_error ? `<span class="badge bg-warning text-dark ms-2 rounded-0">⚠️ OFF</span>` : '';
+    let loneWolfBadge = player.lone_wolf ? `<span class="badge ms-2 text-dark bg-secondary rounded-0" style="background-color: #768079 !important;" title="Jogou as últimas ranqueadas totalmente solo.">🐺 LOBO</span>` : '';
+    let dmBadge = player.dm_score > 0 ? `<span class="badge border border-danger text-danger ms-2 rounded-0" style="background-color: rgba(255, 70, 85, 0.1);" title="Pontos de Treino (Mata-Mata)">🎯 ${player.dm_score}</span>` : '';
+    let opaqueClass = player.lone_wolf ? 'opaque-rank' : '';
+
+    let unitBadge = '';
+    const isReserve = isWaiting && player.unit !== 'WINGMAN'; // Correção de Feedback visual
+    
+    if (player.unit === 'ALPHA') {
+        const badgeLabel = isReserve ? 'RESERVA ALPHA' : 'ALPHA';
+        unitBadge = `<span class="badge rounded-0 border border-info text-info ms-2" style="background-color: rgba(0, 140, 186, 0.1);" title="SQUAD ALPHA"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13h-13L12 6.5z"/></svg>${badgeLabel}</span>`;
+    } else if (player.unit === 'OMEGA') {
+        const badgeLabel = isReserve ? 'RESERVA ÔMEGA' : 'ÔMEGA';
+        unitBadge = `<span class="badge rounded-0 border border-danger text-danger ms-2" style="background-color: rgba(255, 70, 85, 0.1);" title="SQUAD ÔMEGA"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>${badgeLabel}</span>`;
+    } else {
+        unitBadge = `<span class="badge rounded-0 border border-warning text-warning ms-2" style="background-color: rgba(255, 206, 86, 0.1);" title="ESQUADRÃO WINGMAN"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>WINGMAN</span>`;
+    }
+
+    const eloHTML = safeRankIcon ? `<img src="${safeRankIcon}" alt="${player.currentRank}" class="${opaqueClass}" style="width: 20px; height: 20px;"> <span class="${opaqueClass}">${player.currentRank}</span>` : `<span class="${opaqueClass}">${player.currentRank}</span>`;
+    const peakHTML = safePeakIcon ? `<img src="${safePeakIcon}" alt="${player.peak_rank}" class="${opaqueClass}" style="width: 20px; height: 20px;"> <span class="${opaqueClass}">${player.peak_rank}</span>` : `<span class="${opaqueClass}">${(player.peak_rank || 'Sem Rank')}</span>`;
+
+    const synergyPoints = player.synergy_score || 0;
+    let synergyBadge = '';
+    if (synergyPoints > 10) {
+        synergyBadge = `<span class="badge bg-danger ms-2 rounded-0" title="Jogador muito ativo com a comunidade">🔥 SN: ${synergyPoints}</span>`;
+    } else if (synergyPoints > 0) {
+        synergyBadge = `<span class="badge bg-secondary ms-2 rounded-0" title="Partidas jogadas em grupo">🤝 SN: ${synergyPoints}</span>`;
+    }
+
+    const wrapperStart = isWaiting ? '<div class="col-md-6">' : '<div>';
+    const wrapperEnd = isWaiting ? '</div>' : '</div>';
+
+    return `
+        ${wrapperStart}
+            <div class="player-card ${isWaiting ? 'is-waiting' : ''} ${themeClass}">
+                <img src="${safeCard}" class="player-avatar" onerror="this.onerror=null; this.src='https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png';">
+                <div class="flex-grow-1">
+                    <div class="fw-bold text-white mb-2 d-flex align-items-center flex-wrap gap-1" style="font-size: 1rem; line-height: 1;">
+                        <span class="user-select-all text-uppercase" style="cursor: pointer; letter-spacing: 0.5px;" onclick="window.copyRiotId(this, '${player.riotId}')" title="Clique para copiar e adicionar no Valorant" aria-label="Copiar ID ${player.riotId}">
+                            ${player.riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>
+                        </span>
+                        <span class="badge bg-secondary ms-1 rounded-0" style="font-size: 0.6rem;">LVL ${player.level || '--'}</span>
+                        ${unitBadge}
+                        ${synergyBadge}
+                        ${dmBadge}
+                        ${loneWolfBadge}
+                        ${warningBadge}
+                    </div>
+                    <div class="d-flex gap-4 mt-2">
+                        <div><div class="stat-label">Elo Atual</div><div class="stat-val d-flex align-items-center gap-2">${eloHTML}</div></div>
+                        <div><div class="stat-label">Rank Máximo</div><div class="stat-val text-accent d-flex align-items-center gap-2">${peakHTML}</div></div>
+                    </div>
+                </div>
+                <div class="ms-auto pe-2">
+                    <a href="${safeTracker}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-0 border-0" title="Ver no Tracker.gg" aria-label="Ver perfil de ${player.riotId} no Tracker.gg">
+                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="var(--val-gray)" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
+                          <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        ${wrapperEnd}`;
+}
+
 function renderOperations(operations, append = false) {
     const section = document.getElementById('operations-section');
     const container = document.getElementById('operations-container');
     
-    if (section) section.style.display = 'block';
+    section.style.display = 'block';
 
     if(operations.length === 0 && !append) {
         container.innerHTML = `<div class="col-12"><div class="alert rounded-0 border-secondary text-dark text-center py-4 fw-bold" style="background-color: rgba(15, 25, 35, 0.05);">Nenhuma operação conjunta detetada recentemente.</div></div>`;
@@ -428,8 +380,63 @@ function renderOperations(operations, append = false) {
     }
 }
 
+function renderSquads() {
+    const container = document.getElementById('squads-container');
+    let fullHTML = '';
+
+    for (const [unit, data] of Object.entries(squadsConfig)) {
+        let playersHTML = '';
+        let count = 0;
+        
+        for (const [role, player] of Object.entries(data.roles)) {
+            if (player) {
+                playersHTML += `<div class="mb-3"><span class="badge bg-dark border border-secondary mb-1">${role}</span>${createPlayerCardHTML(player, false, data.theme)}</div>`;
+                count++;
+            } else {
+                playersHTML += `<div class="mb-3"><span class="badge bg-dark border border-secondary mb-1 text-muted">${role}</span>
+                                <div class="player-card opaque-rank d-flex align-items-center justify-content-center" style="height: 94px; border: 1px dashed var(--val-gray);">
+                                    <span class="text-muted fw-bold">VAGA DISPONÍVEL</span>
+                                </div></div>`;
+            }
+        }
+
+        fullHTML += `
+            <div class="row align-items-start role-row mb-5">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h3 class="role-title ${unit === 'ALPHA' ? 'text-info' : 'text-danger'}">${data.title}</h3>
+                    <p class="mb-0 text-muted small mt-2" style="max-width: 90%;">${data.desc}</p>
+                    <div class="mt-4 border-start border-4 ${unit === 'ALPHA' ? 'border-info' : 'border-danger'} ps-3">
+                        <span class="fs-4 fw-bold font-monospace">${count}/5</span><br>
+                        <span class="text-uppercase small text-muted">Prontidão de Combate</span>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="d-flex flex-column gap-2">${playersHTML}</div>
+                </div>
+            </div>`;
+    }
+
+    if (esquadraoWingman.length > 0) {
+        let wingmanHTML = esquadraoWingman.map(p => createPlayerCardHTML(p, true, 'wingman-theme')).join('');
+        fullHTML += `
+            <div class="waitlist-section p-4 mb-5" style="background-color: rgba(190, 243, 62, 0.05); border: 1px solid rgba(190, 243, 62, 0.2);">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+                    <div>
+                        <h3 class="role-title" style="color: #bef33e;">UNIDADE WINGMAN</h3>
+                        <p class="text-muted small mb-0">Mobilização rápida via Agente 22 - Gekko. Força de suporte aguardando ordens para inserção imediata.</p>
+                    </div>
+                    <span class="badge rounded-0 mt-3 mt-md-0" style="background-color: #bef33e; color: var(--val-dark); font-family: 'Inter', sans-serif; font-weight: 800;">${esquadraoWingman.length} AGENTES NA ESCUTA</span>
+                </div>
+                <div class="row g-3">${wingmanHTML}</div>
+            </div>`;
+    }
+
+    container.innerHTML = fullHTML;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     fetchCachedData();
+    setInterval(fetchCachedData, 300000); // Mantém a atualização a cada 5 minutos
     
     const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
     const observer = new IntersectionObserver((entries, observer) => {
@@ -446,7 +453,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const loadMoreBtn = document.getElementById('load-more-ops-btn');
     if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', () => fetchOperations(true));
+        loadMoreBtn.addEventListener('click', () => {
+            fetchOperations(true);
+        });
     }
 
     const form = document.getElementById('recrutamento-form');
@@ -481,10 +490,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw error;
                 }
                 
+                // Feedback rápido e redirecionamento para o Briefing
                 feedback.innerHTML = `<span class="text-success">Criptografia aceita. Redirecionando para o QG...</span>`;
                 form.reset();
                 
-                setTimeout(() => { window.location.href = 'briefing.html'; }, 1500);
+                setTimeout(() => { 
+                    window.location.href = 'briefing.html'; 
+                }, 1500);
 
             } catch (err) {
                 feedback.innerHTML = `<span class="text-danger">Erro: ${err.message}</span>`;
