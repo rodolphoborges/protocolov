@@ -71,6 +71,38 @@ O projeto possui uma arquitetura híbrida (Frontend Estático + Backend/Workers 
 * Uma Chave de API da HenrikDev
 
 ### 1. Clonar o Repositório e Instalar Dependências
+
+2. Variáveis de Ambiente (.env)
+Crie um ficheiro .env na raiz do seu servidor/máquina de desenvolvimento contendo as credenciais vitais:
+
+Snippet de código
+SUPABASE_URL=[https://sua-url-do-supabase.supabase.co](https://sua-url-do-supabase.supabase.co)
+SUPABASE_SERVICE_KEY=sua_service_role_key_aqui
+HENRIK_API_KEY=sua_chave_henrik_dev_aqui
+TELEGRAM_BOT_TOKEN=seu_token_do_botfather
+TELEGRAM_CHAT_ID=id_do_grupo_de_monitoramento_do_telegram
+PORT=3000
+(Nota: O frontend também utiliza a anon_key pública do Supabase diretamente inserida no ficheiro script.js para operações de leitura do site e inscrição básica).
+
+3. Iniciar o Comando Central (Local ou Nuvem)
+Para arrancar o Bot do Telegram e manter o sistema à escuta:
+
+Bash
+npm start
+Para forçar a extração manual de dados de combate (Worker):
+
+Bash
+node update-data.js
+📜 Manifesto e Regras de Engajamento
+Tolerância Zero: Racismo, misoginia ou homofobia resultam em banimento absoluto e irrefutável. O respeito é inegociável.
+
+Rádio Limpo: Comunicação tática e objetiva. Foi abatido? Passe a informação exata (dano e localização) e silencie as comunicações.
+
+Mentalidade "Next": Tiltar não ganha rondas, destrói a moral da equipa. Perdeu a trocação? Respire. Ajustamos a estratégia e cobramos no próximo round.
+
+Iniciativa Operacional: A Sinergia recompensa a proatividade. Utilize o canal do Telegram, feche o grupo e assuma a responsabilidade de puxar a fila.
+
+Desenvolvido para organizar, fortalecer e elevar o nível da comunidade tática do Valorant.
 ```bash
 git clone [https://github.com/seu-usuario/protocolov.git](https://github.com/seu-usuario/protocolov.git)
 cd protocolov
