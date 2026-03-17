@@ -201,7 +201,14 @@ bot.onText(/^\/perfil(?:\s+(.*))?/, async (msg, match) => {
     }
 });
 
-// --- SERVIDOR EXPRESS (Mantém o bot online em alojamentos na nuvem) ---
+// --- SERVIDOR EXPRESS (Camuflado) ---
 const app = express();
-app.get('/', (req, res) => res.send('✅ Sistema Vital do Protocolo V: ONLINE'));
-app.listen(process.env.PORT || 3000, () => console.log('🌐 Terminal Ativo na Nuvem.'));
+// Removemos a rota raiz "/" e criamos um endpoint que apenas o serviço de Uptime (ex: UptimeRobot) conhece
+const HEALTH_SECRET = process.env.HEALTH_SECRET || 'protocolo-v-ping-123';
+
+app.get(`/${HEALTH_SECRET}`, (req, res) => res.send('✅ Sistema Vital do Protocolo V: ONLINE'));
+
+// Se alguém bater na raiz, não devolvemos nada (corta scanners)
+app.get('/', (req, res) => res.status(404).end());
+
+app.listen(process.env.PORT || 3000, () => console.log('🌐 Terminal Ativo e Camuflado na Nuvem.'));
