@@ -17,7 +17,7 @@ const squadsConfig = {
     }
 };
 
-let esquadraoWingman = []; // Fila de Reserva e Agentes Excedentes
+let esquadraoWingman = []; 
 let opsOffset = 0;
 const OPS_PER_PAGE = 5;
 let isFetchingOps = false;
@@ -38,11 +38,10 @@ async function fetchCachedData() {
         const { data: playersData, error: playersError } = await supabaseClient
             .from('players')
             .select('*')
-            .order('synergy_score', { ascending: false }); // Prioridade por Sinergia
+            .order('synergy_score', { ascending: false });
 
         if (playersError) throw playersError;
 
-        // Resetar estruturas para nova renderização
         Object.keys(squadsConfig).forEach(u => {
             Object.keys(squadsConfig[u].roles).forEach(r => squadsConfig[u].roles[r] = null);
         });
@@ -52,11 +51,9 @@ async function fetchCachedData() {
             const unit = player.unit?.toUpperCase();
             const role = player.role_raw;
 
-            // Lógica de Alocação Tática: Apenas 1 por função nas unidades de elite
             if ((unit === 'ALPHA' || unit === 'OMEGA') && squadsConfig[unit].roles[role] === null) {
                 squadsConfig[unit].roles[role] = player;
             } else {
-                // Se a vaga estiver ocupada ou for unidade Wingman, vai para a lista geral de reserva
                 esquadraoWingman.push(player);
             }
         });
@@ -132,7 +129,6 @@ function renderWingman() {
     }
 
     list.innerHTML = esquadraoWingman.map(p => {
-        // CORREÇÃO VISUAL: Identifica agentes que estão na Wingman mas pertencem a outra unidade
         const isReservaElite = p.unit !== 'WINGMAN';
         const statusLabel = isReservaElite ? `RESERVA ${p.unit}` : 'AGENTE WINGMAN';
         const badgeColor = isReservaElite ? 'var(--val-red)' : 'var(--val-gray)';
@@ -162,20 +158,33 @@ function updateLastSyncTime() {
 
 // Inicialização e Eventos
 document.addEventListener('DOMContentLoaded', () => {
-    fetchCachedData();
-    setInterval(fetchCachedData, 300000); // 5 min
+    
+    // 1. LÓGICA DE FADE-IN (Isto resolve a página em branco)
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            }
+        });
+    });
+    document.querySelectorAll('.fade-in-section').forEach((el) => observer.observe(el));
 
-    const form = document.getElementById('recruitment-form');
+    // 2. BUSCA DE DADOS
+    fetchCachedData();
+    setInterval(fetchCachedData, 300000); 
+
+    // 3. FORMULÁRIO DE INSCRIÇÃO (IDs corrigidos)
+    const form = document.getElementById('recrutamento-form'); // Corrigido
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (isSubmittingForm) return;
             isSubmittingForm = true;
 
-            const btn = form.querySelector('button');
-            const riotId = document.getElementById('riotId').value.trim();
-            const role = document.getElementById('role').value;
-            const feedback = document.getElementById('form-feedback');
+            const btn = document.getElementById('submitBtn');
+            const riotId = document.getElementById('riotIdInput').value.trim(); // Corrigido
+            const role = document.getElementById('roleInput').value; // Corrigido
+            const feedback = document.getElementById('formFeedback'); // Corrigido
 
             if (!riotId.includes('#')) {
                 feedback.innerHTML = `<span class="text-warning">Formato inválido. Use Nome#TAG.</span>`;
