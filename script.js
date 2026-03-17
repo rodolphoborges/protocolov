@@ -120,8 +120,18 @@ async function fetchCachedData() {
         
         const banner = document.getElementById('lobby-banner');
         if (calls && calls.length > 0 && banner) {
-            document.getElementById('lobby-commander-text').innerText = `${escapeHtml(calls[0].commander)} ESTÁ A FORMAR ESQUADRÃO`;
-            document.getElementById('lobby-code-text').innerText = escapeHtml(calls[0].party_code);
+            const call = calls[0];
+            document.getElementById('lobby-commander-text').innerText = `${escapeHtml(call.commander)} ESTÁ A FORMAR ESQUADRÃO`;
+            
+            const codeEl = document.getElementById('lobby-code-text');
+            
+            // NOVO: Separa a exibição. Se for código, vira um botão de Cópia Limpa.
+            if (call.party_code === 'Solicite invite no Telegram') {
+                codeEl.innerHTML = `<span>${escapeHtml(call.party_code)}</span>`;
+            } else {
+                codeEl.innerHTML = `<span class="user-select-all" style="cursor: pointer; text-decoration: underline dashed; text-underline-offset: 4px; color: #fff;" onclick="window.copyRiotId(this, '${escapeHtml(call.party_code)}')">${escapeHtml(call.party_code)} <span class="fs-6 text-muted" aria-hidden="true" style="text-decoration: none;">📋</span></span>`;
+            }
+            
             banner.style.display = 'block';
         } else if (banner) {
             banner.style.display = 'none';
