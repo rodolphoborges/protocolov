@@ -201,6 +201,35 @@ bot.onText(/^\/perfil(?:\s+(.*))?/, async (msg, match) => {
     }
 });
 
+// --- COMANDO /CONVOCAR (Sinalizador Orbital) ---
+bot.onText(/^\/convocar(?:\s+(.*))?/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const telegramId = msg.from.id;
+    const codigoLobby = match[1] ? match[1].trim() : "Solicite invite no Telegram";
+
+    try {
+        // Verifica se o usuário está vinculado
+        const { data: user } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
+
+        if (!user || user.length === 0) {
+            return bot.sendMessage(chatId, "❌ *Acesso Negado:* Vincula o teu rádio primeiro com `/vincular`.", { parse_mode: 'Markdown' });
+        }
+
+        const expiresAt = Date.now() + (30 * 60 * 1000); // Expira em 30 minutos
+
+        // Insere o chamado na tabela active_calls (lida pelo script.js do site)
+        await supabase.from('active_calls').insert([{
+            commander: user[0].riot_id.split('#')[0],
+            party_code: codigoLobby,
+            expires_at: expiresAt
+        }]);
+
+        bot.sendMessage(chatId, `🚨 *SINALIZADOR ATIVADO:* Reforços convocados para o lobby *${codigoLobby}*. O alerta aparecerá no site por 30 minutos.`, { parse_mode: 'Markdown' });
+
+    } catch (err) {
+        bot.sendMessage(chatId, "🔥 *Falha ao acionar sinalizador.*", { parse_mode: 'Markdown' });
+    }
+});
 // --- SERVIDOR EXPRESS (Camuflado) ---
 const app = express();
 // Removemos a rota raiz "/" e criamos um endpoint que apenas o serviço de Uptime (ex: UptimeRobot) conhece
