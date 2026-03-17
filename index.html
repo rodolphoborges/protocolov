@@ -3,61 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocolo V - Início</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Protocolo V | Recrutamento Valorant</title>
+    <meta name="description" content="Recrutamento tático e focado para Valorant. Suba de elo e jogue Premiere em um ambiente sem toxicidade.">
+    <meta name="theme-color" content="#ff4655">
+    <link rel="icon" type="image/png" href="https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/24/smallicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="style.css" rel="stylesheet"> 
+    <style>
+        .hover-opacity-link:hover { opacity: 1 !important; transition: 0.3s ease-in-out; }
+        .hover-opacity-link:hover a { text-shadow: 0 0 8px var(--val-red); }
+        .blink-warning { animation: blinker-alt 1s step-end infinite; }
+    </style>
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <img src="https://i.ibb.co/LzdZpXQ/7994685b-e490-449e-9907-7d6718919630.png" alt="Logo Protocolo V" class="logo">
-            <nav>
-                <ul>
-                    <li><a href="index.html" class="active">Painel</a></li>
-                    <li><a href="treino.html">Treinos</a></li>
-                    <li><a href="briefing.html">Briefings</a></li>
-                </ul>
-            </nav>
+
+    <div class="val-bg-text-massive">PROTOCOLO V</div>
+
+    <nav class="p-4 position-relative z-1 border-bottom border-dark border-opacity-10">
+        <div class="container d-flex justify-content-between align-items-center">
+            <span class="fs-3 fw-bold text-dark" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;">
+                <span class="text-accent">///</span> PROTOCOLO V
+            </span>
+            <a href="treino.html" class="btn-val" style="font-size: 1.2rem; padding: 5px 20px; background-color: var(--val-dark);">SALA DE TREINO</a>
+        </div>
+        <div id="lobby-banner" class="container mt-4 fade-in-section is-visible" style="display: none;">
+        <div class="p-3 shadow-lg d-flex justify-content-between align-items-center" style="background-color: var(--val-red); color: var(--val-light); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);">
+            <div class="d-flex align-items-center gap-3">
+                <span class="blink-terminal text-light fs-3">🚨</span>
+                <div>
+                    <div class="fw-bold text-uppercase" style="font-size: 0.8rem; letter-spacing: 2px; color: #fff; opacity: 0.9;">Sinalizador Orbital Ativo</div>
+                    <div class="fs-5 fw-bold" id="lobby-commander-text" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;">COMANDANTE REQUISITOU REFORÇOS</div>
+                </div>
+            </div>
+            <div class="text-end ps-3 border-start border-light border-opacity-25">
+                <div class="fw-bold text-uppercase" style="font-size: 0.8rem; letter-spacing: 2px;">CÓDIGO (COPIE)</div>
+                <div class="fs-2 fw-bold user-select-all" id="lobby-code-text" style="font-family: 'Teko', sans-serif; line-height: 1; cursor: pointer;" title="Clique duas vezes para selecionar">XXXXXX</div>
+            </div>
+        </div>
+        </div>
+    </nav>
+
+    <header class="container content-wrapper fade-in-section is-visible">
+        <div class="row pt-5 pb-4">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="decor-square"></div>
+                    <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px;">Foco na Ranqueada: 18h - 23h</span>
+                </div>
+                <h1 class="val-section-header" style="font-size: 6rem; border: none; margin-bottom: 0;">PROTOCOLO <span class="text-accent">V</span></h1>
+                <p class="fs-5 fw-bold text-dark mt-3" style="max-width: 600px;">O recrutamento tático para jogadores que procuram evolução, sinergia e um ambiente livre de toxicidade.</p>
+                
+                <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
+                    <a href="#recrutamento-section" class="btn-val">ALISTAR AGORA</a>
+                    
+                    <a href="https://t.me/+t74UD9N3wiE0NTkx" target="_blank" class="telegram-link-header">
+                        <span class="blink-terminal">[!]</span> CANAL DE MONITORAMENTO (TELEGRAM)
+                    </a>
+                </div>
+            </div>
         </div>
     </header>
 
-    <main>
-        <section id="player-profile">
-            <div class="profile-card">
-                <div class="profile-header">
-                    <img id="player-photo" src="https://via.placeholder.com/150" alt="Foto do Jogador">
-                    <div class="player-info">
-                        <h2 id="player-name">Carregando...</h2>
-                        <p id="player-role">Recruta</p>
+    <section class="container content-wrapper fade-in-section">
+        <div class="row g-5">
+            <div class="col-lg-6">
+                <h2 class="val-section-header">O Manifesto</h2>
+                <p class="manifesto-text">O Protocolo V não é apenas uma lista de jogadores; é uma resposta direta ao caos e à frustração da <em>Solo Queue</em>. Nascemos da necessidade de ter partidas de alta qualidade no fim do dia, onde o tempo investido seja recompensado com evolução tática, e não com dor de cabeça e toxicidade.</p>
+                <p class="manifesto-text mt-3">A mentalidade de "lobo solitário" morre na porta. Use o ícone de copiar ao lado do Riot ID dos agentes disponíveis, envie o convite no jogo e assuma a responsabilidade de puxar a fila.</p>
+                <p class="manifesto-text mt-3">Acreditamos que a confiança se mede em combate. Formar Duos rende 1 ponto, Trios 2 pontos e o Squad Fechado rende 5 pontos. <strong>Vitórias dobram a sua pontuação</strong>.</p>
+                <p class="manifesto-text mt-3">Agentes que insistem na Solo Queue recebem a marca de <strong>Lobo Solitário</strong>. Se um recruta ingressar e mantiver a sinergia zerada por 7 dias, o seu registo é <strong>expurgado</strong> do banco de dados.</p>
+            </div>
+            <div class="col-lg-6">
+                <h2 class="val-section-header">Regras de Engajamento</h2>
+                <div class="manifesto-text mt-4">
+                    <div class="rule-item">
+                        <svg class="icon-svg" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>
+                        <div><strong>Tolerância Zero:</strong> Racismo, misoginia ou homofobia resultam em banimento imediato. O respeito é inegociável.</div>
                     </div>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <span class="stat-label">Nível</span>
-                        <span id="player-level" class="stat-value">0</span>
+                    <div class="rule-item">
+                        <svg class="icon-svg" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>
+                        <div><strong>Rádio Limpo:</strong> Comunicação tática. Morreu? Passe a informação exata (dano e localização) e fique em silêncio.</div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">XP Total</span>
-                        <span id="player-xp" class="stat-value">0</span>
+                    <div class="rule-item">
+                        <svg class="icon-svg" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>
+                        <div><strong>Mentalidade "Next":</strong> Tiltar não ganha round; só destrói a moral. Perdeu o tiro? Respire. Ajustamos e cobramos na próxima.</div>
+                    </div>
+                    <div class="rule-item">
+                        <svg class="icon-svg" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>
+                        <div><strong>Iniciativa Operacional:</strong> A Sinergia recompensa a proatividade. Feche o grupo e puxe a fila.</div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <section id="announcements">
-            <h3>Comunicados Recentes</h3>
-            <div id="announcements-container">
-                <p>Buscando atualizações do comando...</p>
+    <section class="container mt-2 mb-5 fade-in-section">
+        <div class="p-5 d-flex flex-column flex-md-row justify-content-between align-items-center shadow-lg position-relative" style="background-color: var(--val-dark); color: var(--val-light); clip-path: polygon(30px 0, 100% 0, 100% 100%, 0 100%, 0 30px); border-right: 6px solid var(--val-red);">
+            <div class="grid-lines" style="opacity: 0.5;"></div>
+            <div class="mb-4 mb-md-0 me-md-4 position-relative z-1">
+                <h2 class="m-0 text-light" style="font-family: 'Teko', sans-serif; font-size: 4rem; line-height: 1; letter-spacing: 1px;">SALA DE TREINO <span class="text-accent">/// MATA-MATA</span></h2>
+                <p class="mb-0 mt-2" style="color: var(--val-gray); font-weight: 600; font-size: 1.1rem; max-width: 600px;">
+                    O aquecimento é a forja dos duelistas. Acompanhe o ranking semanal de esforço e veja quem está com a mira mais quente do Protocolo.
+                </p>
             </div>
-        </section>
-    </main>
+            <a href="treino.html" class="btn-val position-relative z-1 text-nowrap" style="padding: 15px 40px;">VER LEADERBOARD</a>
+        </div>
+    </section>
 
-    <footer>
-        <p>&copy; 2024 Protocolo V - Sistema de Gestão de Operações</p>
-    </footer>
+    <section class="container-fluid bg-dark-section content-wrapper fade-in-section position-relative">
+        <div class="val-bg-text-massive">AGENTES</div>
+        <div class="container position-relative z-1">
+            <div class="d-flex align-items-center mb-3">
+                <div class="decor-square"></div>
+                <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px;">ROSTER ATUAL</span>
+            </div>
+            <h2 class="val-section-header">Status da Line-up</h2>
+            
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-5">
+                <div>
+                    <p class="mb-0 text-muted text-uppercase fw-bold">Unidades Operacionais: Liderança Alpha (Viper), Omega (Brimstone) e Mobilização Wingman (Gekko).</p>
+                    <div id="last-updated-status" class="mt-2"></div>
+                </div>
+            </div>
+            
+            <div id="squads-container">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-danger" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </section>
 
+    <section class="container content-wrapper fade-in-section" id="operations-section" style="display: none;">
+        <div class="d-flex align-items-center mb-3">
+            <div class="decor-square"></div>
+            <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px;">DEBRIEFING</span>
+        </div>
+        <h2 class="val-section-header" id="operations-header">Últimas Operações</h2>
+        <p class="manifesto-text mb-5">Relatório automático de partidas conjuntas (2+ agentes).</p>
+        
+        <div class="row g-4" id="operations-container">
+        </div>
+        
+        <div class="text-center mt-5" id="load-more-container" style="display: none;">
+            <button id="load-more-ops-btn" class="btn-val text-dark" style="background-color: transparent; border: 2px solid var(--val-dark);">CARREGAR ARQUIVOS</button>
+        </div>
+    </section>
+
+    <section id="recrutamento-section" class="container content-wrapper text-center mb-5 fade-in-section">
+        <h2 class="val-section-header text-center w-100 border-0 mb-2">Pronto para a rankeada?</h2>
+        <p class="text-muted fw-bold mb-4">Insira suas credenciais abaixo.</p>
+        
+        <form id="recrutamento-form" class="mx-auto text-start" style="max-width: 400px;">
+            <div class="mb-3">
+                <label class="text-dark fw-bold small text-uppercase mb-1">Riot ID (Ex: OUSADIA#013)</label>
+                <input type="text" id="riotIdInput" class="form-control val-input" required placeholder="SeuNick#TAG">
+            </div>
+            <div class="mb-3">
+                <label class="text-dark fw-bold small text-uppercase mb-1">Função Principal</label>
+                <select id="roleInput" class="form-control val-input" required>
+                    <option value="Controlador">Controlador</option>
+                    <option value="Duelista">Duelista</option>
+                    <option value="Iniciador">Iniciador</option>
+                    <option value="Sentinela">Sentinela</option>
+                    <option value="Flex">Flex</option>
+                </select>
+            </div>
+            <div class="mb-4 p-3 border-start border-4" style="background-color: rgba(190, 243, 62, 0.1); border-color: #bef33e !important;">
+                <div class="fw-bold small text-uppercase mb-1" style="color: #bef33e;">Destino Inicial</div>
+                <div class="text-dark fs-6 fw-bold">ESQUADRÃO WINGMAN (RESERVA)</div>
+                <div class="text-muted small mt-1">O acesso às Lideranças Alpha e Ômega é restrito. Conclua o alistamento e acesse nosso terminal no Telegram para solicitar transferência.</div>
+            </div>
+            <button type="submit" class="btn-val w-100" id="submitBtn">ALISTAR-SE</button>
+            <div id="formFeedback" class="mt-3 small text-center fw-bold" aria-live="polite"></div>
+        </form>
+    </section>
+
+    <div class="container text-center my-5 pb-5">
+        <div class="d-flex align-items-center justify-content-center hover-opacity-link transition-all" style="cursor: pointer; opacity: 0.5;">
+            <div style="height: 1px; width: 50px; background: var(--val-red);"></div>
+            <a href="briefing.html?mode=review" class="mx-3 text-uppercase fw-bold text-decoration-none" style="font-size: 0.75rem; letter-spacing: 2px; color: var(--val-light);">
+                <span style="color: var(--val-red);" class="blink-warning">[ ⚠ ]</span> Solicitar Re-briefing de Missão
+            </a>
+            <div style="height: 1px; width: 50px; background: var(--val-red);"></div>
+        </div>
+        <p class="text-muted small mt-2" style="font-size: 0.6rem; letter-spacing: 1px;">ACESSO RESTRITO A AGENTES EM TREINAMENTO</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
 </html>
