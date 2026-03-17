@@ -5,37 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Protocolo V | Simulação de Infiltração</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="style.css" rel="stylesheet"> 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --val-red: #ff4655; --val-light: #ece8e1; --val-dark: #0f1923; --val-green: #bef33e; --tg-bg: #17212b; }
-        body { background-color: var(--val-dark); color: var(--val-light); font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        :root { 
+            --val-red: #ff4655; 
+            --val-light: #ece8e1; 
+            --val-dark: #0f1923; 
+            --val-green: #bef33e; 
+            --val-gray-light: #c2c7ce; /* Cinzento claro criado para fundo escuro */
+        }
+        body { 
+            background-color: var(--val-dark); 
+            color: var(--val-light); 
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden; 
+        }
         
         .sync-bar-container { background: rgba(255,255,255,0.1); height: 4px; width: 100%; margin-bottom: 40px; }
         .sync-bar-fill { background: var(--val-green); height: 100%; width: 20%; transition: width 0.5s ease; }
         
-        .module-step { display: none; margin-bottom: 30px; }
+        .module-step { display: none; margin-bottom: 40px; }
         .module-step.active { display: block; animation: fadeIn 0.5s; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .cmd-box { background: rgba(0,0,0,0.5); border-left: 3px solid var(--val-red); padding: 15px; font-family: monospace; margin: 15px 0; font-size: 0.9rem;}
+        /* Ajuste de Leitura (O Segredo do Contraste) */
+        .lore-text {
+            color: var(--val-gray-light) !important;
+            font-size: 1.15rem;
+            line-height: 1.7;
+            font-weight: 400;
+        }
+
+        .cmd-box { 
+            background: rgba(0,0,0,0.6); 
+            border-left: 4px solid var(--val-red); 
+            padding: 18px; 
+            font-family: 'Courier New', Courier, monospace; 
+            margin: 20px 0; 
+            font-size: 1.05rem;
+            color: #ffffff; /* Letra puramente branca na caixa preta */
+            border-radius: 0 4px 4px 0;
+        }
         
         .btn-next { 
-            background: transparent; color: var(--val-light); border: 1px solid var(--val-gray); 
-            padding: 12px 24px; font-family: 'Teko', sans-serif; font-size: 1.2rem; 
+            background: transparent; color: var(--val-light); border: 1px solid var(--val-gray-light); 
+            padding: 12px 28px; font-family: 'Teko', sans-serif; font-size: 1.3rem; 
             letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.3s ease;
             text-decoration: none; display: inline-block;
         }
-        .btn-next:hover { background: var(--val-light); color: var(--val-dark); }
+        .btn-next:hover { background: var(--val-light); color: var(--val-dark); border-color: var(--val-light); }
         
-        .highlight-text { color: var(--val-green); font-weight: bold; }
+        .highlight-text { color: var(--val-green); font-weight: 600; }
+        .highlight-red { color: var(--val-red); font-weight: 600; }
     </style>
 </head>
 <body>
     <div class="container py-5" style="max-width: 800px;">
         <div class="d-flex align-items-center mb-4">
-            <h1 class="text-uppercase m-0" style="color: var(--val-red); font-size: 3rem;" id="page-title">INTEGRAÇÃO DE SISTEMAS</h1>
+            <h1 class="text-uppercase m-0" style="color: var(--val-red); font-size: 3.5rem; letter-spacing: 1px;" id="page-title">INTEGRAÇÃO DE SISTEMAS</h1>
         </div>
 
         <div class="sync-bar-container" id="syncContainer">
@@ -43,22 +71,22 @@
         </div>
 
         <div class="module-step active" id="step1">
-            <h2 class="text-white mb-3">1. ESQUADRÃO WINGMAN (RESERVA)</h2>
-            <p class="text-muted" style="font-size: 1.1rem; line-height: 1.6;">
+            <h2 class="text-white mb-3" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; letter-spacing: 1px;">1. ESQUADRÃO WINGMAN (RESERVA)</h2>
+            <p class="lore-text">
                 Alistamento concluído. Você foi alocado na nossa força de prontidão: o <span class="highlight-text">Esquadrão Wingman</span>. Sob o comando do Agente 22 (Gekko), você aguardará ordens de mobilização.
             </p>
-            <p class="text-muted" style="font-size: 1.1rem; line-height: 1.6;">
+            <p class="lore-text">
                 A partir de agora, mesmo na reserva, a <strong>Sala de Treino</strong> já monitoriza o seu desempenho. Cada abate no modo Mata-Mata gera pontos para o ranking. Aqueça a mira antes de solicitar transferência.
             </p>
             <button class="btn-next mt-3" onclick="nextStep(2)">Ciente. Avançar.</button>
         </div>
 
         <div class="module-step" id="step2">
-            <h2 class="text-white mb-3">2. LIDERANÇAS: ALPHA E ÔMEGA</h2>
-            <p class="text-muted" style="font-size: 1.1rem; line-height: 1.6;">
-                O verdadeiro objetivo é a titularidade. As Unidades <strong>Alpha</strong> (Viper) e <strong>Ômega</strong> (Brimstone) são as nossas forças de elite e possuem <span style="color: var(--val-red); font-weight: bold;">vagas limitadas a 1 Agente por Função</span> (Apenas um Duelista Alpha, um Controlador Ômega, etc).
+            <h2 class="text-white mb-3" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; letter-spacing: 1px;">2. LIDERANÇAS: ALPHA E ÔMEGA</h2>
+            <p class="lore-text">
+                O verdadeiro objetivo é a titularidade. As Unidades <strong>Alpha</strong> (Viper) e <strong>Ômega</strong> (Brimstone) são as nossas forças de elite e possuem <span class="highlight-red">vagas limitadas a 1 Agente por Função</span> (Apenas um Duelista Alpha, um Controlador Ômega, etc).
             </p>
-            <p class="text-muted" style="font-size: 1.1rem; line-height: 1.6;">
+            <p class="lore-text">
                 Para sair da Wingman e reivindicar o seu lugar nestas unidades, você precisará aceder ao nosso rádio de comunicação (Bot do Telegram) e usar o comando de transferência informando a Divisão e o seu ID.
             </p>
             <div class="cmd-box">
@@ -69,68 +97,63 @@
         </div>
 
         <div class="module-step" id="step3">
-            <h2 class="text-white mb-3">3. MÉRITO E SINERGIA (SN)</h2>
-            <p class="text-muted" style="font-size: 1.1rem; line-height: 1.6;">
+            <h2 class="text-white mb-3" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; letter-spacing: 1px;">3. MÉRITO E SINERGIA (SN)</h2>
+            <p class="lore-text">
                 O que acontece se você tentar transferir-se para a Unidade Alpha como Duelista, mas a vaga já estiver ocupada por um veterano? Aqui entra a <span class="highlight-text">Sinergia (SN)</span>.
             </p>
-            <p class="text-muted" style="font-size: 1.1rem; line-height: 1.6;">
-                A Sinergia é adquirida <strong>exclusivamente ao jogar Ranqueadas com outros membros do Protocolo</strong>. Se você tiver mais pontos de Sinergia que o titular atual, você toma a vaga dele. Se tiver menos, o sistema avisará que a vaga está protegida e você ficará com a marca de "Reserva" no painel. O trabalho em equipa é a única forma de garantir o seu lugar no topo.
+            <p class="lore-text">
+                A Sinergia é adquirida <strong class="text-white">exclusivamente ao jogar Ranqueadas com outros membros do Protocolo</strong>. Se você tiver mais pontos de Sinergia que o titular atual, você toma a vaga dele. Se tiver menos, o sistema avisará que a vaga está protegida e você ficará com a marca de "Reserva" no painel. O trabalho em equipa é a única forma de garantir o seu lugar no topo.
             </p>
             <button class="btn-next mt-3" onclick="nextStep(4)">Entendido.</button>
         </div>
 
         <div class="module-step" id="step4">
-            <h2 class="text-white mb-3">4. O RÁDIO DE COMANDO (TELEGRAM)</h2>
-            <p class="text-muted" style="font-size: 1.1rem; line-height: 1.6;">
+            <h2 class="text-white mb-3" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; letter-spacing: 1px;">4. O RÁDIO DE COMANDO (TELEGRAM)</h2>
+            <p class="lore-text">
                 Toda a sua interação com o sistema é feita pelo nosso Bot no Telegram. Este é o seu manual de sobrevivência, memorize estes comandos vitais:
             </p>
-            <div class="cmd-box">
-                <span class="text-white fw-bold">📢 /convocar [CÓDIGO_LOBBY]</span> - Acende o Alarme vermelho no site chamando reforços.<br><br>
-                <span class="text-white fw-bold">🔄 /unidade [SQUAD] [NOME]</span> - Solicita transferência de esquadrão.<br><br>
-                <span class="text-white fw-bold">👤 /perfil [NOME]</span> - Inspeciona o dossiê (Sinergia, DM, Rank) de um agente.<br><br>
-                <span class="text-white fw-bold">🏆 /ranking</span> - Exibe os líderes de mérito do Protocolo V.
+            <div class="cmd-box" style="line-height: 1.8;">
+                <span style="color: var(--val-green); font-weight: bold;">📢 /convocar [CÓDIGO_LOBBY]</span> - Acende o Alarme vermelho no site chamando reforços.<br>
+                <span style="color: var(--val-green); font-weight: bold;">🔄 /unidade [SQUAD] [NOME]</span> - Solicita transferência de esquadrão.<br>
+                <span style="color: var(--val-green); font-weight: bold;">👤 /perfil [NOME]</span> - Inspeciona o dossiê (Sinergia, DM, Rank) de um agente.<br>
+                <span style="color: var(--val-green); font-weight: bold;">🏆 /ranking</span> - Exibe os líderes de mérito do Protocolo V.
             </div>
             <button class="btn-next mt-3" onclick="nextStep(5)">Concluir Briefing.</button>
         </div>
 
         <div class="module-step" id="finalStep">
-            <div class="card bg-black border-secondary mt-4">
-                <div class="card-body p-4 text-center">
-                    <h2 style="color: var(--val-green); font-size: 3rem;">ACESSO LIBERADO</h2>
-                    <p class="text-muted mb-4">Você está pronto. Aceda ao terminal de comando no Telegram para procurar o seu primeiro esquadrão ou solicitar a sua transferência.</p>
+            <div class="card border-secondary mt-4" style="background-color: rgba(0, 0, 0, 0.4);">
+                <div class="card-body p-5 text-center">
+                    <h2 style="color: var(--val-green); font-size: 3.5rem; font-family: 'Teko', sans-serif; letter-spacing: 2px;">ACESSO LIBERADO</h2>
+                    <p class="lore-text mb-5">Você está pronto. Aceda ao terminal de comando no Telegram para procurar o seu primeiro esquadrão ou solicitar a sua transferência.</p>
                     
-                    <a href="https://t.me/ProtocoloV_Intel_Bot" target="_blank" class="btn-next mb-3" style="background: var(--val-green); color: var(--val-dark); font-weight: bold;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2 mb-1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.62-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                    <a href="https://t.me/ProtocoloV_Intel_Bot" target="_blank" class="btn-next mb-4" style="background: var(--val-green); color: var(--val-dark); font-weight: 800; border: none; font-size: 1.5rem; padding: 15px 35px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="me-2 mb-1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.62-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
                         ACESSAR TERMINAL (BOT)
                     </a><br>
-                    <a href="index.html" class="text-muted small text-decoration-none hover-opacity-link">Voltar ao QG Principal</a>
+                    <a href="index.html" class="text-white small text-decoration-none" style="opacity: 0.7; transition: opacity 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">Voltar ao QG Principal</a>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Lógica Inteligente de Exibição
         const urlParams = new URLSearchParams(window.location.search);
         const isReview = urlParams.get('mode') === 'review';
 
         if (isReview) {
-            // MODO VETERANO: Exibe tudo de uma vez como um Manual
-            document.getElementById('page-title').innerText = "MANUAL DO AGENTE";
-            document.getElementById('syncContainer').style.display = 'none'; // Esconde barra de progresso
+            document.getElementById('page-title').innerText = "MANUAL DE OPERAÇÕES";
+            document.getElementById('syncContainer').style.display = 'none';
             
-            // Exibe todos os passos simultaneamente
             document.querySelectorAll('.module-step').forEach(step => {
                 step.classList.add('active');
             });
             
-            // Esconde os botões "Avançar" para não confundir na leitura
             document.querySelectorAll('.btn-next[onclick^="nextStep"]').forEach(btn => {
                 btn.style.display = 'none';
             });
             
         } else {
-            // MODO RECRUTA: Mantém o tutorial passo a passo
             document.getElementById('step1').classList.add('active');
         }
 
