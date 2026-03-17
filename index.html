@@ -4,86 +4,277 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PROTOCOLO V | Operações Táticas</title>
+
+    <!-- Google Fonts: Teko + Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap (grid apenas) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* Helpers não cobertos pelo style.css principal */
+        .t-valorant { font-family: 'Teko', sans-serif; text-transform: uppercase; }
+        .player-mini-card { width: 48px; height: 48px; object-fit: cover; border-radius: 0; }
+        .squad-card { border-width: 2px !important; }
+        .roles-grid { display: flex; flex-direction: column; gap: 4px; }
+        .section-label {
+            font-family: 'Inter', sans-serif; font-size: 0.7rem;
+            letter-spacing: 5px; text-transform: uppercase;
+            opacity: 0.45; margin-bottom: 1.5rem;
+        }
+    </style>
 </head>
-<body class="bg-black text-white">
+<body>
 
-    <header class="container py-5 text-center border-bottom border-secondary mb-5">
-        <div class="mb-3 opacity-50 small" style="letter-spacing: 5px;">/// PROTOCOLO V</div>
-        <a href="treino.html" class="btn btn-outline-warning btn-sm mb-4">SALA DE TREINO</a>
-        <h1 class="t-valorant display-3 mb-3">PROTOCOLO V</h1>
-        <p class="lead text-muted mx-auto" style="max-width: 600px;">
-            O recrutamento tático para jogadores que procuram evolução, sinergia e um ambiente livre de toxicidade.
-        </p>
-        <div class="mt-4">
-            <a href="#recrutamento" class="btn btn-danger btn-lg rounded-0 px-5 t-valorant">ALISTAR AGORA [!]</a>
-        </div>
-        <div id="last-updated-status" class="mt-4"></div>
-    </header>
+    <!-- ==========================================
+         FUNDO MASSIVO (decorativo)
+    =========================================== -->
+    <div class="val-bg-text-massive" aria-hidden="true">PROTO<br>COLO</div>
 
-    <main class="container">
-        <section class="mb-5">
-            <h2 class="t-valorant mb-4 border-start border-danger ps-3">UNIDADES ATIVAS</h2>
-            <div id="squads-container" class="row">
-                <div class="col-12 text-center py-5">
-                    <div class="spinner-border text-danger" role="status"></div>
-                    <p class="mt-2 text-muted">Sincronizando esquadrões...</p>
-                </div>
+    <!-- ==========================================
+         HEADER
+    =========================================== -->
+    <header style="position:relative; z-index:1; padding: 60px 0 40px;">
+        <div class="container">
+
+            <!-- Barra superior: Telegram + Status -->
+            <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+                <a href="https://t.me/seulink" target="_blank" class="telegram-link-header">
+                    <!-- Ícone Telegram SVG inline -->
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:8px;flex-shrink:0;">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 14.47l-2.945-.92c-.64-.203-.654-.64.136-.954l11.5-4.433c.534-.194 1.001.13.701.085z"/>
+                    </svg>
+                    CANAL DE MONITORAMENTO
+                </a>
+
+                <div id="last-updated-status" class="text-end"></div>
             </div>
-        </section>
 
-        <section class="mb-5">
-            <h2 class="t-valorant mb-4 border-start border-warning ps-3">UNIDADE WINGMAN</h2>
-            <p class="small text-muted mb-4">Mobilização rápida. Força de suporte aguardando ordens para inserção imediata.</p>
-            <div id="wingman-list" class="row">
-                </div>
-        </section>
+            <!-- Título principal -->
+            <div class="section-label">/// OPERAÇÕES TÁTICAS</div>
 
-        <section class="mb-5 bg-dark-subtle p-4 rounded border border-secondary">
-            <h2 class="t-valorant mb-4 text-info">HISTÓRICO DE MISSÕES</h2>
-            <div id="ops-container">
-                </div>
-            <div class="text-center mt-3">
-                <button id="load-more-ops" class="btn btn-sm btn-outline-secondary">CARREGAR MAIS</button>
-            </div>
-        </section>
-
-        <section id="recrutamento" class="py-5 border-top border-secondary">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="card bg-black border-danger p-4">
-                        <h3 class="t-valorant text-center mb-4">RECRUTAMENTO</h3>
-                        <form id="recruitment-form">
-                            <div class="mb-3">
-                                <label class="form-label small text-muted">RIOT ID (Nome#TAG)</label>
-                                <input type="text" id="riotId" class="form-control bg-dark text-white border-secondary" placeholder="Jett#BR1" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label small text-muted">FUNÇÃO PRINCIPAL</label>
-                                <select id="role" class="form-select bg-dark text-white border-secondary">
-                                    <option value="Controlador">Controlador</option>
-                                    <option value="Duelista">Duelista</option>
-                                    <option value="Iniciador">Iniciador</option>
-                                    <option value="Sentinela">Sentinela</option>
-                                    <option value="Flex">Flex</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-danger w-100 rounded-0 t-valorant">ENVIAR DADOS</button>
-                            <div id="form-feedback" class="mt-3 text-center small"></div>
-                        </form>
+            <div class="row align-items-end">
+                <div class="col-lg-7">
+                    <h1 class="t-valorant mb-4" style="font-size: clamp(4rem, 12vw, 9rem); line-height: 0.85; color: var(--val-dark);">
+                        PROTO<br>COLO<br><span style="color:var(--val-red);">V</span>
+                    </h1>
+                    <p class="manifesto-text mb-5" style="max-width: 520px;">
+                        O recrutamento tático para jogadores que procuram <strong>evolução</strong>,
+                        <strong>sinergia</strong> e um ambiente livre de toxicidade. Cada decisão importa.
+                        Cada missão é real.
+                    </p>
+                    <div class="d-flex flex-wrap align-items-center gap-3">
+                        <a href="#recrutamento" class="btn-val">
+                            ALISTAR AGORA [!]
+                        </a>
+                        <a href="treino.html" class="telegram-link-header">
+                            ▸ SALA DE TREINO
+                        </a>
                     </div>
                 </div>
             </div>
-        </section>
-    </main>
 
-    <footer class="container py-5 text-center text-muted small">
-        <a href="https://t.me/seulink" target="_blank" class="text-info text-decoration-none">CANAL DE MONITORAMENTO (TELEGRAM)</a>
-        <p class="mt-3">&copy; 2024 PROTOCOLO V - AGENTE 22 GEKKO SUB-ROUTINE</p>
+        </div>
+    </header>
+
+    <!-- ==========================================
+         SEÇÃO: UNIDADES ATIVAS  (dark)
+    =========================================== -->
+    <section class="bg-dark-section content-wrapper fade-in-section">
+        <div class="container" style="position:relative; overflow:hidden;">
+            <div class="val-bg-text-massive" style="right:-5vw; left:auto;" aria-hidden="true">SQUAD</div>
+
+            <h2 class="val-section-header">UNIDADES ATIVAS</h2>
+
+            <div id="squads-container" class="row">
+                <!-- Carregando via script.js -->
+                <div class="col-12 py-5 text-center">
+                    <div class="spinner-border" style="color: var(--val-red);" role="status"></div>
+                    <p class="mt-3" style="color:var(--val-gray); font-family:'Inter', sans-serif; font-size:.85rem; letter-spacing:2px;">
+                        SINCRONIZANDO ESQUADRÕES...
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         SEÇÃO: UNIDADE WINGMAN (clara)
+    =========================================== -->
+    <section class="content-wrapper fade-in-section" style="background-color: var(--val-light);">
+        <div class="container">
+            <h2 class="val-section-header">UNIDADE WINGMAN</h2>
+            <p class="manifesto-text mb-4" style="max-width:560px; opacity:.65;">
+                Mobilização rápida. Força de suporte aguardando ordens para inserção imediata.
+                Agentes prontos para reforçar qualquer unidade.
+            </p>
+            <div id="wingman-list" class="row g-3">
+                <!-- Populado via script.js -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         SEÇÃO: DIRETRIZES OPERACIONAIS (dark)
+    =========================================== -->
+    <section class="bg-dark-section content-wrapper fade-in-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-5 mb-5 mb-lg-0">
+                    <h2 class="val-section-header">DIRETRIZES<br>DE CAMPO</h2>
+                    <p class="manifesto-text mt-5" style="color: var(--val-light); max-width:380px;">
+                        Este protocolo não é um clã casual. É uma estrutura tática com propósito.
+                        <strong>Jogue com intenção ou não jogue.</strong>
+                    </p>
+                </div>
+                <div class="col-lg-6 offset-lg-1">
+                    <div class="rule-item">
+                        <svg class="icon-svg" viewBox="0 0 20 20"><polygon points="10,1 12.5,7 19,7.6 14,12 15.9,18.5 10,15 4.1,18.5 6,12 1,7.6 7.5,7"/></svg>
+                        <span style="color:var(--val-light); font-family:'Inter',sans-serif; font-weight:500;">
+                            <strong style="color:var(--val-red);">Zero toxicidade.</strong>
+                            Qualquer comportamento que prejudique o time é passível de desligamento imediato.
+                        </span>
+                    </div>
+                    <div class="rule-item">
+                        <svg class="icon-svg" viewBox="0 0 20 20"><polygon points="10,1 12.5,7 19,7.6 14,12 15.9,18.5 10,15 4.1,18.5 6,12 1,7.6 7.5,7"/></svg>
+                        <span style="color:var(--val-light); font-family:'Inter',sans-serif; font-weight:500;">
+                            <strong style="color:var(--val-red);">Comunicação ativa.</strong>
+                            Discordância e calls claros são obrigatórios. Silêncio é desvantagem tática.
+                        </span>
+                    </div>
+                    <div class="rule-item">
+                        <svg class="icon-svg" viewBox="0 0 20 20"><polygon points="10,1 12.5,7 19,7.6 14,12 15.9,18.5 10,15 4.1,18.5 6,12 1,7.6 7.5,7"/></svg>
+                        <span style="color:var(--val-light); font-family:'Inter',sans-serif; font-weight:500;">
+                            <strong style="color:var(--val-red);">Pontualidade operacional.</strong>
+                            Missões agendadas exigem presença. Ausências sem aviso comprometem a unidade.
+                        </span>
+                    </div>
+                    <div class="rule-item">
+                        <svg class="icon-svg" viewBox="0 0 20 20"><polygon points="10,1 12.5,7 19,7.6 14,12 15.9,18.5 10,15 4.1,18.5 6,12 1,7.6 7.5,7"/></svg>
+                        <span style="color:var(--val-light); font-family:'Inter',sans-serif; font-weight:500;">
+                            <strong style="color:var(--val-red);">Evolução contínua.</strong>
+                            Revisar demos, aceitar feedback tático e treinar fora das partidas ranqueadas.
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         SEÇÃO: HISTÓRICO DE MISSÕES (clara)
+    =========================================== -->
+    <section class="content-wrapper fade-in-section" style="background-color: var(--val-light);">
+        <div class="container">
+            <h2 class="val-section-header">HISTÓRICO<br>DE MISSÕES</h2>
+
+            <div id="ops-container" class="mt-5">
+                <!-- Populado via script.js -->
+            </div>
+
+            <div class="text-center mt-4">
+                <button id="load-more-ops" class="btn-val" style="font-size:1.1rem; padding:8px 30px;">
+                    CARREGAR MAIS
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         SEÇÃO: RECRUTAMENTO (dark)
+    =========================================== -->
+    <section id="recrutamento" class="bg-dark-section content-wrapper fade-in-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6 col-md-8">
+
+                    <div class="text-center mb-5">
+                        <h2 class="val-section-header d-inline-block">RECRUTAMENTO</h2>
+                        <p class="mt-4" style="color:var(--val-gray); font-family:'Inter',sans-serif;">
+                            Preencha com seu Riot ID e função principal. Você será alocado na fila de análise.
+                        </p>
+                    </div>
+
+                    <form id="recruitment-form" novalidate>
+
+                        <div class="mb-4">
+                            <label class="section-label d-block mb-2" style="color:var(--val-gray);">
+                                RIOT ID (Nome#TAG)
+                            </label>
+                            <input
+                                type="text"
+                                id="riotId"
+                                class="form-control val-input"
+                                placeholder="Jett#BR1"
+                                required
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="section-label d-block mb-2" style="color:var(--val-gray);">
+                                FUNÇÃO PRINCIPAL
+                            </label>
+                            <select id="role" class="form-control val-input">
+                                <option value="Controlador">Controlador</option>
+                                <option value="Duelista">Duelista</option>
+                                <option value="Iniciador">Iniciador</option>
+                                <option value="Sentinela">Sentinela</option>
+                                <option value="Flex">Flex</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-val w-100" style="font-size:1.6rem; justify-content:center;">
+                            ENVIAR DADOS
+                        </button>
+
+                        <div id="form-feedback" class="mt-4 text-center" style="font-family:'Inter',sans-serif; font-size:.9rem;"></div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         FOOTER
+    =========================================== -->
+    <footer style="background-color: var(--val-dark); padding: 50px 0; position:relative; z-index:1;">
+        <div class="container text-center">
+            <p class="t-valorant" style="font-size: 3rem; color: var(--val-light); opacity:.15; margin-bottom: 20px;">
+                PROTOCOLO V
+            </p>
+            <a href="https://t.me/seulink" target="_blank" class="telegram-link-header d-inline-flex mb-4">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right:8px;">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 14.47l-2.945-.92c-.64-.203-.654-.64.136-.954l11.5-4.433c.534-.194 1.001.13.701.085z"/>
+                </svg>
+                CANAL DE MONITORAMENTO (TELEGRAM)
+            </a>
+            <p style="color: var(--val-gray); font-family:'Inter',sans-serif; font-size:.75rem; letter-spacing:2px; margin:0;">
+                &copy; 2024 PROTOCOLO V — AGENTE 22 GEKKO SUB-ROUTINE
+            </p>
+        </div>
     </footer>
 
     <script src="script.js"></script>
+
+    <!-- Fade-in on scroll -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-visible'); } });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.fade-in-section').forEach(el => observer.observe(el));
+        });
+    </script>
+
 </body>
 </html>
