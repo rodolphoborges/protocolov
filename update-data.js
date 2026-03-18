@@ -204,36 +204,47 @@ async function run() {
                 const isMissingData = !playerData.level || !playerData.current_rank || playerData.current_rank === 'Processando...' || playerData.current_rank === 'Pendente';
 
                 if (!playerData.api_error) {
-                    // CORTA chamadas para MMR e Level se o player não jogou nenhuma partida nova E já tem os dados na base.
-                    if (hasNewMatches || isMissingData) {
+                    if (hasNewMatches) {
                         try {
-                            const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
-                            if (accRes.status === 200) {
-                                const accData = await accRes.json();
-                                playerData.level = accData.data.account_level;
-                                playerData.card_url = accData.data.card.small;
-                                region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
-                            }
-
-                            const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
-                            if (mmrRes.status === 200) {
-                                const mmrData = await mmrRes.json();
-                                if (mmrData.data.current_data?.currenttierpatched) {
-                                    playerData.current_rank = mmrData.data.current_data.currenttierpatched;
-                                    playerData.current_rank_icon = mmrData.data.current_data.images.small;
+                            // EXTRAÇÃO INTELIGENTE (SINGLE REQUEST TRUTH): Tirar info do MMR/Level directo das Partidas!
+                            // Encontrar a partida mais recente válida (Qualquer modo serve para nível/carta)
+                            const allRecentObj = listData.data.find(m => m.players && m.players.all_players);
+                            
+                            if (allRecentObj) {
+                                const me = allRecentObj.players.all_players.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
+                                if (me) {
+                                    playerData.level = me.level;
+                                    playerData.card_url = me.assets.card.small;
+                                    
+                                    // Para o Rank, preferimos extrair da partida Competitiva mais recente
+                                    const lastCompObj = recentCompMatches.length > 0 ? recentCompMatches[0] : null;
+                                    if (lastCompObj) {
+                                        const meComp = lastCompObj.players.all_players.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
+                                        if (meComp && meComp.currenttier_patched) {
+                                            playerData.current_rank = meComp.currenttier_patched;
+                                        }
+                                    }
                                 }
-                                if (mmrData.data.highest_rank?.patched_tier) {
-                                    playerData.peak_rank = mmrData.data.highest_rank.patched_tier;
-                                    const peakTier = mmrData.data.highest_rank.tier;
-                                    if (peakTier) playerData.peak_rank_icon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
+                            }
+                            
+                            // SE, e apenas se, a conta for tão nova que não conseguimos extrair o rank mas há cache falhado, gastamos chamadas
+                            if (isMissingData && (playerData.current_rank === 'Processando...' || playerData.current_rank === 'Pendente')) {
+                                console.log(`      ⚠️ Rank ausente. Executando fallback para API de MMR (Custo extra)`);
+                                const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
+                                if (mmrRes.status === 200) {
+                                    const mmrData = await mmrRes.json();
+                                    if (mmrData.data.current_data?.currenttierpatched) {
+                                        playerData.current_rank = mmrData.data.current_data.currenttierpatched;
+                                        playerData.current_rank_icon = mmrData.data.current_data.images.small;
+                                    }
                                 }
                             }
                         } catch (err) {
-                            console.log(`      ⚠️ Falha ao atualizar dados de Rank/Level (Erro ignorado)`);
+                            console.log(`      ⚠️ Falha ao extrair dados de Rank/Level nativos (Erro ignorado)`);
                         }
                     } else {
-                        console.log(`      ⚡ Cache ativo: Nenhuma partida nova. Ignorando requisições MMR/Level.`);
-                        await delay(currentDelay); // Proteção final dinâmica contra saltos
+                        console.log(`      ⚡ Cache ativo: Nenhuma partida nova. Ignorando chamadas adicionais.`);
+                        await delay(currentDelay); 
                     }
                 }
             } catch (err) {
