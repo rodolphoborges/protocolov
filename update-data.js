@@ -5,7 +5,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BASE_DELAY = 8000; // Tentativa agressiva (12 pedidos limpos por minuto)
+const BASE_DELAY = 9000; // Tentativa agressiva (12 pedidos limpos por minuto)
 let currentDelay = BASE_DELAY;
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
