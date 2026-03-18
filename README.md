@@ -13,12 +13,12 @@ O sistema monitora automaticamente o desempenho dos agentes, recompensa o jogo e
 ## 🚀 Funcionalidades Principais
 
 * 📝 **Alistamento Automatizado:** Interface web em que novos agentes se inscrevem via Riot ID, escolhendo a sua função principal.
-* 🤖 **Bot de Comando (Telegram):** Bot integrado para solicitar transferências de unidade, validar vagas ocupadas e receber alertas automáticos do servidor sobre missões concluídas.
+* 🤖 **Bot de Comando (Telegram):** Bot integrado que permite a vinculação de contas (`/vincular`), verificação de estatísticas (`/ranking`, `/perfil`), transferência de unidade tática (`/unidade`) e emissão de alertas automáticos.
+* 🚨 **Sinalizador Orbital (Matchmaking):** Os agentes podem utilizar o comando `/convocar` no Telegram para exibir um alerta de LFG global (Lobby Banner) com um código de convite no topo do site por 30 minutos.
 * 📊 **Rastreamento Automático (Henrik API):** Um script autónomo (`update-data.js`) rastreia o histórico de partidas dos agentes cadastrados para calcular pontos e extrair estatísticas de combate (KDA, HS%).
 * ⚔️ **Leaderboard de Treino (Mata-Mata):** Ranking dinâmico (Semanal, Mensal e Geral) que rastreia o desempenho no modo Deathmatch para incentivar o aquecimento antes das ranqueadas.
 * 🐺 **Sistema Anti-SoloQ (Lobo Solitário):** Identifica e marca publicamente no site os agentes que insistem em jogar partidas competitivas sozinhos.
 * 🧹 **Expurgo Automático:** Agentes que não geram pontos de sinergia nos primeiros 7 dias após o alistamento são automaticamente removidos da base de dados.
-* 🚨 **Sinalizador Orbital:** Deteta agentes à procura de grupo e exibe um alerta de convocação diretamente no topo do site (Lobby Banner).
 
 ---
 
