@@ -314,13 +314,13 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
                     </div>
                     <div class="d-flex gap-4 mt-2 pt-2 border-top border-secondary border-opacity-25" style="font-family: 'Teko', sans-serif; letter-spacing: 0.5px;">
                         <div>
-                            <div class="text-uppercase text-muted" style="font-size: 0.75rem; line-height: 1;">[ESPECIALISTA OPERACIONAL]</div>
+                            <div class="text-uppercase" style="color: #b0b8b4; font-size: 0.75rem; line-height: 1;">[ESPECIALISTA OPERACIONAL]</div>
                             <div id="intel-agent-${player.riot_id.replace(/[^a-zA-Z0-9]/g, '')}" class="text-light mt-1 d-flex align-items-center gap-1" style="font-size: 1.1rem; line-height: 1.2;">
                                 <span class="spinner-grow spinner-grow-sm text-secondary" role="status" style="width: 0.6rem; height: 0.6rem;"></span> CLASSIFIED
                             </div>
                         </div>
                         <div>
-                            <div class="text-uppercase text-muted" style="font-size: 0.75rem; line-height: 1;">[PRECISÃO ALVO]</div>
+                            <div class="text-uppercase" style="color: #b0b8b4; font-size: 0.75rem; line-height: 1;">[PRECISÃO TÁTICA]</div>
                             <div id="intel-hs-${player.riot_id.replace(/[^a-zA-Z0-9]/g, '')}" class="text-danger mt-1" style="font-size: 1.1rem; line-height: 1.2;">
                                 <span class="spinner-grow spinner-grow-sm text-secondary" role="status" style="width: 0.6rem; height: 0.6rem;"></span> --%
                             </div>
