@@ -129,14 +129,14 @@
         const isReview = urlParams.get('mode') === 'review';
 
         if (isReview) {
-            document.getElementById('page-title').innerText = "MANUAL DE OPERAÇÕES";
+            document.getElementById('page-title').innerHTML = '<span class="cypher-decor-square d-none d-md-inline-block"></span> VAZAMENTO DE <span class="text-cypher">DADOS</span>';
             document.getElementById('syncContainer').style.display = 'none';
             
             document.querySelectorAll('.module-step').forEach(step => {
                 step.classList.add('active');
             });
             
-            document.querySelectorAll('.btn-next[onclick^="nextStep"]').forEach(btn => {
+            document.querySelectorAll('.btn-cypher[onclick^="nextStep"]').forEach(btn => {
                 btn.style.display = 'none';
             });
             
