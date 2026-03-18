@@ -5,7 +5,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const REQUEST_DELAY = 2100; // ~2.1s por requisição garante no máximo 28 req/minuto
+const REQUEST_DELAY = 2500; // ~2.5s por req (máximo 24 req/minuto) para evitar punição de burst da API
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 // Variáveis de controle global de Rate Limit
