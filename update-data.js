@@ -37,7 +37,7 @@ async function smartFetch(url, headers, retries = 3) {
 
             // JITTER TÁTICO: Aumenta o tempo base em algo variável de 15% a 30% a cada strike
             const penaltyMultiplier = 1.15 + (Math.random() * 0.15);
-            currentDelay = Math.min(Math.floor(currentDelay * penaltyMultiplier), 15000); // Nunca ultrapassa 15 segundos per request (cap expansivo)
+            currentDelay = Math.min(Math.floor(currentDelay * penaltyMultiplier), 30000); // Nunca ultrapassa 30 segundos per request (cap expansivo)
 
             let resetInSeconds = parseInt(response.headers.get('x-ratelimit-reset')) || 30; // Pode ser falso.
 
