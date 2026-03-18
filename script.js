@@ -308,9 +308,23 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
                         ${loneWolfBadge}
                         ${warningBadge}
                     </div>
-                    <div class="d-flex gap-4 mt-2">
+                    <div class="d-flex gap-4 mt-2 mb-2">
                         <div><div class="stat-label">Elo Atual</div><div class="stat-val d-flex align-items-center gap-2">${eloHTML}</div></div>
                         <div><div class="stat-label">Rank Máximo</div><div class="stat-val text-accent d-flex align-items-center gap-2">${peakHTML}</div></div>
+                    </div>
+                    <div class="d-flex gap-4 mt-2 pt-2 border-top border-secondary border-opacity-25" style="font-family: 'Teko', sans-serif; letter-spacing: 0.5px;">
+                        <div>
+                            <div class="text-uppercase text-muted" style="font-size: 0.75rem; line-height: 1;">[ESPECIALISTA OPERACIONAL]</div>
+                            <div id="intel-agent-${player.riot_id.replace(/[^a-zA-Z0-9]/g, '')}" class="text-light mt-1 d-flex align-items-center gap-1" style="font-size: 1.1rem; line-height: 1.2;">
+                                <span class="spinner-grow spinner-grow-sm text-secondary" role="status" style="width: 0.6rem; height: 0.6rem;"></span> CLASSIFIED
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-uppercase text-muted" style="font-size: 0.75rem; line-height: 1;">[PRECISÃO ALVO]</div>
+                            <div id="intel-hs-${player.riot_id.replace(/[^a-zA-Z0-9]/g, '')}" class="text-danger mt-1" style="font-size: 1.1rem; line-height: 1.2;">
+                                <span class="spinner-grow spinner-grow-sm text-secondary" role="status" style="width: 0.6rem; height: 0.6rem;"></span> --%
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="ms-auto pe-2">
@@ -469,6 +483,9 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchCachedData();
     setInterval(fetchCachedData, 300000); // Mantém a atualização a cada 5 minutos
     
+    fetchIntelData();
+    setInterval(fetchIntelData, 300000); // Atualiza métricas complexas a cada 5 mins
+    
     const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
@@ -541,3 +558,148 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+async function fetchIntelData() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('operations')
+            .select(`*, operation_squads(riot_id, agent, agent_img, kda, hs_percent)`)
+            .neq('mode', 'Deathmatch') 
+            .order('started_at', { ascending: false })
+            .limit(50); // Últimas 50 operações do clã
+
+        if (error) throw error;
+        
+        let mapCounts = {};
+        let mapWins = {};
+        let playerStats = {}; 
+        let loneWolves = [];
+        
+        const { data: pData } = await supabaseClient.from('players').select('riot_id, lone_wolf');
+        if (pData) {
+            loneWolves = pData.filter(p => p.lone_wolf).map(p => p.riot_id.split('#')[0]);
+        }
+
+        if (data && data.length > 0) {
+            data.forEach(op => {
+                // Dominância de Mapas
+                if (!mapCounts[op.map]) { mapCounts[op.map] = 0; mapWins[op.map] = 0; }
+                mapCounts[op.map]++;
+                if (op.result === 'VITÓRIA') mapWins[op.map]++;
+                
+                op.operation_squads.forEach(sq => {
+                    const htmlId = sq.riot_id.replace(/[^a-zA-Z0-9]/g, '');
+                    if (!playerStats[htmlId]) {
+                        playerStats[htmlId] = { kills: 0, deaths: 0, ops: 0, hsTotal: 0, agents: {} };
+                    }
+                    
+                    playerStats[htmlId].ops++;
+                    
+                    if (sq.hs_percent) playerStats[htmlId].hsTotal += sq.hs_percent;
+                    
+                    if (sq.kda) {
+                        const [k, d] = sq.kda.split('/').map(Number);
+                        playerStats[htmlId].kills += k;
+                        playerStats[htmlId].deaths += d;
+                    }
+                    
+                    if (sq.agent) {
+                        if (!playerStats[htmlId].agents[sq.agent]) {
+                            playerStats[htmlId].agents[sq.agent] = { count: 0, img: sq.agent_img };
+                        }
+                        playerStats[htmlId].agents[sq.agent].count++;
+                    }
+                });
+            });
+            
+            // UI - Zonas de Domínio
+            let bestMap = 'N/A';
+            let bestMapWinrate = 0;
+            let bestMapPlays = 0;
+            Object.keys(mapCounts).forEach(m => {
+                if (mapCounts[m] >= 3) {
+                    const wr = (mapWins[m] / mapCounts[m]) * 100;
+                    if (wr > bestMapWinrate || (wr === bestMapWinrate && mapCounts[m] > bestMapPlays)) {
+                        bestMapWinrate = wr;
+                        bestMapPlays = mapCounts[m];
+                        bestMap = m;
+                    }
+                }
+            });
+            
+            const mapEl = document.getElementById('intel-map-data');
+            if (mapEl) {
+                if (bestMap !== 'N/A') {
+                    mapEl.innerHTML = `<span class="text-light">${bestMap.toUpperCase()}</span> &mdash; <span class="${bestMapWinrate >= 50 ? 'text-success' : 'text-danger'}">${bestMapWinrate.toFixed(0)}% WINRATE</span>`;
+                } else {
+                    mapEl.innerHTML = `<span class="text-muted">A aguardar missões táticas...</span>`;
+                }
+            }
+
+            // UI - Operador de Elite (MVP)
+            let mvp = 'N/A';
+            let bestKd = 0;
+            Object.keys(playerStats).forEach(htmlId => {
+                const ps = playerStats[htmlId];
+                if (ps.ops >= 3) { 
+                    const kd = ps.deaths === 0 ? ps.kills : (ps.kills / ps.deaths);
+                    if (kd > bestKd) {
+                        bestKd = kd;
+                        mvp = htmlId; 
+                    }
+                }
+            });
+            
+            const mvpEl = document.getElementById('intel-mvp-data');
+            if (mvpEl) {
+                if (mvp !== 'N/A') {
+                    const p = pData ? pData.find(x => x.riot_id.replace(/[^a-zA-Z0-9]/g, '') === mvp) : null;
+                    const displayMvp = p ? p.riot_id.split('#')[0] : mvp.toUpperCase();
+                    mvpEl.innerHTML = `<span class="text-light">${displayMvp}</span> &mdash; <span class="text-warning">${bestKd.toFixed(2)} K/D</span>`;
+                } else {
+                    mvpEl.innerHTML = `<span class="text-muted">A aguardar combatentes...</span>`;
+                }
+            }
+            
+            // Injetar dados nos Player Cards
+            Object.keys(playerStats).forEach(htmlId => {
+                const ps = playerStats[htmlId];
+                
+                let topAgent = null;
+                let topAgentCount = 0;
+                let topAgentImg = '';
+                Object.keys(ps.agents).forEach(a => {
+                    if (ps.agents[a].count > topAgentCount) {
+                        topAgentCount = ps.agents[a].count;
+                        topAgent = a;
+                        topAgentImg = ps.agents[a].img;
+                    }
+                });
+                
+                const agentEl = document.getElementById(`intel-agent-${htmlId}`);
+                if (agentEl && topAgent) {
+                    agentEl.innerHTML = `<img src="${topAgentImg}" style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--val-dark);"> ${topAgent.toUpperCase()}`;
+                }
+                
+                const hsEl = document.getElementById(`intel-hs-${htmlId}`);
+                if (hsEl && ps.ops > 0) {
+                    const avgHs = (ps.hsTotal / ps.ops).toFixed(1);
+                    hsEl.innerHTML = `${avgHs}%`;
+                }
+            });
+        }
+        
+        // UI - Lobos 
+        const wolvesEl = document.getElementById('intel-wolves-data');
+        if (wolvesEl) {
+            if (loneWolves.length > 0) {
+                wolvesEl.innerHTML = loneWolves.join(', ');
+            } else {
+                wolvesEl.innerHTML = `<span class="text-success blink-terminal">NENHUM AGENTE PERDIDO.</span>`;
+            }
+        }
+        
+    } catch (error) {
+        console.error('Falha na extração de Intel:', error);
+    }
+}
