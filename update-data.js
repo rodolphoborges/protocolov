@@ -5,7 +5,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BASE_DELAY = 11000; // Ponto Dourado descoberto pela IA (11s limpos)
+const BASE_DELAY = 13500; // Ponto Dourado Global descoberto pela IA (13.5s limpos)
 let currentDelay = BASE_DELAY;
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
