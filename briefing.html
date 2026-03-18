@@ -61,77 +61,83 @@
     </style>
 </head>
 <body>
-    <div class="container py-5" style="max-width: 800px;">
-        <div class="d-flex align-items-center mb-4">
-            <h1 class="text-uppercase m-0" style="color: var(--val-red); font-size: 3.5rem; letter-spacing: 1px;" id="page-title">INTEGRAÇÃO DE SISTEMAS</h1>
+    <!-- CYPHER BACKGROUND -->
+    <img src="https://media.valorant-api.com/agents/117ed9e3-49f3-6512-3ccf-0cada7e3823b/fullportrait.png" style="position: fixed; right: -15vw; bottom: 0; height: 110vh; max-height: 1000px; opacity: 0.15; z-index: -1; pointer-events: none; filter: grayscale(80%) sepia(20%) hue-rotate(180deg);">
+
+    <div class="container py-5 position-relative" style="max-width: 800px; z-index: 1;">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <img src="https://media.valorant-api.com/agents/117ed9e3-49f3-6512-3ccf-0cada7e3823b/displayicon.png" style="width: 60px; height: 60px; filter: grayscale(50%) brightness(1.2);" alt="Cypher">
+            <h1 class="text-uppercase m-0" style="color: var(--val-light); font-size: 3.5rem; line-height: 1; letter-spacing: 1px;" id="page-title">
+                REDE DE <span style="color: #00e5ff;">INFORMAÇÕES</span>
+            </h1>
         </div>
 
         <div class="sync-bar-container" id="syncContainer">
-            <div class="sync-bar-fill" id="syncBar"></div>
+            <div class="sync-bar-fill" id="syncBar" style="background: #00e5ff;"></div>
         </div>
 
         <div class="module-step active" id="step1">
-            <h2 class="text-white mb-3" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; letter-spacing: 1px;">1. ESQUADRÃO WINGMAN (RESERVA)</h2>
+            <h2 class="mb-3" style="color: #00e5ff; font-family: 'Teko', sans-serif; font-size: 2.2rem; letter-spacing: 1px;">1. ESQUADRÃO WINGMAN (RESERVA)</h2>
             <p class="lore-text">
-                Alistamento concluído. Você foi alocado na nossa força de prontidão: o <span class="highlight-text">Esquadrão Wingman</span>. Sob o comando do Agente 22 (Gekko), você aguardará ordens de mobilização.
+                "Eu sei exatamente quem você é. Os meus fios-armadilha dizem-me que o seu alistamento foi concluído. Guardei o seu segredo. Por agora, os meus olhos colocaram-no na nossa força de prontidão: o <span style="color: #00e5ff; font-weight: 600;">Esquadrão Wingman</span>. Sob a tutela do Agente 22 (Gekko), aguardará nas sombras."
             </p>
             <p class="lore-text">
-                A partir de agora, mesmo na reserva, a <strong>Sala de Treino</strong> já monitoriza o seu desempenho. Cada abate no modo Mata-Mata gera pontos para o ranking. Aqueça a mira antes de solicitar transferência.
+                "A partir de agora, mesmo na reserva, as minhas câmaras já vigiam o seu desempenho na <strong>Sala de Treino</strong>. Cada abate no modo Mata-Mata gera dados para a minha rede. Melhore a mira antes de solicitar a transferência. Eu estarei a ver."
             </p>
-            <button class="btn-next mt-3" onclick="nextStep(2)">Ciente. Avançar.</button>
+            <button class="btn-next mt-3" onclick="nextStep(2)">Estou a ouvi-lo, Cypher.</button>
         </div>
 
         <div class="module-step" id="step2">
-            <h2 class="text-white mb-3" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; letter-spacing: 1px;">2. LIDERANÇAS: ALPHA E ÔMEGA</h2>
+            <h2 class="mb-3" style="color: #00e5ff; font-family: 'Teko', sans-serif; font-size: 2.2rem; letter-spacing: 1px;">2. LIDERANÇAS: ALPHA E ÔMEGA</h2>
             <p class="lore-text">
-                O verdadeiro objetivo é a titularidade. As Unidades <strong>Alpha</strong> (Viper) e <strong>Ômega</strong> (Brimstone) são as nossas forças de elite e possuem <span class="highlight-red">vagas limitadas a 1 Agente por Função</span> (Apenas um Duelista Alpha, um Controlador Ômega, etc).
+                "As sombras são úteis, mas o verdadeiro objetivo é o palco principal. As Unidades <strong>Alpha</strong> (Viper) e <strong>Ômega</strong> (Brimstone) são os peões mais valiosos no tabuleiro. Elas possuem <span class="highlight-red">vagas estritas de 1 Agente por Função</span> (Apenas um Duelista Alpha, um Controlador Ômega, etc)."
             </p>
             <p class="lore-text">
-                Para sair da Wingman e reivindicar o seu lugar nestas unidades, você precisará aceder ao nosso rádio de comunicação (Bot do Telegram) e usar o comando de transferência informando a Divisão e o seu ID.
+                "Para sair do Wingman e entrar na sua linha de visão, você terá de intercetar os meus canais de comunicação (Bot do Telegram) e ordenar a transferência."
             </p>
-            <div class="cmd-box">
+            <div class="cmd-box" style="border-color: #00e5ff;">
                 > /unidade ALPHA SeuNome<br>
                 > /unidade OMEGA SeuNome
             </div>
-            <button class="btn-next mt-3" onclick="nextStep(3)">Compreendido.</button>
+            <button class="btn-next mt-3" onclick="nextStep(3)">Qual é o preço da vaga?</button>
         </div>
 
         <div class="module-step" id="step3">
-            <h2 class="text-white mb-3" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; letter-spacing: 1px;">3. MÉRITO E SINERGIA (SN)</h2>
+            <h2 class="mb-3" style="color: #00e5ff; font-family: 'Teko', sans-serif; font-size: 2.2rem; letter-spacing: 1px;">3. MÉRITO E SINERGIA (SN)</h2>
             <p class="lore-text">
-                O que acontece se você tentar transferir-se para a Unidade Alpha como Duelista, mas a vaga já estiver ocupada por um veterano? Aqui entra a <span class="highlight-text">Sinergia (SN)</span>.
+                "O que acontece se você desejar o lugar de um veterano? A minha rede avalia apenas um dado: <span style="color: #00e5ff; font-weight: 600;">Sinergia (SN)</span>."
             </p>
             <p class="lore-text">
-                A Sinergia é adquirida <strong class="text-white">exclusivamente ao jogar Ranqueadas com outros membros do Protocolo</strong>. Se você tiver mais pontos de Sinergia que o titular atual, você toma a vaga dele. Se tiver menos, o sistema avisará que a vaga está protegida e você ficará com a marca de "Reserva" no painel. O trabalho em equipa é a única forma de garantir o seu lugar no topo.
+                "A Sinergia é a nossa moeda de troca, adquirida <strong class="text-white">exclusivamente ao jogar Ranqueadas com a comunidade</strong>. Se tiver mais informações (Sinergia) que o titular atual, a vaga é sua. Se eu vir que tem menos, o sistema tranca-lhe as portas. Sozinho você não é nada; em equipa, você é uma rede impenetrável."
             </p>
-            <button class="btn-next mt-3" onclick="nextStep(4)">Entendido.</button>
+            <button class="btn-next mt-3" onclick="nextStep(4)">Comandos de vigilância?</button>
         </div>
 
         <div class="module-step" id="step4">
-            <h2 class="text-white mb-3" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; letter-spacing: 1px;">4. O RÁDIO DE COMANDO (TELEGRAM)</h2>
+            <h2 class="mb-3" style="color: #00e5ff; font-family: 'Teko', sans-serif; font-size: 2.2rem; letter-spacing: 1px;">4. ENCRIPTAÇÃO DE CANAL (TELEGRAM)</h2>
             <p class="lore-text">
-                Toda a sua interação com o sistema é feita pelo nosso Bot no Telegram. Este é o seu manual de sobrevivência, memorize estes comandos vitais:
+                "O nosso Terminal no Telegram é o seu novo ciberespaço. Memorize estes atalhos antes que eu apague o seu rastro:"
             </p>
-            <div class="cmd-box" style="line-height: 1.8;">
-                <span style="color: var(--val-green); font-weight: bold;">📢 /convocar [CÓDIGO_LOBBY]</span> - Acende o Alarme vermelho no site chamando reforços.<br>
-                <span style="color: var(--val-green); font-weight: bold;">🔄 /unidade [SQUAD] [NOME]</span> - Solicita transferência de esquadrão.<br>
-                <span style="color: var(--val-green); font-weight: bold;">👤 /perfil [NOME]</span> - Inspeciona o dossiê (Sinergia, DM, Rank) de um agente.<br>
-                <span style="color: var(--val-green); font-weight: bold;">🏆 /ranking</span> - Exibe os líderes de mérito do Protocolo V.
+            <div class="cmd-box" style="line-height: 1.8; border-color: #00e5ff;">
+                <span style="color: #00e5ff; font-weight: bold;">📢 /convocar [CÓDIGO_LOBBY]</span> - Alerta a minha rede e recruta reforços vivos.<br>
+                <span style="color: #00e5ff; font-weight: bold;">🔄 /unidade [SQUAD] [NOME]</span> - Injeta o seu nome num novo esquadrão.<br>
+                <span style="color: #00e5ff; font-weight: bold;">👤 /perfil [NOME]</span> - Rouba o dossiê confidencial de um agente.<br>
+                <span style="color: #00e5ff; font-weight: bold;">🏆 /ranking</span> - Expõe todos os líderes do quadro de mérito.
             </div>
-            <button class="btn-next mt-3" onclick="nextStep(5)">Concluir Briefing.</button>
+            <button class="btn-next mt-3" onclick="nextStep(5)">Desligar Transmissão.</button>
         </div>
 
         <div class="module-step" id="finalStep">
-            <div class="card border-secondary mt-4" style="background-color: rgba(0, 0, 0, 0.4);">
+            <div class="card mt-4" style="background-color: rgba(0, 0, 0, 0.4); border: 1px solid #00e5ff;">
                 <div class="card-body p-5 text-center">
-                    <h2 style="color: var(--val-green); font-size: 3.5rem; font-family: 'Teko', sans-serif; letter-spacing: 2px;">ACESSO LIBERADO</h2>
-                    <p class="lore-text mb-5">Você está pronto. Aceda ao terminal de comando no Telegram para procurar o seu primeiro esquadrão ou solicitar a sua transferência.</p>
+                    <h2 style="color: #00e5ff; font-size: 3.5rem; font-family: 'Teko', sans-serif; letter-spacing: 2px;">"EU SEI EXATAMENTE ONDE ESTÁS."</h2>
+                    <p class="lore-text mb-5">Os meus servidores aceitaram a sua entrada. Aceda ao terminal escondido no Telegram para investigar os esquadrões ou espionar o seu primeiro alvo.</p>
                     
-                    <a href="https://t.me/ProtocoloV_Intel_Bot" target="_blank" class="btn-next mb-4" style="background: var(--val-green); color: var(--val-dark); font-weight: 800; border: none; font-size: 1.5rem; padding: 15px 35px;">
+                    <a href="https://t.me/ProtocoloV_Intel_Bot" target="_blank" class="btn-next mb-4" style="background: #00e5ff; color: var(--val-dark); font-weight: 800; border: none; font-size: 1.5rem; padding: 15px 35px;">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="me-2 mb-1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.62-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
-                        ACESSAR TERMINAL (BOT)
+                        ACESSAR TERMINAL DA REDE
                     </a><br>
-                    <a href="index.html" class="text-white small text-decoration-none" style="opacity: 0.7; transition: opacity 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">Voltar ao QG Principal</a>
+                    <a href="index.html" class="text-white small text-decoration-none" style="opacity: 0.7; transition: opacity 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">[Apagar os rascunhos e voltar ao QG Principal]</a>
                 </div>
             </div>
         </div>
