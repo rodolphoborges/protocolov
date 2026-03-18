@@ -6,12 +6,16 @@ const squadsConfig = {
     'ALPHA': { 
         title: 'UNIDADE ALPHA', 
         desc: 'Sob o comando da Agente 02 - Viper. Precisão química e controle tático absoluto.', 
+        commanderImg: 'https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/fullportrait.png',
+        commanderBg: 'rgba(0, 255, 157, 0.03)',
         theme: 'alpha-theme',
         roles: { 'Controlador': null, 'Duelista': null, 'Iniciador': null, 'Sentinela': null, 'Flex': null } 
     },
     'OMEGA': { 
         title: 'UNIDADE ÔMEGA', 
-        desc: 'Sob o comando do Agente 01 - Brimstone. Força de elite e suporte orbital.', 
+        desc: 'Sob o comando do Agente 01 - Brimstone. Força de elite e suporte orbital pesado.', 
+        commanderImg: 'https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/fullportrait.png',
+        commanderBg: 'rgba(255, 70, 85, 0.03)',
         theme: 'omega-theme',
         roles: { 'Controlador': null, 'Duelista': null, 'Iniciador': null, 'Sentinela': null, 'Flex': null } 
     }
@@ -446,16 +450,19 @@ function renderSquads() {
         }
 
         fullHTML += `
-            <div class="row align-items-start role-row mb-5">
-                <div class="col-md-4 mb-4 mb-md-0">
-                    <h3 class="role-title ${unit === 'ALPHA' ? 'text-info' : 'text-danger'}">${data.title}</h3>
-                    <p class="mb-0 text-muted small mt-2" style="max-width: 90%;">${data.desc}</p>
-                    <div class="mt-4 border-start border-4 ${unit === 'ALPHA' ? 'border-info' : 'border-danger'} ps-3">
-                        <span class="fs-4 fw-bold font-monospace">${count}/5</span><br>
-                        <span class="text-uppercase small text-muted">Prontidão de Combate</span>
+            <div class="row align-items-stretch role-row mb-5">
+                <div class="col-md-4 mb-4 mb-md-0 position-relative p-4" style="background-color: ${data.commanderBg}; border: 1px dashed rgba(255,255,255,0.05); overflow: hidden; min-height: 380px;">
+                    <img src="${data.commanderImg}" style="position: absolute; bottom: 0; right: -50px; height: 100%; opacity: 0.25; pointer-events: none; filter: grayscale(50%);" alt="Comandante">
+                    <div class="position-relative z-1">
+                        <h3 class="role-title ${unit === 'ALPHA' ? 'text-info' : 'text-danger'}">${data.title}</h3>
+                        <p class="mb-0 text-muted mt-3" style="font-size: 1.05rem; line-height: 1.4;">${data.desc}</p>
+                        <div class="mt-5 border-start border-4 ${unit === 'ALPHA' ? 'border-info' : 'border-danger'} ps-3">
+                            <span class="fs-4 fw-bold font-monospace text-light">${count}/5</span><br>
+                            <span class="text-uppercase small text-muted">Prontidão de Combate</span>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-8 ps-md-4">
                     <div class="d-flex flex-column gap-2">${playersHTML}</div>
                 </div>
             </div>`;
@@ -464,15 +471,16 @@ function renderSquads() {
     if (esquadraoWingman.length > 0) {
         let wingmanHTML = esquadraoWingman.map(p => createPlayerCardHTML(p, true, 'wingman-theme')).join('');
         fullHTML += `
-            <div class="waitlist-section p-4 mb-5" style="background-color: rgba(190, 243, 62, 0.05); border: 1px solid rgba(190, 243, 62, 0.2);">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div class="waitlist-section p-4 mb-5 position-relative" style="background-color: rgba(190, 243, 62, 0.05); border: 1px solid rgba(190, 243, 62, 0.2); overflow: hidden;">
+                <img src="https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/fullportrait.png" style="position: absolute; right: 0; top: -100px; height: 180%; opacity: 0.15; pointer-events: none; filter: grayscale(50%);">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 position-relative z-1">
                     <div>
                         <h3 class="role-title" style="color: #bef33e;">UNIDADE WINGMAN</h3>
                         <p class="text-muted small mb-0">Mobilização rápida via Agente 22 - Gekko. Força de suporte aguardando ordens para inserção imediata.</p>
                     </div>
                     <span class="badge rounded-0 mt-3 mt-md-0" style="background-color: #bef33e; color: var(--val-dark); font-family: 'Inter', sans-serif; font-weight: 800;">${esquadraoWingman.length} AGENTES NA ESCUTA</span>
                 </div>
-                <div class="row g-3">${wingmanHTML}</div>
+                <div class="row g-3 position-relative z-1">${wingmanHTML}</div>
             </div>`;
     }
 
