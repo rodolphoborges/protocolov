@@ -214,6 +214,7 @@ async function run() {
                         }
                     } else {
                         console.log(`      ⚡ Cache ativo: Nenhuma partida nova. Ignorando requisições MMR/Level.`);
+                        await delay(REQUEST_DELAY); // Proteção final contra saltos rápidos entre jogadores
                     }
                 }
             } catch (err) {
