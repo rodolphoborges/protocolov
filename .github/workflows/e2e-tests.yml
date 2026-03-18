@@ -1,0 +1,34 @@
+name: E2E Integration Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Código
+      uses: actions/checkout@v4
+
+    - name: Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Instalar Dependências
+      run: npm install
+
+    - name: Executar Testes Shadow E2E
+      run: npm test
+      env:
+        # Variáveis dummy para o ambiente de CI (o teste usa mocks, mas o script as exige no carregamento)
+        SUPABASE_URL: "https://mock.supabase.co"
+        SUPABASE_SERVICE_KEY: "mock-key"
+        HENRIK_API_KEY: "mock-api"
+        TELEGRAM_BOT_TOKEN: "mock-token"
+        TELEGRAM_CHAT_ID: "mock-id"
