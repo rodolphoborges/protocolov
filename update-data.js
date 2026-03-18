@@ -5,7 +5,8 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const REQUEST_DELAY = 2500; // 2.5s garantidos entre requisições
+const BASE_DELAY = 2200; // Começa Otimista (2.2s)
+let currentDelay = BASE_DELAY; // Delay dinâmico que vai aprendendo
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 let apiRequestsCount = 0;
@@ -32,8 +33,10 @@ async function smartFetch(url, headers, retries = 2) {
         apiRequestsCount++;
 
         if (response.status === 429 && retries > 0) {
+            // A API reclamou, então nós APRENDEMOS e ficamos 10% mais lentos para sempre a partir deste ponto.
+            currentDelay = Math.floor(currentDelay * 1.10); 
             const resetInSeconds = parseInt(response.headers.get('x-ratelimit-reset')) || 30;
-            console.log(`      ⛔ Rate Limit (429) Atingido! Pausa de segurança de ${resetInSeconds}s...`);
+            console.log(`      ⛔ Rate Limit (429) Atingido! Ajustando radar para ${currentDelay}ms/req. Pausa de ${resetInSeconds}s...`);
             rateLimitResetTime = Date.now() + (resetInSeconds * 1000) + 2000; 
             await delay((resetInSeconds * 1000) + 2000); 
             return await smartFetch(url, headers, retries - 1);
@@ -44,7 +47,7 @@ async function smartFetch(url, headers, retries = 2) {
     }
     
     const elapsed = Date.now() - start;
-    const remainingDelay = Math.max(0, REQUEST_DELAY - elapsed);
+    const remainingDelay = Math.max(0, currentDelay - elapsed);
     if (remainingDelay > 0) {
         await delay(remainingDelay);
     }
@@ -214,7 +217,7 @@ async function run() {
                         }
                     } else {
                         console.log(`      ⚡ Cache ativo: Nenhuma partida nova. Ignorando requisições MMR/Level.`);
-                        await delay(REQUEST_DELAY); // Proteção final contra saltos rápidos entre jogadores
+                        await delay(currentDelay); // Proteção final dinâmica contra saltos
                     }
                 }
             } catch (err) {
