@@ -26,7 +26,19 @@ let opsOffset = 0;
 const OPS_PER_PAGE = 5;
 let isFetchingOps = false;
 let isSubmittingForm = false; 
+let mapImages = {};
 
+async function fetchMapData() {
+    try {
+        const res = await fetch('https://valorant-api.com/v1/maps');
+        const data = await res.json();
+        if (data && data.data) {
+            data.data.forEach(m => {
+                mapImages[m.displayName.toUpperCase()] = m.splash;
+            });
+        }
+    } catch (e) { console.error("⚠️ Falha ao carregar satélite orbital de mapas:", e); }
+}
 function escapeHtml(unsafe) {
     if (!unsafe) return "";
     return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
@@ -402,8 +414,11 @@ function renderOperations(operations, append = false) {
         
         squadHTML += '</div>';
 
+        const mapUrl = mapImages[op.map.toUpperCase()] || '';
+        const bgStyle = mapUrl ? `background-image: url('${mapUrl}');` : '';
+
         html += `
-            <a href="https://tracker.gg/valorant/match/${op.id}" target="_blank" aria-label="Ver detalhes da partida ${op.map} no Tracker.gg" class="text-decoration-none mission-row ${resultClass} p-3 p-md-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; display: block;">
+            <a href="https://tracker.gg/valorant/match/${op.id}" target="_blank" aria-label="Ver detalhes da partida ${op.map} no Tracker.gg" class="text-decoration-none mission-row ${resultClass} p-3 p-md-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; display: block; ${bgStyle}">
                 <div class="d-flex align-items-center gap-4" style="min-width: 220px;">
                     <div class="text-center" style="width: 80px;">
                         <div class="fs-1 fw-bold ${resultColor} lh-1" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;" aria-label="Placar: ${op.score}">${escapeHtml(op.score)}</div>
@@ -487,7 +502,8 @@ function renderSquads() {
     container.innerHTML = fullHTML;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await fetchMapData();
     fetchCachedData();
     setInterval(fetchCachedData, 300000); // Mantém a atualização a cada 5 minutos
     
