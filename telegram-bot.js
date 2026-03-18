@@ -73,14 +73,14 @@ bot.on('callback_query', async (query) => {
 });
 
 // --- COMANDO /START ---
-bot.onText(/^\/start/, (msg) => {
+bot.onText(/^\/start(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `🟢 *TERMINAL PROTOCOLO V ONLINE* 🟢\n\nBem-vindo ao sistema de comando tático.\n\n*Comandos Disponíveis:*\n/unidade - Solicitar transferência de esquadrão\n/ranking - Ver o Top 10 de Sinergia\n/perfil [Nome] - Buscar o dossiê de um agente`;
+    const mensagem = `🟢 *TERMINAL PROTOCOLO V ONLINE* 🟢\n\nBem-vindo ao sistema de comando tático.\n\n*Comandos Disponíveis:*\n/ajuda - Mostrar todos os comandos\n/site - Acessar o terminal web\n/unidade - Solicitar transferência de esquadrão\n/ranking - Ver o Top 10 de Sinergia\n/perfil [Nome] - Buscar o dossiê de um agente`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown' });
 });
 
 // --- COMANDO /VINCULAR (NOVO) ---
-bot.onText(/^\/vincular(?:\s+(.*))?/, async (msg, match) => {
+bot.onText(/^\/vincular(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
     const riotId = match[1] ? match[1].trim() : null;
@@ -114,7 +114,7 @@ bot.onText(/^\/vincular(?:\s+(.*))?/, async (msg, match) => {
 });
 
 // --- COMANDO /UNIDADE (ATUALIZADO E BLINDADO) ---
-bot.onText(/^\/unidade(?:\s+(\w+))?/, async (msg, match) => {
+bot.onText(/^\/unidade(?:@[\w_]+)?(?:\s+(\w+))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
     const unidade = match[1] ? match[1].toUpperCase() : null;
@@ -165,7 +165,7 @@ bot.onText(/^\/unidade(?:\s+(\w+))?/, async (msg, match) => {
 });
 
 // --- COMANDO /RANKING ---
-bot.onText(/^\/ranking/, async (msg) => {
+bot.onText(/^\/ranking(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
     const chatId = msg.chat.id;
     try {
         const { data, error } = await supabase.from('players').select('riot_id, synergy_score, unit').order('synergy_score', { ascending: false }).limit(10);
@@ -173,7 +173,7 @@ bot.onText(/^\/ranking/, async (msg) => {
         
         let rankMsg = `🏆 *TOP 10 SINERGIA - PROTOCOLO V* 🏆\n\n`;
         data.forEach((p, i) => {
-            rankMsg += `${i + 1}. *${escapeMarkdown(p.riot_id.split('#')[0])}* - ${p.synergy_score} pts (${p.unit})\n`;
+            rankMsg += `${i + 1}. *${escapeMarkdown(p.riot_id.split('#')[0])}* - ${p.synergy_score || 0} pts (${p.unit || 'Sem Unidade'})\n`;
         });
         bot.sendMessage(chatId, rankMsg, { parse_mode: 'Markdown' });
     } catch (err) {
@@ -182,7 +182,7 @@ bot.onText(/^\/ranking/, async (msg) => {
 });
 
 // --- COMANDO /PERFIL ---
-bot.onText(/^\/perfil(?:\s+(.*))?/, async (msg, match) => {
+bot.onText(/^\/perfil(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const argumento = match[1] ? match[1].trim() : null;
 
@@ -193,7 +193,7 @@ bot.onText(/^\/perfil(?:\s+(.*))?/, async (msg, match) => {
         if (!data || data.length === 0) return bot.sendMessage(chatId, "⚠️ Agente não encontrado nos registos do Protocolo.", { parse_mode: 'Markdown' });
         
         const p = data[0];
-        const msgPerfil = `👤 *DOSSIÊ DO AGENTE*\n\n*Riot ID:* ${escapeMarkdown(p.riot_id)}\n*Unidade:* ${p.unit}\n*Função:* ${p.role_raw}\n*Rank:* ${p.current_rank}\n*Sinergia:* ${p.synergy_score} pts\n*Treino (DM):* ${p.dm_score_total || p.dm_score} pts\n*Lobo Solitário:* ${p.lone_wolf ? 'Sim 🐺' : 'Não'}`;
+        const msgPerfil = `👤 *DOSSIÊ DO AGENTE*\n\n*Riot ID:* ${escapeMarkdown(p.riot_id)}\n*Unidade:* ${p.unit || 'Sem Unidade'}\n*Função:* ${p.role_raw || 'Não Definida'}\n*Rank:* ${p.current_rank || 'Sem Rank'}\n*Sinergia:* ${p.synergy_score || 0} pts\n*Treino (DM):* ${p.dm_score_total || p.dm_score || 0} pts\n*Lobo Solitário:* ${p.lone_wolf ? 'Sim 🐺' : 'Não'}`;
         
         bot.sendMessage(chatId, msgPerfil, { parse_mode: 'Markdown' });
     } catch (err) {
@@ -202,7 +202,7 @@ bot.onText(/^\/perfil(?:\s+(.*))?/, async (msg, match) => {
 });
 
 // --- COMANDO /CONVOCAR (Sinalizador Orbital) ---
-bot.onText(/^\/convocar(?:\s+(.*))?/, async (msg, match) => {
+bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
     const codigoLobby = match[1] ? match[1].trim() : "Solicite invite no Telegram";
@@ -230,6 +230,29 @@ bot.onText(/^\/convocar(?:\s+(.*))?/, async (msg, match) => {
         bot.sendMessage(chatId, "🔥 *Falha ao acionar sinalizador.*", { parse_mode: 'Markdown' });
     }
 });
+
+// --- COMANDO /AJUDA ---
+bot.onText(/^\/ajuda(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
+    const chatId = msg.chat.id;
+    const mensagem = `📖 *MANUAL DE COMANDOS TÁTICOS*\n\n` +
+        `🔹 */start* - Iniciar terminal\n` +
+        `🔹 */ajuda* - Mostrar este manual\n` +
+        `🔹 */site* - Acessar o terminal web\n` +
+        `🔹 */vincular [Nick#TAG]* - Associar sua conta ao seu Telegram\n` +
+        `🔹 */unidade* - Solicitar transferência de esquadrão\n` +
+        `🔹 */ranking* - Visualizar o Top 10 de Sinergia\n` +
+        `🔹 */perfil [Nick]* - Ver estatísticas detalhadas de um agente\n` +
+        `🔹 */convocar [Código]* - Enviar sinalizador de lobby para o site`;
+    bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown' });
+});
+
+// --- COMANDO /SITE ---
+bot.onText(/^\/site(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
+    const chatId = msg.chat.id;
+    const mensagem = `🌐 *ACESSO AO TERMINAL WEB*\n\nAcede à base de dados completa do Protocolo V aqui:\n[https://protocolov.com](https://protocolov.com)`;
+    bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown', disable_web_page_preview: true });
+});
+
 // --- SERVIDOR EXPRESS (Camuflado) ---
 const app = express();
 // Removemos a rota raiz "/" e criamos um endpoint que apenas o serviço de Uptime (ex: UptimeRobot) conhece
