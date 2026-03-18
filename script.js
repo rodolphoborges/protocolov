@@ -452,7 +452,7 @@ function renderSquads() {
         fullHTML += `
             <div class="row align-items-stretch role-row mb-5">
                 <div class="col-md-4 mb-4 mb-md-0 position-relative p-4" style="background-color: ${data.commanderBg}; border: 1px dashed rgba(255,255,255,0.05); overflow: hidden; min-height: 380px;">
-                    <img src="${data.commanderImg}" style="position: absolute; bottom: 0; right: -50px; height: 100%; opacity: 0.25; pointer-events: none; filter: grayscale(50%);" alt="Comandante">
+                    <img src="${data.commanderImg}" style="position: absolute; top: 0; right: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; opacity: 0.20; pointer-events: none; filter: grayscale(80%);" alt="Comandante">
                     <div class="position-relative z-1">
                         <h3 class="role-title ${unit === 'ALPHA' ? 'text-info' : 'text-danger'}">${data.title}</h3>
                         <p class="mb-0 text-muted mt-3" style="font-size: 1.05rem; line-height: 1.4;">${data.desc}</p>
@@ -472,7 +472,7 @@ function renderSquads() {
         let wingmanHTML = esquadraoWingman.map(p => createPlayerCardHTML(p, true, 'wingman-theme')).join('');
         fullHTML += `
             <div class="waitlist-section p-4 mb-5 position-relative" style="background-color: rgba(190, 243, 62, 0.05); border: 1px solid rgba(190, 243, 62, 0.2); overflow: hidden;">
-                <img src="https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/fullportrait.png" style="position: absolute; right: 0; top: -100px; height: 180%; opacity: 0.15; pointer-events: none; filter: grayscale(50%);">
+                <img src="https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/fullportrait.png" style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; object-fit: cover; object-position: right top; opacity: 0.15; pointer-events: none; filter: grayscale(80%);">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 position-relative z-1">
                     <div>
                         <h3 class="role-title" style="color: #bef33e;">UNIDADE WINGMAN</h3>
