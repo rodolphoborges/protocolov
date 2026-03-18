@@ -5,7 +5,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BASE_DELAY = 8500; // Evita totalmente o limite Burst da API (máximo 4 req a cada 30s)
+const BASE_DELAY = 12500; // Alvo Exato: Furtividade Máxima (~5 requisições por minuto)
 let currentDelay = BASE_DELAY;
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
