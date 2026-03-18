@@ -148,8 +148,8 @@ async function run() {
                 if (listRes.status === 200) {
                     const listData = await listRes.json();
                     
-                    const recentCompMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'competitive') : [];
-                    const recentDmMatches = listData.data ? listData.data.filter(m => m.metadata.mode.toLowerCase() === 'deathmatch') : [];
+                    const recentCompMatches = listData.data ? listData.data.filter(m => m.metadata?.mode?.toLowerCase() === 'competitive') : [];
+                    const recentDmMatches = listData.data ? listData.data.filter(m => m.metadata?.mode?.toLowerCase() === 'deathmatch') : [];
                     
                     playerMatchStats[normalizedPlayerId].comp = recentCompMatches.length;
 
