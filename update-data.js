@@ -5,7 +5,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BASE_DELAY = 12500; // Alvo Exato: Furtividade Máxima (~5 requisições por minuto)
+const BASE_DELAY = 5000; // Tentativa agressiva (12 pedidos limpos por minuto)
 let currentDelay = BASE_DELAY;
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -37,7 +37,7 @@ async function smartFetch(url, headers, retries = 3) {
             
             // JITTER TÁTICO: Aumenta o tempo base em algo variável de 15% a 30% a cada strike
             const penaltyMultiplier = 1.15 + (Math.random() * 0.15); 
-            currentDelay = Math.min(Math.floor(currentDelay * penaltyMultiplier), 6000); // Nunca ultrapassa os 6 segundos per request (cap duro)
+            currentDelay = Math.min(Math.floor(currentDelay * penaltyMultiplier), 15000); // Nunca ultrapassa 15 segundos per request (cap expansivo)
             
             let resetInSeconds = parseInt(response.headers.get('x-ratelimit-reset')) || 30; // Pode ser falso.
             
@@ -245,10 +245,8 @@ async function run() {
                         } catch (err) {
                             console.log(`      ⚠️ Falha ao extrair dados de Rank/Level nativos: ${err.message}`);
                         }
-                        await delay(currentDelay); 
                     } else {
                         console.log(`      ⚡ Cache ativo: Nenhuma partida nova. Ignorando chamadas adicionais.`);
-                        await delay(currentDelay); 
                     }
                 }
             } catch (err) {
