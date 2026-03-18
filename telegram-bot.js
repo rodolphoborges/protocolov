@@ -75,7 +75,7 @@ bot.on('callback_query', async (query) => {
 // --- COMANDO /START ---
 bot.onText(/^\/start(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `🟢 *[SISTEMA]* CONEXÃO ESTABELECIDA 🟢\n\nBem-vindo ao *Terminal Tático Protocolo V*.\nRadiocomunicação segura ativada.\n\n*Diretrizes Operacionais:*\n/ajuda - Exibir manual de comandos\n/site - Acessar a base de dados principal\n/unidade - Solicitar transferência de esquadrão\n/ranking - Listar agentes de elite (Top 10)\n/perfil [Nome] - Extrair dossiê completo do agente`;
+    const mensagem = `🟢 *[SISTEMA]* CONEXÃO ESTABELECIDA 🟢\n\nBem-vindo ao *Terminal Tático Protocolo V*.\nRadiocomunicação segura ativada.\n\n*Comandos Rápidos:*\n/ajuda - Ver a lista de comandos\n/site - Acessar o site oficial\n/unidade - Mudar de esquadrão\n/ranking - Ver o Top 10 Sinergia\n/perfil [Nick] - Ver os status de um jogador`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown' });
 });
 
@@ -272,22 +272,22 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 // --- COMANDO /AJUDA ---
 bot.onText(/^\/ajuda(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `📖 *MANUAL DE OPERAÇÕES DO PROTOCOLO V*\n\n` +
-        `_Todas as frequências são monitorizadas. Usa os comandos com sabedoria._\n\n` +
-        `📡 */vincular [Nick#TAG]* - Autenticar o teu rádio pessoal.\n` +
-        `🚨 */convocar [Código]* - Emitir alerta de reforços globais para o teu Lobby.\n` +
-        `🔄 */unidade* - Requisitar mudança de esquadrão tático (Alpha, Ômega ou Wingman).\n` +
-        `📂 */perfil [Nick]* - Quebrar a encriptação e ver o dossiê de um agente.\n` +
-        `🏆 */ranking* - Aceder à lista dos 10 melhores agentes em Sinergia.\n` +
-        `🌐 */site* - Obter coordenadas diretas para o Terminal Web Base.\n` +
-        `⚙️ */ajuda* - Relêr estes procedimentos operacionais.`;
+    const mensagem = `📖 *GUIA DE COMANDOS DO PROTOCOLO V*\n\n` +
+        `_Usa os comandos abaixo para interagir com o bot:_\n\n` +
+        `📡 */vincular [Nick#TAG]* - Conectar a tua conta do jogo ao Telegram.\n` +
+        `🚨 */convocar [Código]* - Enviar um aviso para todos no site entrarem no teu Lobby.\n` +
+        `🔄 */unidade* - Trocar de esquadrão (Alpha, Ômega ou Wingman).\n` +
+        `📂 */perfil [Nick]* - Ver os status, rank e pontos de outro jogador.\n` +
+        `🏆 */ranking* - Ver os 10 melhores jogadores em Sinergia.\n` +
+        `🌐 */site* - Receber o link para o site oficial.\n` +
+        `⚙️ */ajuda* - Mostrar esta lista de comandos novamente.`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown' });
 });
 
 // --- COMANDO /SITE ---
 bot.onText(/^\/site(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `🌐 *[TERMINAL WEB: LOCALIZADO]*\n\nTodas as informações vitais, listagens completas da Line-Up, relatórios de operações conjuntas e Rankings encontram-se no nosso Hub Central.\n\n*Conexão Segura:* [https://protocolov.com](https://protocolov.com)\n_Brimstone aprova esta ligação._`;
+    const mensagem = `🌐 *[LINK DO ACESSO WEB]*\n\nAcompanha o ranking completo, os jogos recentes e vê a line-up atual no nosso site oficial.\n\n*Acessar agora:* [https://protocolov.com](https://protocolov.com)\n_Brimstone aprova esta ligação._`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown', disable_web_page_preview: true });
 });
 
