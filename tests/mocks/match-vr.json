@@ -1,0 +1,48 @@
+{
+  "status": 200,
+  "data": [
+    {
+      "metadata": {
+        "matchid": "test-match-id-123",
+        "map": "Haven",
+        "game_start": 1700000000,
+        "mode": "Competitive",
+        "region": "br"
+      },
+      "players": [
+        {
+          "name": "AgenteA",
+          "tag": "BR1",
+          "team": "Red",
+          "character": "Viper",
+          "stats": { "kills": 20, "deaths": 10, "assists": 5, "headshots": 10, "bodyshots": 10, "legshots": 0 },
+          "assets": { "agent": { "small": "viper-url" }, "card": { "small": "card-url" } },
+          "currenttier_patched": "Gold 2",
+          "level": 150
+        },
+        {
+          "name": "AgenteB",
+          "tag": "BR1",
+          "team": "Red",
+          "character": "Brimstone",
+          "stats": { "kills": 15, "deaths": 12, "assists": 15, "headshots": 5, "bodyshots": 20, "legshots": 0 },
+          "assets": { "agent": { "small": "brim-url" }, "card": { "small": "card-url" } },
+          "currenttier_patched": "Gold 1",
+          "level": 120
+        },
+        {
+          "name": "Enemy",
+          "tag": "111",
+          "team": "Blue",
+          "character": "Jett",
+          "stats": { "kills": 10, "deaths": 20, "assists": 2 },
+          "assets": { "agent": { "small": "jett-url" }, "card": { "small": "card-url" } }
+        }
+      ],
+      "teams": {
+        "red": { "has_won": true, "rounds_won": 13, "rounds_lost": 5 },
+        "blue": { "has_won": false, "rounds_won": 5, "rounds_lost": 13 }
+      }
+    }
+  ]
+}
