@@ -5,25 +5,25 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BASE_DELAY = 5000; // Tentativa agressiva (12 pedidos limpos por minuto)
+const BASE_DELAY = 8000; // Tentativa agressiva (12 pedidos limpos por minuto)
 let currentDelay = BASE_DELAY;
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 let apiRequestsCount = 0;
 let rateLimitResetTime = 0;
 
-async function smartFetch(url, headers, retries = 3) { 
+async function smartFetch(url, headers, retries = 3) {
     const now = Date.now();
     if (now < rateLimitResetTime) {
         const waitTime = rateLimitResetTime - now;
-        console.log(`      ⏳ Aguardando cooldown global (${Math.ceil(waitTime/1000)}s)...`);
+        console.log(`      ⏳ Aguardando cooldown global (${Math.ceil(waitTime / 1000)}s)...`);
         await delay(waitTime);
     }
 
     const start = Date.now();
-    let response = null; 
+    let response = null;
     let error = null;
-    
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s de timeout máximo na call
 
@@ -34,32 +34,32 @@ async function smartFetch(url, headers, retries = 3) {
 
         // A HenrikDev também pode retornar 403 / 503 quando há sobrecarga na Riot
         if ((response.status === 429 || response.status === 403 || response.status >= 500) && retries > 0) {
-            
+
             // JITTER TÁTICO: Aumenta o tempo base em algo variável de 15% a 30% a cada strike
-            const penaltyMultiplier = 1.15 + (Math.random() * 0.15); 
+            const penaltyMultiplier = 1.15 + (Math.random() * 0.15);
             currentDelay = Math.min(Math.floor(currentDelay * penaltyMultiplier), 15000); // Nunca ultrapassa 15 segundos per request (cap expansivo)
-            
+
             let resetInSeconds = parseInt(response.headers.get('x-ratelimit-reset')) || 30; // Pode ser falso.
-            
+
             // Se a API pedir menos de 10s, subimos para 15s para ter a certeza absoluta. Se for muito, respeitamos.
             resetInSeconds = Math.max(resetInSeconds, 15);
-            
+
             // Adiciona Jitter (ruído aleatório) à pausa para nunca reatar em momentos exactos e previsíveis (1 a 5 segundos de ruído)
             const jitterMs = Math.floor(Math.random() * 4000) + 1000;
             const totalWaitMs = (resetInSeconds * 1000) + jitterMs;
-            
-            console.log(`      ⛔ Block API (${response.status})! Radar lento: ${currentDelay}ms/req. Evadindo radiação por ${Math.ceil(totalWaitMs/1000)}s...`);
-            
-            rateLimitResetTime = Date.now() + totalWaitMs; 
+
+            console.log(`      ⛔ Block API (${response.status})! Radar lento: ${currentDelay}ms/req. Evadindo radiação por ${Math.ceil(totalWaitMs / 1000)}s...`);
+
+            rateLimitResetTime = Date.now() + totalWaitMs;
             await delay(totalWaitMs);
-             
+
             return await smartFetch(url, headers, retries - 1);
         }
-    } catch (e) { 
+    } catch (e) {
         clearTimeout(timeoutId);
-        error = e; 
+        error = e;
     }
-    
+
     const elapsed = Date.now() - start;
     const remainingDelay = Math.max(0, currentDelay - elapsed);
     if (remainingDelay > 0) {
@@ -67,7 +67,7 @@ async function smartFetch(url, headers, retries = 3) {
         const postCallJitter = Math.floor(Math.random() * 300);
         await delay(remainingDelay + postCallJitter);
     }
-    
+
     if (error) throw error;
     return response;
 }
@@ -75,11 +75,11 @@ async function smartFetch(url, headers, retries = 3) {
 async function notificarTelegram(mensagem) {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
-    
+
     if (!botToken || !chatId) return;
 
     const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-    
+
     try {
         await fetch(url, {
             method: 'POST',
@@ -101,7 +101,7 @@ async function run() {
     try {
         console.log('--- PROTOCOLO V: SUPABASE SYNC ONLINE ---');
         console.log('1. A buscar inscritos e memória de operações...');
-        
+
         const { data: records, error: dbError } = await supabase.from('players').select('*');
         if (dbError) throw new Error('Erro a ler jogadores do Supabase');
 
@@ -109,7 +109,7 @@ async function run() {
         const knownMatchIds = new Set(opsRecords ? opsRecords.map(op => op.id) : []);
 
         let playersToFetch = [];
-        let rosterMap = new Set(); 
+        let rosterMap = new Set();
         const riotIdRegex = /^[^#]{2,16}#[a-zA-Z0-9]{3,5}$/;
 
         for (const record of records) {
@@ -120,30 +120,30 @@ async function run() {
         }
 
         let finalPlayersData = [];
-        let allMatchesMap = new Map(); 
-        let playerMatchStats = {}; 
+        let allMatchesMap = new Map();
+        let playerMatchStats = {};
         const headers = { 'Authorization': henrikApiKey };
 
         console.log(`2. A sincronizar API (${playersToFetch.length} agentes) em modo furtivo (sequencial)...`);
-        
+
         for (const p of playersToFetch) {
             const [name, tag] = p.riotId.split('#');
             const safeName = encodeURIComponent(name.trim());
             const safeTag = encodeURIComponent(tag.trim());
             const normalizedPlayerId = p.riotId.toLowerCase().replace(/\s/g, '');
-            
+
             console.log(`      -> A extrair dados de: ${p.riotId}`);
-            
+
             playerMatchStats[normalizedPlayerId] = { comp: 0, group: 0 };
 
             let playerData = {
-                riot_id: p.riotId, 
+                riot_id: p.riotId,
                 role_raw: p.role,
                 unit: p.dbRecord.unit || 'WINGMAN', // PRESERVA A UNIDADE TÁTICA OU DEFINE COMO WINGMAN
-                synergy_score: p.dbRecord.synergy_score || 0, 
+                synergy_score: p.dbRecord.synergy_score || 0,
                 dm_score: p.dbRecord.dm_score || 0,
-                dm_score_monthly: p.dbRecord.dm_score_monthly || 0, 
-                dm_score_total: p.dbRecord.dm_score_total || 0,     
+                dm_score_monthly: p.dbRecord.dm_score_monthly || 0,
+                dm_score_total: p.dbRecord.dm_score_total || 0,
                 tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
                 level: p.dbRecord.level,
                 card_url: p.dbRecord.card_url,
@@ -156,7 +156,7 @@ async function run() {
                 updated_at: new Date().toISOString()
             };
 
-            let region = 'br'; 
+            let region = 'br';
             let hasNewMatches = false;
             let listData = null;
             let recentCompMatches = [];
@@ -167,10 +167,10 @@ async function run() {
 
                 if (listRes.status === 200) {
                     listData = await listRes.json();
-                    
+
                     recentCompMatches = listData.data ? listData.data.filter(m => m.metadata?.mode?.toLowerCase() === 'competitive') : [];
                     recentDmMatches = listData.data ? listData.data.filter(m => m.metadata?.mode?.toLowerCase() === 'deathmatch') : [];
-                    
+
                     playerMatchStats[normalizedPlayerId].comp = recentCompMatches.length;
 
                     if (recentCompMatches.length > 0) {
@@ -178,7 +178,7 @@ async function run() {
                             const matchId = matchCandidate.metadata.matchid;
                             if (knownMatchIds.has(matchId)) playerMatchStats[normalizedPlayerId].group++;
                             if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
-                            
+
                             hasNewMatches = true;
                             let bestMatch = matchCandidate;
                             if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) bestMatch.players = bestMatch.players.all_players;
@@ -190,7 +190,7 @@ async function run() {
                         for (const matchCandidate of recentDmMatches) {
                             const matchId = matchCandidate.metadata.matchid;
                             if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
-                            
+
                             hasNewMatches = true;
                             let bestMatch = matchCandidate;
                             if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) bestMatch.players = bestMatch.players.all_players;
@@ -210,7 +210,7 @@ async function run() {
                     if (hasNewMatches) {
                         try {
                             const allRecentObj = listData.data.find(m => m.players && (Array.isArray(m.players) || m.players.all_players));
-                            
+
                             if (allRecentObj) {
                                 const playersArray = Array.isArray(allRecentObj.players) ? allRecentObj.players : allRecentObj.players.all_players;
                                 const me = playersArray.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
@@ -219,7 +219,7 @@ async function run() {
                                     if (me.assets && me.assets.card) {
                                         playerData.card_url = me.assets.card.small;
                                     }
-                                    
+
                                     const lastCompObj = recentCompMatches.length > 0 ? recentCompMatches[0] : null;
                                     if (lastCompObj) {
                                         const compPlayersArray = Array.isArray(lastCompObj.players) ? lastCompObj.players : (lastCompObj.players ? lastCompObj.players.all_players : []);
@@ -230,7 +230,7 @@ async function run() {
                                     }
                                 }
                             }
-                            
+
                             if (isMissingData && (playerData.current_rank === 'Processando...' || playerData.current_rank === 'Pendente')) {
                                 console.log(`      ⚠️ Rank ausente. Executando fallback para API de MMR (Custo extra)`);
                                 const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
@@ -262,7 +262,7 @@ async function run() {
         console.log(`3. A processar operações conjuntas e Gamificação (Competitivo + DM)...`);
         let operations = [];
         let newSynergyPoints = {};
-        let newDmPoints = {}; 
+        let newDmPoints = {};
 
         for (const [matchId, match] of allMatchesMap) {
             if (!match.players || !Array.isArray(match.players)) continue;
@@ -271,7 +271,7 @@ async function run() {
 
             if (mode === 'deathmatch') {
                 const myPlayersInDm = match.players.filter(player => rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '')));
-                
+
                 if (myPlayersInDm.length > 0) {
                     const sortedLobby = [...match.players].sort((a, b) => b.stats.kills - a.stats.kills);
                     const p1 = sortedLobby[0];
@@ -280,8 +280,8 @@ async function run() {
 
                     myPlayersInDm.forEach(m => {
                         let nId = `${m.name}#${m.tag}`.toLowerCase().replace(/\s/g, '');
-                        let points = m.stats.kills || 0; 
-                        
+                        let points = m.stats.kills || 0;
+
                         if (p1 && m.name === p1.name && m.tag === p1.tag) points += 15;
                         else if (p2 && m.name === p2.name && m.tag === p2.tag) points += 10;
                         else if (p3 && m.name === p3.name && m.tag === p3.tag) points += 5;
@@ -291,18 +291,18 @@ async function run() {
 
                     operations.push({
                         id: matchId, map: match.metadata.map, mode: 'Deathmatch',
-                        started_at: match.metadata.game_start * 1000, 
+                        started_at: match.metadata.game_start * 1000,
                         score: 'TREINO', result: 'MATA-MATA', team_color: 'N/A',
-                        squad: [] 
+                        squad: []
                     });
                 }
-            } 
+            }
             else if (mode === 'competitive') {
                 const squadMembers = match.players.filter(player => rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, '')));
                 if (squadMembers.length >= 2) {
-                    const teamId = squadMembers[0].team; 
+                    const teamId = squadMembers[0].team;
                     const teamData = (match.teams && teamId) ? match.teams[teamId.toLowerCase()] : null; // CORREÇÃO: Prevenção de Remakes
-                    
+
                     let finalResult = 'DERROTA';
                     if (match.teams) {
                         if (match.teams.blue.rounds_won === match.teams.red.rounds_won) finalResult = 'EMPATE';
@@ -312,19 +312,19 @@ async function run() {
                     let basePoints = 0;
                     if (squadMembers.length === 2) basePoints = 1;
                     else if (squadMembers.length === 3) basePoints = 2;
-                    else if (squadMembers.length >= 4) basePoints = 5; 
+                    else if (squadMembers.length >= 4) basePoints = 5;
 
                     let earnedPoints = (finalResult === 'VITÓRIA') ? basePoints * 2 : basePoints;
 
                     squadMembers.forEach(m => {
                         let nId = `${m.name}#${m.tag}`.toLowerCase().replace(/\s/g, '');
                         newSynergyPoints[nId] = (newSynergyPoints[nId] || 0) + earnedPoints;
-                        if(playerMatchStats[nId]) playerMatchStats[nId].group++;
+                        if (playerMatchStats[nId]) playerMatchStats[nId].group++;
                     });
-                    
+
                     operations.push({
                         id: matchId, map: match.metadata.map, mode: match.metadata.mode,
-                        started_at: match.metadata.game_start * 1000, 
+                        started_at: match.metadata.game_start * 1000,
                         score: match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A',
                         result: finalResult, team_color: teamId,
                         squad: squadMembers.map(m => {
@@ -348,17 +348,17 @@ async function run() {
         finalPlayersData = finalPlayersData.map(player => {
             let nId = player.riot_id.toLowerCase().replace(/\s/g, '');
             const earnedPoints = newSynergyPoints[nId] || 0;
-            const earnedDm = newDmPoints[nId] || 0; 
+            const earnedDm = newDmPoints[nId] || 0;
             let stats = playerMatchStats[nId] || { comp: 0, group: 0 };
-            
+
             let isLoneWolf = player.lone_wolf;
-            
+
             if (stats.comp > 0 && stats.group === 0) {
                 if (!isLoneWolf) novosLobosSolitarios.push(player.riot_id.split('#')[0]);
-                isLoneWolf = true; 
+                isLoneWolf = true;
             } else if (stats.group > 0) {
-                isLoneWolf = false; 
-            } 
+                isLoneWolf = false;
+            }
 
             // CORREÇÃO: Adicionadas as somas para dm_score_monthly e dm_score_total
             return {
@@ -370,7 +370,7 @@ async function run() {
                 lone_wolf: isLoneWolf
             };
         });
-        
+
         console.log('4. A guardar dados no Supabase e a transmitir alertas...');
         const { error: pError } = await supabase.from('players').upsert(finalPlayersData, { onConflict: 'riot_id' });
         if (pError) console.error('Erro ao guardar jogadores:', pError);
@@ -378,7 +378,7 @@ async function run() {
         for (const agente of novosLobosSolitarios) {
             const msgLobo = `🐺 *[ALERTA DE LOBO SOLITÁRIO]*\n\nO agente *${agente}* foi detetado a operar sozinho nas linhas inimigas (SoloQ).\n\nResgatem este operador para uma *Party* antes que a sanidade acabe!`;
             await notificarTelegram(msgLobo);
-            await delay(1000); 
+            await delay(1000);
         }
 
         for (const op of operations) {
@@ -393,13 +393,13 @@ async function run() {
                 }));
                 await supabase.from('operation_squads').delete().eq('operation_id', op.id);
                 await supabase.from('operation_squads').insert(squadData);
-                
+
                 if (op.mode.toLowerCase() === 'competitive') {
                     const agentes = op.squad.map(m => m.riotId.split('#')[0]).join(', ');
                     const iconeResultado = op.result === 'VITÓRIA' ? '🟢' : (op.result === 'EMPATE' ? '🟡' : '🔴');
-                    
+
                     const intelMessage = `🚨 *[PROTOCOLO V - INTEL]* 🚨\n\nOperação finalizada no setor *${op.map}*\n👥 *Esquadrão:* ${agentes}\n${iconeResultado} *Resultado:* ${op.result} (${op.score})\n\n[Aceder ao Terminal Principal](https://protocolov.com)`;
-                    
+
                     await notificarTelegram(intelMessage);
                     await delay(1000);
                 }
@@ -410,7 +410,7 @@ async function run() {
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
         const { data: purged, error: purgeError } = await supabase
             .from('players').delete().eq('synergy_score', 0).lt('created_at', sevenDaysAgo).select();
-            
+
         if (purgeError) console.error('   ❌ Erro na purga:', purgeError);
         else if (purged && purged.length > 0) console.log(`   🧹 ${purged.length} recruta(s) removido(s).`);
         else console.log('   ✅ Nenhum recruta inativo para expurgar.');
