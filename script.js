@@ -133,6 +133,27 @@ async function fetchCachedData() {
             }
             
             banner.style.display = 'block';
+
+            // NOVO: Adicionar contador de tempo
+            if (window.lobbyTimerInterval) clearInterval(window.lobbyTimerInterval);
+            const timerEl = document.getElementById('lobby-timer');
+            
+            if (timerEl) {
+                const updateTimer = () => {
+                    const timeLeft = call.expires_at - Date.now();
+                    if (timeLeft <= 0) {
+                        clearInterval(window.lobbyTimerInterval);
+                        banner.style.display = 'none';
+                    } else {
+                        const mins = Math.floor(timeLeft / 60000);
+                        const secs = Math.floor((timeLeft % 60000) / 1000);
+                        timerEl.innerText = `(${mins}m ${secs}s)`;
+                    }
+                };
+                updateTimer();
+                window.lobbyTimerInterval = setInterval(updateTimer, 1000);
+            }
+
         } else if (banner) {
             banner.style.display = 'none';
         }
