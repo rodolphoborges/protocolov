@@ -83,6 +83,8 @@ SUPABASE_SERVICE_KEY=[PRIVATE_ADMIN_R/W_KEY]
 HENRIK_API_KEY=[API_KEY]
 TELEGRAM_BOT_TOKEN=[BOT_TOKEN]
 TELEGRAM_CHAT_ID=[TELEGRAM_GROUP_ID]
+ADMIN_TELEGRAM_ID=[O_SEU_ID_TELEGRAM_AQUI]
+WEBHOOK_URL=[OPCIONAL_URL_DO_RENDER]
 PORT=3000
 ```
 *(As credenciais frontend `anon_key` do supabase podem ser visualizadas com segurança em `script.js` para operações Read-Only de visitantes).*
