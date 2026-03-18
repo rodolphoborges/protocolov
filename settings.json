@@ -1,0 +1,13 @@
+{
+  "api": {
+    "base_delay_ms": 13500,
+    "max_delay_ms": 30000,
+    "timeout_ms": 20000,
+    "batch_size": 3,
+    "jitter_max_ms": 4000
+  },
+  "database": {
+    "days_inactive_purge": 7,
+    "max_operations_history": 500
+  }
+}

@@ -1,29 +1,12 @@
-const supabaseUrl = 'https://gzbzfmvgwfvzjqurowku.supabase.co';
-const supabaseAnonKey = 'sb_publishable_EBbK4nq9kpV0VNFmOzFEqQ_2mooasVD';
+const supabaseUrl = window.ProtocolConfig.supabase.url;
+const supabaseAnonKey = window.ProtocolConfig.supabase.anonKey;
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-const squadsConfig = {
-    'ALPHA': { 
-        title: 'UNIDADE ALPHA', 
-        desc: 'Sob o comando da Agente 02 - Viper. Precisão química e controle tático absoluto.', 
-        commanderImg: 'https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/fullportrait.png',
-        commanderBg: 'rgba(0, 255, 157, 0.03)',
-        theme: 'alpha-theme',
-        roles: { 'Controlador': null, 'Duelista': null, 'Iniciador': null, 'Sentinela': null, 'Flex': null } 
-    },
-    'OMEGA': { 
-        title: 'UNIDADE ÔMEGA', 
-        desc: 'Sob o comando do Agente 01 - Brimstone. Força de elite e suporte orbital pesado.', 
-        commanderImg: 'https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/fullportrait.png',
-        commanderBg: 'rgba(255, 70, 85, 0.03)',
-        theme: 'omega-theme',
-        roles: { 'Controlador': null, 'Duelista': null, 'Iniciador': null, 'Sentinela': null, 'Flex': null } 
-    }
-};
+const squadsConfig = window.ProtocolConfig.ui.squads;
 
 let esquadraoWingman = []; // Fila de Reserva
 let opsOffset = 0;
-const OPS_PER_PAGE = 5;
+const OPS_PER_PAGE = window.ProtocolConfig.ui.opsPerPage;
 let isFetchingOps = false;
 let isSubmittingForm = false; 
 let mapImages = {};

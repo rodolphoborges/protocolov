@@ -50,9 +50,10 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
     <script>
-        const supabaseUrl = 'https://gzbzfmvgwfvzjqurowku.supabase.co';
-        const supabaseAnonKey = 'sb_publishable_EBbK4nq9kpV0VNFmOzFEqQ_2mooasVD';
+        const supabaseUrl = window.ProtocolConfig.supabase.url;
+        const supabaseAnonKey = window.ProtocolConfig.supabase.anonKey;
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
         async function fetchDmLeaderboard(column = 'dm_score') {
