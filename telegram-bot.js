@@ -75,7 +75,7 @@ bot.on('callback_query', async (query) => {
 // --- COMANDO /START ---
 bot.onText(/^\/start(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `🟢 *TERMINAL PROTOCOLO V ONLINE* 🟢\n\nBem-vindo ao sistema de comando tático.\n\n*Comandos Disponíveis:*\n/ajuda - Mostrar todos os comandos\n/site - Acessar o terminal web\n/unidade - Solicitar transferência de esquadrão\n/ranking - Ver o Top 10 de Sinergia\n/perfil [Nome] - Buscar o dossiê de um agente`;
+    const mensagem = `🟢 *[SISTEMA]* CONEXÃO ESTABELECIDA 🟢\n\nBem-vindo ao *Terminal Tático Protocolo V*.\nRadiocomunicação segura ativada.\n\n*Diretrizes Operacionais:*\n/ajuda - Exibir manual de comandos\n/site - Acessar a base de dados principal\n/unidade - Solicitar transferência de esquadrão\n/ranking - Listar agentes de elite (Top 10)\n/perfil [Nome] - Extrair dossiê completo do agente`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown' });
 });
 
@@ -171,13 +171,14 @@ bot.onText(/^\/ranking(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
         const { data, error } = await supabase.from('players').select('riot_id, synergy_score, unit').order('synergy_score', { ascending: false }).limit(10);
         if (error) throw error;
         
-        let rankMsg = `🏆 *TOP 10 SINERGIA - PROTOCOLO V* 🏆\n\n`;
+        let rankMsg = `🏆 *[RELATÓRIO DE SINERGIA: TOP 10 AGENTES]* 🏆\n\n_Extraindo dados dos servidores centrais..._\n\n`;
         data.forEach((p, i) => {
-            rankMsg += `${i + 1}. *${escapeMarkdown(p.riot_id.split('#')[0])}* - ${p.synergy_score || 0} pts (${p.unit || 'Sem Unidade'})\n`;
+            rankMsg += `*0${i + 1}.* ${escapeMarkdown(p.riot_id.split('#')[0])} ➔ ${p.synergy_score || 0} pts _(${p.unit || 'Não Designado'})_\n`;
         });
+        rankMsg += `\n_Para constar no relatório, forme esquadrões e reporte vitórias._`;
         bot.sendMessage(chatId, rankMsg, { parse_mode: 'Markdown' });
     } catch (err) {
-        bot.sendMessage(chatId, "❌ Erro ao acessar o banco de dados.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "❌ *[ERRO]* Falha na conexão com o banco de dados da Vangard.", { parse_mode: 'Markdown' });
     }
 });
 
@@ -186,18 +187,30 @@ bot.onText(/^\/perfil(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const argumento = match[1] ? match[1].trim() : null;
 
-    if (!argumento) return bot.sendMessage(chatId, "⚠️ Precisas de informar o nome do agente. Ex: `/perfil Ousadia`", { parse_mode: 'Markdown' });
+    if (!argumento) return bot.sendMessage(chatId, "⚠️ *Cypher:* Preciso de um alvo para investigar. Usa o formato: `/perfil Nick`.", { parse_mode: 'Markdown' });
 
     try {
         const { data } = await supabase.from('players').select('*').ilike('riot_id', `%${argumento}%`).limit(1);
-        if (!data || data.length === 0) return bot.sendMessage(chatId, "⚠️ Agente não encontrado nos registos do Protocolo.", { parse_mode: 'Markdown' });
+        if (!data || data.length === 0) return bot.sendMessage(chatId, "⚠️ *Cypher:* O meu espião não encontrou registos deste agente no Protocolo V.", { parse_mode: 'Markdown' });
         
         const p = data[0];
-        const msgPerfil = `👤 *DOSSIÊ DO AGENTE*\n\n*Riot ID:* ${escapeMarkdown(p.riot_id)}\n*Unidade:* ${p.unit || 'Sem Unidade'}\n*Função:* ${p.role_raw || 'Não Definida'}\n*Rank:* ${p.current_rank || 'Sem Rank'}\n*Sinergia:* ${p.synergy_score || 0} pts\n*Treino (DM):* ${p.dm_score_total || p.dm_score || 0} pts\n*Lobo Solitário:* ${p.lone_wolf ? 'Sim 🐺' : 'Não'}`;
+        const statusLobo = p.lone_wolf ? 'Positivo 🐺 (Recomendada intervenção tática)' : 'Negativo (Opera em equipa)';
+        const safeRank = p.current_rank && p.current_rank !== 'Processando...' ? p.current_rank : 'Pendente de Avaliação';
+        
+        const msgPerfil = `📂 *DOSSIÊ CONFIDENCIAL ABERTO*\n\n` +
+                          `👤 *Identificação:* ${escapeMarkdown(p.riot_id)}\n` +
+                          `🛡️ *Designação:* ${p.unit || 'Desconhecida'}\n` +
+                          `⚔️ *Classe Tática:* ${p.role_raw || 'Não Declarada'}\n` +
+                          `🎖️ *Nível de Ameaça (Rank):* ${safeRank}\n\n` +
+                          `📊 *STATUS OPERACIONAL:*\n` +
+                          `🔹 *Sinergia Acumulada:* ${p.synergy_score || 0} pts\n` +
+                          `🎯 *Treinamento (Mata-Mata):* ${p.dm_score_total || p.dm_score || 0} pts\n` +
+                          `⚠️ *Aviso de Lobo Solitário:* ${statusLobo}\n\n` +
+                          `_Fim do relatório. Desligando terminal..._`;
         
         bot.sendMessage(chatId, msgPerfil, { parse_mode: 'Markdown' });
     } catch (err) {
-        bot.sendMessage(chatId, "❌ Erro ao extrair o dossiê.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "❌ *Falha de Criptografia:* Impossível ler o dossiê neste momento.", { parse_mode: 'Markdown' });
     }
 });
 
@@ -259,22 +272,22 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 // --- COMANDO /AJUDA ---
 bot.onText(/^\/ajuda(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `📖 *MANUAL DE COMANDOS TÁTICOS*\n\n` +
-        `🔹 */start* - Iniciar terminal\n` +
-        `🔹 */ajuda* - Mostrar este manual\n` +
-        `🔹 */site* - Acessar o terminal web\n` +
-        `🔹 */vincular [Nick#TAG]* - Associar sua conta ao seu Telegram\n` +
-        `🔹 */unidade* - Solicitar transferência de esquadrão\n` +
-        `🔹 */ranking* - Visualizar o Top 10 de Sinergia\n` +
-        `🔹 */perfil [Nick]* - Ver estatísticas detalhadas de um agente\n` +
-        `🔹 */convocar [Código]* - Enviar sinalizador de lobby para o site`;
+    const mensagem = `📖 *MANUAL DE OPERAÇÕES DO PROTOCOLO V*\n\n` +
+        `_Todas as frequências são monitorizadas. Usa os comandos com sabedoria._\n\n` +
+        `📡 */vincular [Nick#TAG]* - Autenticar o teu rádio pessoal.\n` +
+        `🚨 */convocar [Código]* - Emitir alerta de reforços globais para o teu Lobby.\n` +
+        `🔄 */unidade* - Requisitar mudança de esquadrão tático (Alpha, Ômega ou Wingman).\n` +
+        `📂 */perfil [Nick]* - Quebrar a encriptação e ver o dossiê de um agente.\n` +
+        `🏆 */ranking* - Aceder à lista dos 10 melhores agentes em Sinergia.\n` +
+        `🌐 */site* - Obter coordenadas diretas para o Terminal Web Base.\n` +
+        `⚙️ */ajuda* - Relêr estes procedimentos operacionais.`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown' });
 });
 
 // --- COMANDO /SITE ---
 bot.onText(/^\/site(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `🌐 *ACESSO AO TERMINAL WEB*\n\nAcede à base de dados completa do Protocolo V aqui:\n[https://protocolov.com](https://protocolov.com)`;
+    const mensagem = `🌐 *[TERMINAL WEB: LOCALIZADO]*\n\nTodas as informações vitais, listagens completas da Line-Up, relatórios de operações conjuntas e Rankings encontram-se no nosso Hub Central.\n\n*Conexão Segura:* [https://protocolov.com](https://protocolov.com)\n_Brimstone aprova esta ligação._`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown', disable_web_page_preview: true });
 });
 
