@@ -1,6 +1,9 @@
+require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function run() {
     console.log('--- PROTOCOLO V: ROTINA DE MANUTENÇÃO DE DADOS ---');
@@ -14,18 +17,18 @@ async function run() {
     try {
         if (isMonday) {
             console.log('🔄 Iniciando Reset SEMANAL de Mata-Mata...');
-            const { error } = await supabase.from('players').update({ dm_score: 0 }).neq('dm_score', 0);
+            const { data, error } = await supabase.from('players').update({ dm_score: 0 }).neq('dm_score', 0).select();
             if (error) throw error;
-            console.log('✅ Leaderboard Semanal zerada.');
+            console.log(`✅ Leaderboard Semanal zerada para ${data ? data.length : 0} agentes.`);
         } else {
             console.log('⏭️ Hoje não é segunda-feira. Reset semanal ignorado.');
         }
 
         if (isFirstOfMonth) {
             console.log('🔄 Iniciando Reset MENSAL de Mata-Mata...');
-            const { error } = await supabase.from('players').update({ dm_score_monthly: 0 }).neq('dm_score_monthly', 0);
+            const { data, error } = await supabase.from('players').update({ dm_score_monthly: 0 }).neq('dm_score_monthly', 0).select();
             if (error) throw error;
-            console.log('✅ Leaderboard Mensal zerada.');
+            console.log(`✅ Leaderboard Mensal zerada para ${data ? data.length : 0} agentes.`);
         } else {
             console.log('⏭️ Hoje não é dia 1. Reset mensal ignorado.');
         }
