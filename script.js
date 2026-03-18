@@ -490,7 +490,7 @@ function renderSquads() {
                 <img src="https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/fullportrait.png" style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; object-fit: cover; object-position: right top; opacity: 0.15; pointer-events: none; filter: grayscale(80%);">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 position-relative z-1">
                     <div>
-                        <h3 class="role-title" style="color: #bef33e;">UNIDADE WINGMAN</h3>
+                        <h3 class="role-title" style="color: #a2d12f;">UNIDADE WINGMAN</h3>
                         <p class="text-muted small mb-0">Mobilização rápida via Agente 22 - Gekko. Força de suporte aguardando ordens para inserção imediata.</p>
                     </div>
                     <span class="badge rounded-0 mt-3 mt-md-0" style="background-color: #bef33e; color: var(--val-dark); font-family: 'Inter', sans-serif; font-weight: 800;">${esquadraoWingman.length} AGENTES NA ESCUTA</span>
