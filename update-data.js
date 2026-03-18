@@ -209,10 +209,11 @@ async function run() {
                 if (!playerData.api_error) {
                     if (hasNewMatches) {
                         try {
-                            const allRecentObj = listData.data.find(m => m.players && m.players.all_players);
+                            const allRecentObj = listData.data.find(m => m.players && (Array.isArray(m.players) || m.players.all_players));
                             
                             if (allRecentObj) {
-                                const me = allRecentObj.players.all_players.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
+                                const playersArray = Array.isArray(allRecentObj.players) ? allRecentObj.players : allRecentObj.players.all_players;
+                                const me = playersArray.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
                                 if (me) {
                                     playerData.level = me.level;
                                     if (me.assets && me.assets.card) {
@@ -221,7 +222,8 @@ async function run() {
                                     
                                     const lastCompObj = recentCompMatches.length > 0 ? recentCompMatches[0] : null;
                                     if (lastCompObj) {
-                                        const meComp = lastCompObj.players.all_players.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
+                                        const compPlayersArray = Array.isArray(lastCompObj.players) ? lastCompObj.players : (lastCompObj.players ? lastCompObj.players.all_players : []);
+                                        const meComp = compPlayersArray.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
                                         if (meComp && meComp.currenttier_patched) {
                                             playerData.current_rank = meComp.currenttier_patched;
                                         }
