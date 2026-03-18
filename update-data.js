@@ -5,10 +5,23 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const REQUEST_DELAY = 4000;
+const REQUEST_DELAY = 2100; // ~2.1s por requisição garante no máximo 28 req/minuto
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
+// Variáveis de controle global de Rate Limit
+let apiRequestsCount = 0;
+let rateLimitResetTime = 0;
+
 async function smartFetch(url, headers, retries = 2) {
+    const now = Date.now();
+    
+    // Se estivermos em período de cooldown (429 global), espera.
+    if (now < rateLimitResetTime) {
+        const waitTime = rateLimitResetTime - now;
+        console.log(`      ⏳ Aguardando cooldown global (${Math.ceil(waitTime/1000)}s)...`);
+        await delay(waitTime);
+    }
+
     const start = Date.now();
     let response = null; 
     let error = null;
@@ -19,11 +32,13 @@ async function smartFetch(url, headers, retries = 2) {
     try {
         response = await fetch(url, { headers, signal: controller.signal });
         clearTimeout(timeoutId);
+        apiRequestsCount++;
 
         if (response.status === 429 && retries > 0) {
             const resetInSeconds = parseInt(response.headers.get('x-ratelimit-reset')) || 30;
-            console.log(`      ⛔ Rate Limit (429). Pausa inteligente de ${resetInSeconds}s...`);
-            await delay(resetInSeconds * 1000); 
+            console.log(`      ⛔ Rate Limit (429) Atingido! Pausa de segurança de ${resetInSeconds}s...`);
+            rateLimitResetTime = Date.now() + (resetInSeconds * 1000) + 1000; // Adds 1s buffer
+            await delay((resetInSeconds * 1000) + 1000); 
             return smartFetch(url, headers, retries - 1);
         }
     } catch (e) { 
@@ -31,7 +46,9 @@ async function smartFetch(url, headers, retries = 2) {
         error = e; 
     }
     
-    const remainingDelay = Math.max(0, REQUEST_DELAY - (Date.now() - start));
+    // Garante no mínimo 2.1s entre CADA requisição para nunca estourar as 30 req/min
+    const elapsed = Date.now() - start;
+    const remainingDelay = Math.max(0, REQUEST_DELAY - elapsed);
     if (remainingDelay > 0) await delay(remainingDelay);
     
     if (error) throw error;
@@ -167,39 +184,49 @@ async function run() {
                     playerData.api_error = true;
                 }
 
-                const isMissingData = !playerData.level || !playerData.current_rank || playerData.current_rank === 'Processando...';
+                const isMissingData = !playerData.level || !playerData.current_rank || playerData.current_rank === 'Processando...' || playerData.current_rank === 'Pendente';
 
                 if (!playerData.api_error) {
+                    // CORTA chamadas para MMR e Level se o player não jogou nenhuma partida nova E já tem os dados na base.
                     if (hasNewMatches || isMissingData) {
-                        const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
-                        if (accRes.status === 200) {
-                            const accData = await accRes.json();
-                            playerData.level = accData.data.account_level;
-                            playerData.card_url = accData.data.card.small;
-                            region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
-                        }
+                        try {
+                            const accRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v1/account/${safeName}/${safeTag}`, headers);
+                            if (accRes.status === 200) {
+                                const accData = await accRes.json();
+                                playerData.level = accData.data.account_level;
+                                playerData.card_url = accData.data.card.small;
+                                region = ['na', 'eu', 'latam', 'br'].includes(accData.data.region) ? accData.data.region : 'br';
+                            }
 
-                        const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
-                        if (mmrRes.status === 200) {
-                            const mmrData = await mmrRes.json();
-                            if (mmrData.data.current_data?.currenttierpatched) {
-                                playerData.current_rank = mmrData.data.current_data.currenttierpatched;
-                                playerData.current_rank_icon = mmrData.data.current_data.images.small;
+                            const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
+                            if (mmrRes.status === 200) {
+                                const mmrData = await mmrRes.json();
+                                if (mmrData.data.current_data?.currenttierpatched) {
+                                    playerData.current_rank = mmrData.data.current_data.currenttierpatched;
+                                    playerData.current_rank_icon = mmrData.data.current_data.images.small;
+                                }
+                                if (mmrData.data.highest_rank?.patched_tier) {
+                                    playerData.peak_rank = mmrData.data.highest_rank.patched_tier;
+                                    const peakTier = mmrData.data.highest_rank.tier;
+                                    if (peakTier) playerData.peak_rank_icon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
+                                }
                             }
-                            if (mmrData.data.highest_rank?.patched_tier) {
-                                playerData.peak_rank = mmrData.data.highest_rank.patched_tier;
-                                const peakTier = mmrData.data.highest_rank.tier;
-                                if (peakTier) playerData.peak_rank_icon = `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${peakTier}/smallicon.png`;
-                            }
+                        } catch (err) {
+                            console.log(`      ⚠️ Falha ao atualizar dados de Rank/Level (Erro ignorado)`);
                         }
+                    } else {
+                        console.log(`      ⚡ Cache ativo: Nenhuma partida nova. Ignorando requisições MMR/Level.`);
                     }
                 }
             } catch (err) {
                 playerData.api_error = true;
+                console.log(`      ❌ Erro Crítico ao puxar partidas:`, err.message);
             }
 
             finalPlayersData.push(playerData);
         }
+
+        console.log(`\n📊 ESTATÍSTICAS DA API: Realizadas ${apiRequestsCount} chamadas no total.\n`);
 
         console.log(`3. A processar operações conjuntas e Gamificação (Competitivo + DM)...`);
         let operations = [];
