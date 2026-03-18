@@ -35,8 +35,12 @@
                     <span class="badge bg-dark text-light rounded-0 px-2 py-1">REGRA DE COMBATE</span> 
                     <strong>1 Kill = 1 Ponto.</strong> Bónus de Brutalidade para o Top 3: <span class="text-accent">+15</span>, <span class="text-secondary">+10</span>, <span style="color:#cd7f32;">+5</span> pts.
                 </p>
-                <div class="mt-3 text-uppercase fw-bold" style="font-size: 0.8rem; letter-spacing: 1px; color: var(--val-accent); opacity: 0.8;">
-                    🛰️ Monitorização em Tempo Real (Sync: 2m) | <span id="reset-info">Próximo Reset: Segunda-feira</span>
+                <div class="mt-3 text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 1.5px; color: var(--val-accent); opacity: 0.7;">
+                    <span title="Data de acesso ao Terminal">🗓️ DATA: <span id="current-date">-- --- --</span></span>
+                    <span class="mx-2" style="opacity: 0.3;">|</span>
+                    <span title="O sistema sincroniza seu desempenho com a API a cada 120 segundos">🛰️ RADAR: ATIVO [120s]</span> 
+                    <span class="mx-2" style="opacity: 0.3;">|</span> 
+                    <span id="reset-info" title="O ciclo de pontuação desta aba termina e reinicia nesta data">📅 CICLO: RESET SEMANAL [Segunda-feira]</span>
                 </div>
             </div>
         </div>
@@ -59,6 +63,12 @@
         const supabaseAnonKey = window.ProtocolConfig.supabase.anonKey;
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
+        // Injeta a data atual no formato tático
+        const dateEl = document.getElementById('current-date');
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' }).replace('.', '');
+        dateEl.innerText = dateStr.toUpperCase();
+
         async function fetchDmLeaderboard(column = 'dm_score') {
             const container = document.getElementById('leaderboard-container');
             container.innerHTML = `<div class="text-muted fw-bold mt-5">A DECODIFICAR DADOS DO SERVIDOR...</div>`;
@@ -72,11 +82,11 @@
             activeBtn.classList.remove('btn-outline-danger');
             activeBtn.classList.add('btn-danger', 'text-light');
 
-            // Atualiza informação de reset
+            // Atualiza informação de reset de forma objetiva
             const resetInfo = document.getElementById('reset-info');
-            if (column === 'dm_score') resetInfo.innerText = "Próximo Reset: Segunda-feira";
-            else if (column === 'dm_score_monthly') resetInfo.innerText = "Próximo Reset: Dia 1 do Mês";
-            else resetInfo.innerText = "Acumulado Histórico Vanguard";
+            if (column === 'dm_score') resetInfo.innerText = "📅 CICLO: RESET SEMANAL [Segunda-feira]";
+            else if (column === 'dm_score_monthly') resetInfo.innerText = "📅 CICLO: RESET MENSAL [Dia 1]";
+            else resetInfo.innerText = "📅 CICLO: ACUMULADO VANGUARD";
 
             try {
                 // Puxa a coluna dinâmica escolhida pelo utilizador
