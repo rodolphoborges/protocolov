@@ -7,6 +7,7 @@ const express = require('express');
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+const ADMIN_ID = parseInt(process.env.ADMIN_TELEGRAM_ID, 10); // Lendo do arquivo .env
 
 if (!token || !supabaseUrl || !supabaseKey) {
     console.error('🔥 ERRO: Variáveis de ambiente faltando.');
@@ -26,6 +27,42 @@ bot.on('callback_query', async (query) => {
     const chatId = query.message.chat.id;
     const messageId = query.message.message_id;
     const callbackData = query.data;
+
+    // INTERAÇÃO: SINALIZADOR LFG
+    if (callbackData.startsWith('lfg_join_')) {
+        const { data: userRef } = await supabase.from('players').select('riot_id').eq('telegram_id', query.from.id).limit(1);
+        if (!userRef || userRef.length === 0) return bot.answerCallbackQuery(query.id, { text: "Rádio não vinculado. Usa /vincular", show_alert: true });
+        
+        const joinerName = userRef[0].riot_id.split('#')[0];
+        const rawText = query.message.text;
+        
+        if (rawText.includes(`- ${joinerName}`)) {
+            return bot.answerCallbackQuery(query.id, { text: "Já estás neste esquadrão." });
+        }
+        
+        const lines = rawText.split('\n');
+        const listAgents = lines.filter(l => l.trim().startsWith('- '));
+        if (listAgents.length >= 5) {
+            return bot.answerCallbackQuery(query.id, { text: "Esquadrão já está cheio (5/5).", show_alert: true });
+        }
+
+        listAgents.push(`- ${joinerName}`);
+        
+        let newMd = `🚨 *[SINALIZADOR ORBITAL ZONA QUENTE]*\n\n` +
+                    `> 📡 *Reforços LFG detectados:*\n` +
+                    `_Agentes confirmados no esquadrão:_ ${listAgents.length}/5\n` +
+                    listAgents.map(a => escapeMarkdown(a)).join('\n');
+        
+        if (listAgents.length >= 5) {
+            bot.editMessageText(newMd + "\n\n✅ *[ESQUADRÃO FECHADO]* - Encontrem-se na base.", { chat_id: chatId, message_id: messageId, parse_mode: 'Markdown' });
+        } else {
+            bot.editMessageText(newMd, { 
+                chat_id: chatId, message_id: messageId, parse_mode: 'Markdown',
+                reply_markup: query.message.reply_markup
+            });
+        }
+        return bot.answerCallbackQuery(query.id, { text: "O teu sinal foi emitido!" });
+    }
 
     // TRANSFERÊNCIA DE UNIDADE FINAL
     if (callbackData.startsWith('uni_')) {
@@ -260,13 +297,24 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 
         const expiresAt = now + (30 * 60 * 1000); // Expira em 30 minutos
 
-        await supabase.from('active_calls').insert([{
+        const { data: insertedCall } = await supabase.from('active_calls').insert([{
             commander: commanderName,
             party_code: codigoLobby,
             expires_at: expiresAt
-        }]);
+        }]).select();
 
-        bot.sendMessage(chatId, `🚨 *[SINALIZADOR ORBITAL ZONA QUENTE]*\n\n> 📡 Reforços convocados para o Lobby: \`${codigoLobby}\`.\n_Aviso transmitido para a Intranet Web. Duração: 30 minutos._`, { parse_mode: 'Markdown' });
+        const callId = insertedCall && insertedCall.length > 0 ? insertedCall[0].id : 'global';
+
+        const alertMsg = `🚨 *[SINALIZADOR ORBITAL ZONA QUENTE]*\n\n> 📡 *Reforços LFG detectados para:* \`${codigoLobby}\`\n_Agentes confirmados no esquadrão:_ 1/5\n- ${escapeMarkdown(commanderName)}`;
+        
+        bot.sendMessage(chatId, alertMsg, {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: "🟢 Aceitar Convocação", callback_data: `lfg_join_${callId}` }]
+                ]
+            }
+        });
 
     } catch (err) {
         bot.sendMessage(chatId, "> 🤖 *Erro:* Falha ao acionar sinalizador.", { parse_mode: 'Markdown' });
@@ -293,6 +341,69 @@ bot.onText(/^\/site(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
     const mensagem = `🌐 *[INTRANET PROTOCOLO V]*\n\n> Acompanhe a movimentação furtiva dos esquadrões, logs de combate e line-up atual no nosso terminal web.\n\n🔗 *Acesso direto:* [ProtocoloV.com](https://protocolov.com)\n_> 🛰️ Brimstone aprova esta ligação._`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown', disable_web_page_preview: true });
+});
+
+// --- COMANDOS SECRETOS DE ADMINISTRAÇÃO (BRIMSTONE ONLY) ---
+bot.onText(/^\/expurgar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
+    if (msg.from.id !== ADMIN_ID) return; 
+
+    const chatId = msg.chat.id;
+    const riotId = match[1] ? match[1].trim() : null;
+    if (!riotId) return bot.sendMessage(chatId, "> 🛰️ *Brimstone:* Forneça o Riot ID exato do alvo para expurgação.", { parse_mode: 'Markdown' });
+
+    try {
+        const { error } = await supabase.from('players').delete().ilike('riot_id', `%${riotId}%`);
+        if (error) throw error;
+        bot.sendMessage(chatId, `> 💥 *[EXPURGO CONFIRMADO]*\nO registo do agente *${escapeMarkdown(riotId)}* foi eliminado fisicamente dos servidores da Vanguard.`, { parse_mode: 'Markdown' });
+    } catch(err) {
+        bot.sendMessage(chatId, "> 🤖 *Erro:* A blindagem de dados resistiu ao expurgo.", { parse_mode: 'Markdown' });
+    }
+});
+
+bot.onText(/^\/alerta_vermelho(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
+    if (msg.from.id !== ADMIN_ID) return; 
+
+    const chatId = msg.chat.id;
+    const mensagemAlert = match[1] ? match[1].trim() : null;
+    if (!mensagemAlert) return bot.sendMessage(chatId, "> 🛰️ *Brimstone:* O canal de emergência precisa de uma mensagem para transmitir.", { parse_mode: 'Markdown' });
+
+    try {
+        const { data } = await supabase.from('players').select('telegram_id').not('telegram_id', 'is', null);
+        let sentCount = 0;
+        
+        const avisoFinal = `🚨 *[ALERTA DE EMERGÊNCIA DA VANGUARD]* 🚨\n\n> 🛰️ *O Comandante Brimstone transmite em canal aberto:*\n_${escapeMarkdown(mensagemAlert)}_\n\n\`[Fim da Transmissão]\``;
+
+        for (const player of data) {
+            try {
+                await bot.sendMessage(player.telegram_id, avisoFinal, { parse_mode: 'Markdown' });
+                sentCount++;
+            } catch (e) { /* user blocked the bot */ }
+        }
+        bot.sendMessage(chatId, `> 🛰️ *Brimstone:* Transmissão global concluída. ${sentCount} agentes receberam a mensagem nas suas frequências blindadas.`, { parse_mode: 'Markdown' });
+    } catch(err) {
+        bot.sendMessage(chatId, "> 🤖 *Erro na rede de transmissão global.*", { parse_mode: 'Markdown' });
+    }
+});
+
+bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
+    if (msg.from.id !== ADMIN_ID) return;
+
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, "> 🛰️ *Iniciando varredura orbital na infraestrutura HenrikDev...*", { parse_mode: 'Markdown' });
+    try {
+        const start = Date.now();
+        // node-fetch genérico não nativo no v14, mas no v18 fetch é nativo. Assumimos Node 18 (nativo).
+        const res = await fetch('https://api.henrikdev.xyz/valorant/v1/status/br');
+        const ping = Date.now() - start;
+        
+        if (res.status === 200) {
+            bot.sendMessage(chatId, `> 🟢 *[RADAR ONLINE]*\n_A Vanguard está a responder na frequência correta._\nLatência do satélite: \`${ping}ms\``, { parse_mode: 'Markdown' });
+        } else {
+            bot.sendMessage(chatId, `> 🟡 *[RADAR INSTÁVEL]*\nA API retornou código \`${res.status}\`. O sinal está poluído.`, { parse_mode: 'Markdown' });
+        }
+    } catch (err) {
+        bot.sendMessage(chatId, "> 🔴 *[RADAR DESLIGADO]*\nA infraestrutura externa está incontactável. A Vanguard está sob ataque.", { parse_mode: 'Markdown' });
+    }
 });
 
 // --- SERVIDOR EXPRESS (Camuflado) ---
