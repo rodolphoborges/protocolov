@@ -5,14 +5,14 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BASE_DELAY = 2200; // Começa Otimista (2.2s)
-let currentDelay = BASE_DELAY; // Delay dinâmico que vai aprendendo
+const BASE_DELAY = 2200; // Ponto de partida ideal (2.2s)
+let currentDelay = BASE_DELAY;
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 let apiRequestsCount = 0;
 let rateLimitResetTime = 0;
 
-async function smartFetch(url, headers, retries = 2) {
+async function smartFetch(url, headers, retries = 3) { // Aumento para 3 tentativas de salvação
     const now = Date.now();
     if (now < rateLimitResetTime) {
         const waitTime = rateLimitResetTime - now;
@@ -25,20 +25,34 @@ async function smartFetch(url, headers, retries = 2) {
     let error = null;
     
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s de timeout máximo na call
 
     try {
         response = await fetch(url, { headers, signal: controller.signal });
         clearTimeout(timeoutId);
         apiRequestsCount++;
 
-        if (response.status === 429 && retries > 0) {
-            // A API reclamou, então nós APRENDEMOS e ficamos 10% mais lentos para sempre a partir deste ponto.
-            currentDelay = Math.floor(currentDelay * 1.10); 
-            const resetInSeconds = parseInt(response.headers.get('x-ratelimit-reset')) || 30;
-            console.log(`      ⛔ Rate Limit (429) Atingido! Ajustando radar para ${currentDelay}ms/req. Pausa de ${resetInSeconds}s...`);
-            rateLimitResetTime = Date.now() + (resetInSeconds * 1000) + 2000; 
-            await delay((resetInSeconds * 1000) + 2000); 
+        // A HenrikDev também pode retornar 403 / 503 quando há sobrecarga na Riot
+        if ((response.status === 429 || response.status === 403 || response.status >= 500) && retries > 0) {
+            
+            // JITTER TÁTICO: Aumenta o tempo base em algo variável de 15% a 30% a cada strike
+            const penaltyMultiplier = 1.15 + (Math.random() * 0.15); 
+            currentDelay = Math.min(Math.floor(currentDelay * penaltyMultiplier), 6000); // Nunca ultrapassa os 6 segundos per request (cap duro)
+            
+            let resetInSeconds = parseInt(response.headers.get('x-ratelimit-reset')) || 30; // Pode ser falso.
+            
+            // Se a API pedir menos de 10s, subimos para 15s para ter a certeza absoluta. Se for muito, respeitamos.
+            resetInSeconds = Math.max(resetInSeconds, 15);
+            
+            // Adiciona Jitter (ruído aleatório) à pausa para nunca reatar em momentos exactos e previsíveis (1 a 5 segundos de ruído)
+            const jitterMs = Math.floor(Math.random() * 4000) + 1000;
+            const totalWaitMs = (resetInSeconds * 1000) + jitterMs;
+            
+            console.log(`      ⛔ Block API (${response.status})! Radar lento: ${currentDelay}ms/req. Evadindo radiação por ${Math.ceil(totalWaitMs/1000)}s...`);
+            
+            rateLimitResetTime = Date.now() + totalWaitMs; 
+            await delay(totalWaitMs);
+             
             return await smartFetch(url, headers, retries - 1);
         }
     } catch (e) { 
@@ -49,7 +63,9 @@ async function smartFetch(url, headers, retries = 2) {
     const elapsed = Date.now() - start;
     const remainingDelay = Math.max(0, currentDelay - elapsed);
     if (remainingDelay > 0) {
-        await delay(remainingDelay);
+        // MICRO-JITTER PÓS-CALL: Atrasar mais uns ms extra aleatórios para despistar algoritmos heurísticos
+        const postCallJitter = Math.floor(Math.random() * 300);
+        await delay(remainingDelay + postCallJitter);
     }
     
     if (error) throw error;
