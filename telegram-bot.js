@@ -15,7 +15,14 @@ if (!token || !supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
-const bot = new TelegramBot(token, { polling: true });
+
+let bot;
+if (process.env.WEBHOOK_URL) {
+    bot = new TelegramBot(token);
+    bot.setWebHook(`${process.env.WEBHOOK_URL}/bot${token}`);
+} else {
+    bot = new TelegramBot(token, { polling: true });
+}
 
 function escapeMarkdown(text) {
     if (!text) return '';
@@ -229,9 +236,10 @@ bot.onText(/^\/ranking(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
 // --- COMANDO /PERFIL ---
 bot.onText(/^\/perfil(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
-    const argumento = match[1] ? match[1].trim() : null;
+    const argumentoRaw = match[1] ? match[1].trim() : null;
+    const argumento = argumentoRaw ? argumentoRaw.replace(/[%_]/g, '') : null;
 
-    if (!argumento) return bot.sendMessage(chatId, "> 👁️ *Cypher:* Preciso de um alvo para investigar. Usa o formato: `/perfil Nick`.", { parse_mode: 'Markdown' });
+    if (!argumento || argumento.length < 3) return bot.sendMessage(chatId, "> 👁️ *Cypher:* Preciso de um alvo válido para investigar (mínimo 3 letras). Usa o formato: `/perfil Nick`.", { parse_mode: 'Markdown' });
 
     try {
         const { data } = await supabase.from('players').select('*').ilike('riot_id', `%${argumento}%`).limit(1);
@@ -416,4 +424,13 @@ app.get(`/${HEALTH_SECRET}`, (req, res) => res.send('✅ Sistema Vital do Protoc
 // Se alguém bater na raiz, não devolvemos nada (corta scanners)
 app.get('/', (req, res) => res.status(404).end());
 
-app.listen(process.env.PORT || 3000, () => console.log('🌐 Terminal Ativo e Camuflado na Nuvem.'));
+if (process.env.WEBHOOK_URL) {
+    app.use(express.json());
+    app.post(`/bot${token}`, (req, res) => {
+        bot.processUpdate(req.body);
+        res.sendStatus(200);
+    });
+}
+
+const modoStr = process.env.WEBHOOK_URL ? 'WEBHOOK ONLINE' : 'POLLING ATIVO';
+app.listen(process.env.PORT || 3000, () => console.log(`🌐 Terminal Avançado: ${modoStr} e camuflado.`));

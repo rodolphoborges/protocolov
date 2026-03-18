@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -125,137 +126,149 @@ async function run() {
         let playerMatchStats = {};
         const headers = { 'Authorization': henrikApiKey };
 
-        console.log(`2. A sincronizar API (${playersToFetch.length} agentes) em modo furtivo (sequencial)...`);
+        console.log(`2. A sincronizar API (${playersToFetch.length} agentes) em modo tático (Lotes concorrentes)...`);
 
-        for (const p of playersToFetch) {
-            const [name, tag] = p.riotId.split('#');
-            const safeName = encodeURIComponent(name.trim());
-            const safeTag = encodeURIComponent(tag.trim());
-            const normalizedPlayerId = p.riotId.toLowerCase().replace(/\s/g, '');
+        const BATCH_SIZE = 3;
+        for (let i = 0; i < playersToFetch.length; i += BATCH_SIZE) {
+            const batch = playersToFetch.slice(i, i + BATCH_SIZE);
+            console.log(`\n⏳ A processar Lote ${Math.floor(i / BATCH_SIZE) + 1} de ${Math.ceil(playersToFetch.length / BATCH_SIZE)}...`);
 
-            console.log(`      -> A extrair dados de: ${p.riotId}`);
+            await Promise.allSettled(batch.map(async (p) => {
+                const [name, tag] = p.riotId.split('#');
+                const safeName = encodeURIComponent(name.trim());
+                const safeTag = encodeURIComponent(tag.trim());
+                const normalizedPlayerId = p.riotId.toLowerCase().replace(/\s/g, '');
 
-            playerMatchStats[normalizedPlayerId] = { comp: 0, group: 0 };
+                console.log(`      -> A extrair dados de: ${p.riotId}`);
 
-            let playerData = {
-                riot_id: p.riotId,
-                role_raw: p.role,
-                unit: p.dbRecord.unit || 'WINGMAN', // PRESERVA A UNIDADE TÁTICA OU DEFINE COMO WINGMAN
-                synergy_score: p.dbRecord.synergy_score || 0,
-                dm_score: p.dbRecord.dm_score || 0,
-                dm_score_monthly: p.dbRecord.dm_score_monthly || 0,
-                dm_score_total: p.dbRecord.dm_score_total || 0,
-                tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
-                level: p.dbRecord.level,
-                card_url: p.dbRecord.card_url,
-                current_rank: p.dbRecord.current_rank || 'Pendente',
-                peak_rank: p.dbRecord.peak_rank,
-                current_rank_icon: p.dbRecord.current_rank_icon,
-                peak_rank_icon: p.dbRecord.peak_rank_icon,
-                lone_wolf: p.dbRecord.lone_wolf || false,
-                api_error: false,
-                updated_at: new Date().toISOString()
-            };
+                playerMatchStats[normalizedPlayerId] = { comp: 0, group: 0 };
 
-            let region = 'br';
-            let hasNewMatches = false;
-            let listData = null;
-            let recentCompMatches = [];
-            let recentDmMatches = [];
+                let playerData = {
+                    riot_id: p.riotId,
+                    role_raw: p.role,
+                    unit: p.dbRecord.unit || 'WINGMAN', // PRESERVA A UNIDADE TÁTICA OU DEFINE COMO WINGMAN
+                    synergy_score: p.dbRecord.synergy_score || 0,
+                    dm_score: p.dbRecord.dm_score || 0,
+                    dm_score_monthly: p.dbRecord.dm_score_monthly || 0,
+                    dm_score_total: p.dbRecord.dm_score_total || 0,
+                    tracker_link: p.dbRecord.tracker_link || `https://tracker.gg/valorant/profile/riot/${safeName}%23${safeTag}/overview`,
+                    level: p.dbRecord.level,
+                    card_url: p.dbRecord.card_url,
+                    current_rank: p.dbRecord.current_rank || 'Pendente',
+                    peak_rank: p.dbRecord.peak_rank,
+                    current_rank_icon: p.dbRecord.current_rank_icon,
+                    peak_rank_icon: p.dbRecord.peak_rank_icon,
+                    lone_wolf: p.dbRecord.lone_wolf || false,
+                    api_error: false,
+                    updated_at: new Date().toISOString()
+                };
 
-            try {
-                let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=20`, headers);
+                let region = 'br';
+                let hasNewMatches = false;
+                let listData = null;
+                let recentCompMatches = [];
+                let recentDmMatches = [];
 
-                if (listRes.status === 200) {
-                    listData = await listRes.json();
+                try {
+                    let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=20`, headers);
 
-                    recentCompMatches = listData.data ? listData.data.filter(m => m.metadata?.mode?.toLowerCase() === 'competitive') : [];
-                    recentDmMatches = listData.data ? listData.data.filter(m => m.metadata?.mode?.toLowerCase() === 'deathmatch') : [];
+                    if (listRes.status === 200) {
+                        listData = await listRes.json();
 
-                    playerMatchStats[normalizedPlayerId].comp = recentCompMatches.length;
+                        recentCompMatches = listData.data ? listData.data.filter(m => m.metadata?.mode?.toLowerCase() === 'competitive') : [];
+                        recentDmMatches = listData.data ? listData.data.filter(m => m.metadata?.mode?.toLowerCase() === 'deathmatch') : [];
 
-                    if (recentCompMatches.length > 0) {
-                        for (const matchCandidate of recentCompMatches) {
-                            const matchId = matchCandidate.metadata.matchid;
-                            if (knownMatchIds.has(matchId)) playerMatchStats[normalizedPlayerId].group++;
-                            if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
+                        playerMatchStats[normalizedPlayerId].comp = recentCompMatches.length;
 
-                            hasNewMatches = true;
-                            let bestMatch = matchCandidate;
-                            if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) bestMatch.players = bestMatch.players.all_players;
-                            allMatchesMap.set(matchId, bestMatch);
+                        if (recentCompMatches.length > 0) {
+                            for (const matchCandidate of recentCompMatches) {
+                                const matchId = matchCandidate.metadata.matchid;
+                                if (knownMatchIds.has(matchId)) playerMatchStats[normalizedPlayerId].group++;
+                                if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
+
+                                hasNewMatches = true;
+                                let bestMatch = matchCandidate;
+                                if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) bestMatch.players = bestMatch.players.all_players;
+                                allMatchesMap.set(matchId, bestMatch);
+                            }
                         }
+
+                        if (recentDmMatches.length > 0) {
+                            for (const matchCandidate of recentDmMatches) {
+                                const matchId = matchCandidate.metadata.matchid;
+                                if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
+
+                                hasNewMatches = true;
+                                let bestMatch = matchCandidate;
+                                if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) bestMatch.players = bestMatch.players.all_players;
+                                allMatchesMap.set(matchId, bestMatch);
+                            }
+                        }
+
+                    } else if (listRes.status === 404) {
+                        playerData.api_error = true;
+                    } else {
+                        playerData.api_error = true;
                     }
 
-                    if (recentDmMatches.length > 0) {
-                        for (const matchCandidate of recentDmMatches) {
-                            const matchId = matchCandidate.metadata.matchid;
-                            if (allMatchesMap.has(matchId) || knownMatchIds.has(matchId)) continue;
+                    const isMissingData = !playerData.level || !playerData.current_rank || playerData.current_rank === 'Processando...' || playerData.current_rank === 'Pendente';
 
-                            hasNewMatches = true;
-                            let bestMatch = matchCandidate;
-                            if (bestMatch.players && !Array.isArray(bestMatch.players) && bestMatch.players.all_players) bestMatch.players = bestMatch.players.all_players;
-                            allMatchesMap.set(matchId, bestMatch);
-                        }
-                    }
+                    if (!playerData.api_error) {
+                        if (hasNewMatches) {
+                            try {
+                                const allRecentObj = listData.data.find(m => m.players && (Array.isArray(m.players) || m.players.all_players));
 
-                } else if (listRes.status === 404) {
-                    playerData.api_error = true;
-                } else {
-                    playerData.api_error = true;
-                }
+                                if (allRecentObj) {
+                                    const playersArray = Array.isArray(allRecentObj.players) ? allRecentObj.players : allRecentObj.players.all_players;
+                                    const me = playersArray.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
+                                    if (me) {
+                                        playerData.level = me.level;
+                                        if (me.assets && me.assets.card) {
+                                            playerData.card_url = me.assets.card.small;
+                                        }
 
-                const isMissingData = !playerData.level || !playerData.current_rank || playerData.current_rank === 'Processando...' || playerData.current_rank === 'Pendente';
-
-                if (!playerData.api_error) {
-                    if (hasNewMatches) {
-                        try {
-                            const allRecentObj = listData.data.find(m => m.players && (Array.isArray(m.players) || m.players.all_players));
-
-                            if (allRecentObj) {
-                                const playersArray = Array.isArray(allRecentObj.players) ? allRecentObj.players : allRecentObj.players.all_players;
-                                const me = playersArray.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
-                                if (me) {
-                                    playerData.level = me.level;
-                                    if (me.assets && me.assets.card) {
-                                        playerData.card_url = me.assets.card.small;
-                                    }
-
-                                    const lastCompObj = recentCompMatches.length > 0 ? recentCompMatches[0] : null;
-                                    if (lastCompObj) {
-                                        const compPlayersArray = Array.isArray(lastCompObj.players) ? lastCompObj.players : (lastCompObj.players ? lastCompObj.players.all_players : []);
-                                        const meComp = compPlayersArray.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
-                                        if (meComp && meComp.currenttier_patched) {
-                                            playerData.current_rank = meComp.currenttier_patched;
+                                        const lastCompObj = recentCompMatches.length > 0 ? recentCompMatches[0] : null;
+                                        if (lastCompObj) {
+                                            const compPlayersArray = Array.isArray(lastCompObj.players) ? lastCompObj.players : (lastCompObj.players ? lastCompObj.players.all_players : []);
+                                            const meComp = compPlayersArray.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
+                                            if (meComp && meComp.currenttier_patched) {
+                                                playerData.current_rank = meComp.currenttier_patched;
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            if (isMissingData && (playerData.current_rank === 'Processando...' || playerData.current_rank === 'Pendente')) {
-                                console.log(`      ⚠️ Rank ausente. Executando fallback para API de MMR (Custo extra)`);
-                                const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
-                                if (mmrRes.status === 200) {
-                                    const mmrData = await mmrRes.json();
-                                    if (mmrData.data.current_data?.currenttierpatched) {
-                                        playerData.current_rank = mmrData.data.current_data.currenttierpatched;
-                                        playerData.current_rank_icon = mmrData.data.current_data.images.small;
+                                if (isMissingData && (playerData.current_rank === 'Processando...' || playerData.current_rank === 'Pendente')) {
+                                    console.log(`      ⚠️ Rank ausente. Executando fallback para API de MMR (Custo extra)`);
+                                    const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
+                                    if (mmrRes.status === 200) {
+                                        const mmrData = await mmrRes.json();
+                                        if (mmrData.data.current_data?.currenttierpatched) {
+                                            playerData.current_rank = mmrData.data.current_data.currenttierpatched;
+                                            playerData.current_rank_icon = mmrData.data.current_data.images.small;
+                                        }
                                     }
                                 }
+                            } catch (err) {
+                                console.log(`      ⚠️ Falha ao extrair dados de Rank/Level nativos: ${err.message}`);
                             }
-                        } catch (err) {
-                            console.log(`      ⚠️ Falha ao extrair dados de Rank/Level nativos: ${err.message}`);
+                        } else {
+                            console.log(`      ⚡ Cache ativo: Nenhuma partida nova. Ignorando chamadas adicionais.`);
                         }
-                    } else {
-                        console.log(`      ⚡ Cache ativo: Nenhuma partida nova. Ignorando chamadas adicionais.`);
                     }
+                } catch (err) {
+                    playerData.api_error = true;
+                    console.log(`      ❌ Erro Crítico ao puxar partidas:`, err.message);
                 }
-            } catch (err) {
-                playerData.api_error = true;
-                console.log(`      ❌ Erro Crítico ao puxar partidas:`, err.message);
-            }
 
-            finalPlayersData.push(playerData);
+                finalPlayersData.push(playerData);
+            })); // Fim do Promise.allSettled do lote
+
+            // Pausa estratégica de Resfriamento da HenrikDev para não estourar os limites
+            if (i + BATCH_SIZE < playersToFetch.length) {
+                console.log(`      ⏳ Lote processado. Descanso tático da API (${Math.ceil(currentDelay/1000)}s)...`);
+                await delay(currentDelay);
+            }
         }
 
         console.log(`\n📊 ESTATÍSTICAS DA API: Realizadas ${apiRequestsCount} chamadas no total.\n`);
