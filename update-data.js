@@ -158,15 +158,18 @@ async function run() {
 
             let region = 'br'; 
             let hasNewMatches = false;
+            let listData = null;
+            let recentCompMatches = [];
+            let recentDmMatches = [];
 
             try {
                 let listRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/matches/${region}/${safeName}/${safeTag}?size=20`, headers);
 
                 if (listRes.status === 200) {
-                    const listData = await listRes.json();
+                    listData = await listRes.json();
                     
-                    const recentCompMatches = listData.data ? listData.data.filter(m => m.metadata?.mode?.toLowerCase() === 'competitive') : [];
-                    const recentDmMatches = listData.data ? listData.data.filter(m => m.metadata?.mode?.toLowerCase() === 'deathmatch') : [];
+                    recentCompMatches = listData.data ? listData.data.filter(m => m.metadata?.mode?.toLowerCase() === 'competitive') : [];
+                    recentDmMatches = listData.data ? listData.data.filter(m => m.metadata?.mode?.toLowerCase() === 'deathmatch') : [];
                     
                     playerMatchStats[normalizedPlayerId].comp = recentCompMatches.length;
 
