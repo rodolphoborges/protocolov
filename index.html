@@ -113,6 +113,50 @@
         </div>
     </section>
 
+    <!-- INTEL DASHBOARD -->
+    <section class="container mt-2 mb-5 fade-in-section" id="intel-dashboard-section">
+        <div class="d-flex align-items-center mb-3">
+            <div class="decor-square"></div>
+            <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px;">Comando Central</span>
+        </div>
+        <h2 class="val-section-header mb-4">Intel Taskforce</h2>
+        
+        <div class="row g-4">
+            <!-- Mod A: Zonas de Domínio -->
+            <div class="col-md-4">
+                <div class="p-3 border border-secondary text-light h-100" style="background-color: #0f1923; border-left: 4px solid var(--val-red) !important;">
+                    <div class="text-uppercase text-muted fw-bold mb-2" style="font-size: 0.8rem; letter-spacing: 1px;">[CLASSIFIED] TOPOGRAFIA</div>
+                    <div class="fs-4 fw-bold" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;">Soberania de Mapas</div>
+                    <div id="intel-map-data" class="mt-3 text-muted fw-bold" style="font-size: 0.95rem;">
+                        <span class="spinner-border spinner-border-sm text-danger me-2" role="status"></span> A Descodificar...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mod B: MVP -->
+            <div class="col-md-4">
+                <div class="p-3 border border-secondary text-light h-100" style="background-color: #0f1923; border-left: 4px solid #eab308 !important;"> 
+                    <div class="text-uppercase text-muted fw-bold mb-2" style="font-size: 0.8rem; letter-spacing: 1px;">[MÉRITO TÁTICO]</div>
+                    <div class="fs-4 fw-bold text-warning" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;">Operador de Elite</div>
+                    <div id="intel-mvp-data" class="mt-3 text-muted fw-bold" style="font-size: 0.95rem;">
+                        <span class="spinner-border spinner-border-sm text-warning me-2" role="status"></span> A Analisar Registos...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mod C: Parede de Resgate (Lobos) -->
+            <div class="col-md-4">
+                <div class="p-3 text-light h-100" style="background-color: rgba(255, 70, 85, 0.05); border: 1px solid var(--val-red); border-left: 4px solid var(--val-red) !important;">
+                    <div class="text-uppercase text-danger fw-bold mb-2" style="font-size: 0.8rem; letter-spacing: 1px;">[SINAL PERDIDO]</div>
+                    <div class="fs-4 fw-bold text-danger" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;">Lobos Solitários</div>
+                    <div id="intel-wolves-data" class="mt-3 fw-bold" style="font-size: 0.95rem; color: #ff4655;">
+                        <span class="spinner-border spinner-border-sm text-danger me-2" role="status"></span> Monitorizando...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="container-fluid bg-dark-section content-wrapper fade-in-section position-relative">
         <div class="val-bg-text-massive">AGENTES</div>
         <div class="container position-relative z-1">

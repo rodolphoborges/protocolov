@@ -203,6 +203,9 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 @keyframes blinker-alt { 50% { opacity: 0; } }
 .blink-terminal { animation: blinker-alt 1s step-end infinite; margin-right: 5px; font-family: 'Teko', sans-serif; font-size: 1.2rem; color: var(--val-red); }
 
+@keyframes border-blink { 50% { border-color: rgba(255, 70, 85, 0.2) !important; } }
+.blink-border-red { animation: border-blink 1.5s infinite; }
+
 @media (max-width: 768px) {
     .val-section-header { font-size: 3.2rem !important; }
     .d-flex.flex-wrap.align-items-center.gap-3 { flex-direction: column !important; align-items: stretch !important; gap: 15px !important; }
