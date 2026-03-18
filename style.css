@@ -174,6 +174,32 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 }
 
 /* =========================================
+   ANIMATIONS: PREMIUM VALORANT EFFECTS
+========================================= */
+@keyframes mvp-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.mvp-card {
+    background: linear-gradient(135deg, var(--val-red) 0%, #ff6a77 50%, var(--val-red) 100%);
+    background-size: 200% 100%;
+    animation: mvp-shimmer 4s infinite linear;
+    box-shadow: 0 10px 30px rgba(255, 70, 85, 0.3);
+}
+
+.mvp-card::after {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 2px, transparent 4px);
+    pointer-events: none; opacity: 0.3;
+}
+
+.contender-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* =========================================
    UTILITÁRIOS E MISC
 ========================================= */
 .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; }
