@@ -206,9 +206,10 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
     
-    // Extrai apenas a primeira palavra se houver texto adicional, ex: '12345 teste' -> '12345'
+    // Extrai a primeira sequência contendo APENAS letras e números (ignora o resto)
     const rawMatch = match[1] ? match[1].trim() : null;
-    const codigoLobby = rawMatch ? rawMatch.split(' ')[0] : "Solicite invite no Telegram";
+    const matchAlfanumerico = rawMatch ? rawMatch.match(/[a-zA-Z0-9]+/) : null;
+    const codigoLobby = matchAlfanumerico ? matchAlfanumerico[0] : "Solicite invite no Telegram";
 
     try {
         // Verifica se o usuário está vinculado
