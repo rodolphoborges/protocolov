@@ -5,14 +5,14 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BASE_DELAY = 2200; // Ponto de partida ideal (2.2s)
+const BASE_DELAY = 6000; // Hard limit descoberto empíricamente (1 req a cada 6s = 10 por min)
 let currentDelay = BASE_DELAY;
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 let apiRequestsCount = 0;
 let rateLimitResetTime = 0;
 
-async function smartFetch(url, headers, retries = 3) { // Aumento para 3 tentativas de salvação
+async function smartFetch(url, headers, retries = 3) { 
     const now = Date.now();
     if (now < rateLimitResetTime) {
         const waitTime = rateLimitResetTime - now;
