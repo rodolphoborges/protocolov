@@ -5,7 +5,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BASE_DELAY = 6000; // Hard limit descoberto empíricamente (1 req a cada 6s = 10 por min)
+const BASE_DELAY = 4000; // Alvo Exato: 15 req/min limpas 
 let currentDelay = BASE_DELAY;
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -206,17 +206,16 @@ async function run() {
                 if (!playerData.api_error) {
                     if (hasNewMatches) {
                         try {
-                            // EXTRAÇÃO INTELIGENTE (SINGLE REQUEST TRUTH): Tirar info do MMR/Level directo das Partidas!
-                            // Encontrar a partida mais recente válida (Qualquer modo serve para nível/carta)
                             const allRecentObj = listData.data.find(m => m.players && m.players.all_players);
                             
                             if (allRecentObj) {
                                 const me = allRecentObj.players.all_players.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
                                 if (me) {
                                     playerData.level = me.level;
-                                    playerData.card_url = me.assets.card.small;
+                                    if (me.assets && me.assets.card) {
+                                        playerData.card_url = me.assets.card.small;
+                                    }
                                     
-                                    // Para o Rank, preferimos extrair da partida Competitiva mais recente
                                     const lastCompObj = recentCompMatches.length > 0 ? recentCompMatches[0] : null;
                                     if (lastCompObj) {
                                         const meComp = lastCompObj.players.all_players.find(p => p.name.toLowerCase() === safeName.toLowerCase() && p.tag.toLowerCase() === safeTag.toLowerCase());
@@ -227,7 +226,6 @@ async function run() {
                                 }
                             }
                             
-                            // SE, e apenas se, a conta for tão nova que não conseguimos extrair o rank mas há cache falhado, gastamos chamadas
                             if (isMissingData && (playerData.current_rank === 'Processando...' || playerData.current_rank === 'Pendente')) {
                                 console.log(`      ⚠️ Rank ausente. Executando fallback para API de MMR (Custo extra)`);
                                 const mmrRes = await smartFetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${safeName}/${safeTag}`, headers);
@@ -240,8 +238,9 @@ async function run() {
                                 }
                             }
                         } catch (err) {
-                            console.log(`      ⚠️ Falha ao extrair dados de Rank/Level nativos (Erro ignorado)`);
+                            console.log(`      ⚠️ Falha ao extrair dados de Rank/Level nativos: ${err.message}`);
                         }
+                        await delay(currentDelay); 
                     } else {
                         console.log(`      ⚡ Cache ativo: Nenhuma partida nova. Ignorando chamadas adicionais.`);
                         await delay(currentDelay); 
