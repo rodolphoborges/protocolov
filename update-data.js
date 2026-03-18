@@ -6,7 +6,9 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BASE_DELAY = 13500; // Ponto Dourado Global descoberto pela IA (13.5s limpos)
+const settings = require('./settings.json');
+
+const BASE_DELAY = settings.api.base_delay_ms;
 let currentDelay = BASE_DELAY;
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -128,7 +130,7 @@ async function run() {
 
         console.log(`2. A sincronizar API (${playersToFetch.length} agentes) em modo tático (Lotes concorrentes)...`);
 
-        const BATCH_SIZE = 3;
+        const BATCH_SIZE = settings.api.batch_size;
         for (let i = 0; i < playersToFetch.length; i += BATCH_SIZE) {
             const batch = playersToFetch.slice(i, i + BATCH_SIZE);
             console.log(`\n⏳ A processar Lote ${Math.floor(i / BATCH_SIZE) + 1} de ${Math.ceil(playersToFetch.length / BATCH_SIZE)}...`);
