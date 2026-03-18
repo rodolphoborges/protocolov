@@ -5,15 +5,13 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const REQUEST_DELAY = 2200; // ~2.2s por requisição
+const REQUEST_DELAY = 2500; // 2.5s garantidos entre requisições
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-// --- ENGINE DE CONTROLE DE TRÁFEGO (FILA ESTRITA) ---
 let apiRequestsCount = 0;
 let rateLimitResetTime = 0;
-let requestQueue = Promise.resolve(); // Fila que encadeia todas as chamadas
 
-async function _executeFetch(url, headers, retries) {
+async function smartFetch(url, headers, retries = 2) {
     const now = Date.now();
     if (now < rateLimitResetTime) {
         const waitTime = rateLimitResetTime - now;
@@ -38,26 +36,21 @@ async function _executeFetch(url, headers, retries) {
             console.log(`      ⛔ Rate Limit (429) Atingido! Pausa de segurança de ${resetInSeconds}s...`);
             rateLimitResetTime = Date.now() + (resetInSeconds * 1000) + 2000; 
             await delay((resetInSeconds * 1000) + 2000); 
-            return _executeFetch(url, headers, retries - 1);
+            return await smartFetch(url, headers, retries - 1);
         }
     } catch (e) { 
         clearTimeout(timeoutId);
         error = e; 
     }
     
-    // Assegura tempo de resfriamento PÓS-CHAMADA antes da Fila libertar a próxima
     const elapsed = Date.now() - start;
     const remainingDelay = Math.max(0, REQUEST_DELAY - elapsed);
-    if (remainingDelay > 0) await delay(remainingDelay);
+    if (remainingDelay > 0) {
+        await delay(remainingDelay);
+    }
     
     if (error) throw error;
     return response;
-}
-
-// Envelopamos a chamada na Promise Queue para MATAR concorrência
-function smartFetch(url, headers, retries = 2) {
-    requestQueue = requestQueue.then(() => _executeFetch(url, headers, retries));
-    return requestQueue;
 }
 
 async function notificarTelegram(mensagem) {
