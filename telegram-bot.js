@@ -205,7 +205,10 @@ bot.onText(/^\/perfil(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
-    const codigoLobby = match[1] ? match[1].trim() : "Solicite invite no Telegram";
+    
+    // Extrai apenas a primeira palavra se houver texto adicional, ex: '12345 teste' -> '12345'
+    const rawMatch = match[1] ? match[1].trim() : null;
+    const codigoLobby = rawMatch ? rawMatch.split(' ')[0] : "Solicite invite no Telegram";
 
     try {
         // Verifica se o usuário está vinculado
@@ -215,11 +218,32 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
             return bot.sendMessage(chatId, "❌ *Acesso Negado:* Vincula o teu rádio primeiro com `/vincular`.", { parse_mode: 'Markdown' });
         }
 
-        const expiresAt = Date.now() + (30 * 60 * 1000); // Expira em 30 minutos
+        const now = Date.now();
+        const commanderName = user[0].riot_id.split('#')[0];
+
+        // Verifica se JÁ EXISTE QUALQUER sinalizador ativo (global)
+        const { data: activeCalls } = await supabase.from('active_calls')
+            .select('*')
+            .gt('expires_at', now)
+            .order('expires_at', { ascending: false })
+            .limit(1);
+            
+        if (activeCalls && activeCalls.length > 0) {
+            const call = activeCalls[0];
+            const relMins = Math.ceil((call.expires_at - now) / 60000);
+            
+            if (call.commander === commanderName) {
+                return bot.sendMessage(chatId, `⚠️ *SINALIZADOR JÁ ATIVO:* Já tens um reforço convocado para o código *${call.party_code}*. O aviso permanecerá no ar por mais *${relMins} minutos*.`, { parse_mode: 'Markdown' });
+            } else {
+                return bot.sendMessage(chatId, `⚠️ *RADAR OCUPADO:* O agente *${call.commander}* já convocou reforços (Código: *${call.party_code}*). O sinalizador dele estará ativo por mais *${relMins} minutos*. Junta-te a ele ou aguarda expirarem os reforços.`, { parse_mode: 'Markdown' });
+            }
+        }
+
+        const expiresAt = now + (30 * 60 * 1000); // Expira em 30 minutos
 
         // Insere o chamado na tabela active_calls (lida pelo script.js do site)
         await supabase.from('active_calls').insert([{
-            commander: user[0].riot_id.split('#')[0],
+            commander: commanderName,
             party_code: codigoLobby,
             expires_at: expiresAt
         }]);
