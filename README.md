@@ -12,14 +12,14 @@ O sistema monitora automaticamente o desempenho dos agentes, recompensa o jogo e
 
 ## 🚀 Funcionalidades Principais
 
-* 📝 **Alistamento Automatizado:** Interface web em que novos agentes se inscrevem via Riot ID, escolhendo a sua função principal.
-* 🤖 **Terminal de Inteligência (KAY/O Bot):** Um bot integrado que permite a vinculação de contas (`/vincular`), trocas de esquadrão (`/unidade`), consulta de atributos de agentes (`/perfil`) e **Convocação de Reforços (LFG)** interativa pelo comando (`/convocar`). O bot agora opera sob a persona do agente KAY/O, com uma interface direta e simplificada.
+* 📝 **Alistamento Automatizado:** Interface web em que novos codinomes se inscrevem via Riot ID, escolhendo a sua função principal.
+* 🤖 **Terminal de Inteligência (K.A.I.O. Bot):** Um bot integrado que permite a vinculação de contas (`/vincular`), trocas de esquadrão (`/unidade`), consulta de atributos de agentes (`/perfil`) e **Convocação de Reforços** interativa pelo comando (`/convocar`). O bot agora opera sob o sistema K.A.I.O., com uma interface direta e simplificada.
 * 🚨 **Dashboard de Central de Inteligência:** Novo painel superior atualizado a cada 5 minutos via Supabase que extrai dados mortos para calcular:
   * **[INTEL] Melhor Mapa:** Qual o mapa onde os esquadrões do grupo acumulam o maior número de vitórias.
   * **[DESTAQUE DA SEMANA] MVP Tático:** O melhor KDA da comunidade nos últimos combates.
   * **[ALERTA TÁTICO] Sinal Perdido:** Detecta e exibe em um radar vermelho piscante os "Lobos Solitários" que jogam partidas Competitive sem a equipe.
 * 📊 **Motor de Sincronização Furtiva (GitHub Actions):** O worker automatizado (`update-data.js`) possui um algoritmo adaptativo de *Single Request Truth*. Navega pelo *rate limit* da API HenrikDev e retém requests até que resfriem, extraindo dados vitais (KDA, HS%, Agent Info) dos últimos combates sem bloquear o servidor.
-* 🐺 **Estatísticas Criptografadas por Jogador:** O Player Card de cada Agente lista nativamente a sua **Trilha de Especialidade (Agente Mais Jogado)** e a **Taxa Média de Headshot (HS%)** a partir do histórico registrado.
+* 🐺 **Estatísticas Criptografadas por Codinome:** O Player Card de cada Agente lista nativamente a sua **Trilha de Especialidade (Personagem Mais Jogado)** e a **Taxa Média de Headshot (HS%)** a partir do histórico registrado.
 
 ---
 
@@ -27,10 +27,10 @@ O sistema monitora automaticamente o desempenho dos agentes, recompensa o jogo e
 
 O design adota uma perspetiva interativa onde as tabelas de classificação e interfaces são personalizadas com recursos e media oficiais da API do Valorant. Cada Esquadrão possui um **Comandante Oficial** cujo porte e estética dão a atmosfera do painel:
 
-* 🐍 **UNIDADE ALPHA (Elite):** Vagas restritas a líderes. O painel é dominado por ciano escuro e controlado oficialmente pelo retrato da Agente 02 (**Viper**). Especialistas em controle tático.
-* 🔥 **UNIDADE ÔMEGA (Elite):** Controle de fogo de artilharia pesada guiado sob a postura do Agente 01 (**Brimstone**). Texturas vermelhas delimitam a sua interface angular.
-* 🦎 **ESQUADRÃO WINGMAN (Reserva):** A zona de espera amarela/verde gerida pelo Agente 22 (**Gekko**). Qualquer Agente que perca a posição por pontuação ("Sinergia") aguarda aqui a sua vez de provar mérito de novo.
-* 🤖 **INTERFACE DE CAMPO (KAY/O):** Toda a comunicação via rádio (Telegram) é gerida pelo Agente **KAY/O**. Como uma máquina de guerra focada na eficiência, ele fornece instruções claras, exemplos de uso e monitoramento em tempo real do status do grupo, garantindo que ninguém fique sem informação no calor do combate.
+* 💠 **UNIDADE ALPHA (Elite):** Vagas restritas a líderes arquitetos. O painel é dominado por ciano escuro. Especialistas em controle tático.
+* 🔥 **UNIDADE ÔMEGA (Elite):** Controle de fogo de artilharia pesada guiado pelos comandantes de campo. Texturas vermelhas delimitam a sua interface angular.
+* ⚙️ **UNIDADE DE APOIO (Reserva):** A zona de espera gerida pelo sistema de logística. Qualquer codinome que perca a posição por pontuação ("Sinergia") aguarda aqui a sua vez de provar mérito de novo.
+* 🤖 **SISTEMA K.A.I.O.:** Toda a comunicação via rádio (Telegram) é gerida pelo sistema central. Como uma inteligência focada na eficiência, fornece instruções claras, exemplos de uso e monitoramento em tempo real do status do grupo.
 
 ---
 
@@ -42,7 +42,7 @@ O recrutamento para as linhas da frente nunca é vitalício. As vagas de elite (
 Pontos acumulados **exclusivamente ao jogar Ranqueadas (Competitivo) com outros membros do grupo**.
 * **Duos:** +1 Ponto
 * **Trios:** +2 Pontos
-* **Squad Fechado (4 ou 5 agentes):** +5 Pontos
+* **Squad Fechado (4 ou 5 codinomes):** +5 Pontos
 * *Modificador Tático:* **Vencer = DOBRO DE PONTOS**. 
 
 ### 2. Sala de Aquecimento (Mata-Mata)
@@ -111,3 +111,7 @@ Configure um monitor (ex: UptimeRobot) para o seguinte endpoint:
 
 ---
 *Morte à Solo Queue. Viva a tática e o jogo em uníssono.*
+---
+
+### ⚖️ Aviso Legal (Legal Jibber Jabber)
+O Protocolo V é um projeto feito por fãs. Ele não é endossado pela Riot Games e não reflete as visões ou opiniões da Riot Games ou de qualquer pessoa oficialmente envolvida na produção ou gerenciamento do VALORANT. VALORANT e Riot Games são marcas comerciais ou marcas registradas da Riot Games, Inc.

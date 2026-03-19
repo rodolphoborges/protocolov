@@ -265,7 +265,7 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
     let opaqueClass = player.lone_wolf ? 'opaque-rank' : '';
 
     let unitBadge = '';
-    const isReserve = isWaiting && player.unit !== 'WINGMAN'; // Correção de Feedback visual
+    const isReserve = isWaiting && player.unit !== 'WINGMAN'; // WINGMAN é o valor interno para APOIO
     
     if (player.unit === 'ALPHA') {
         const badgeLabel = isReserve ? 'RESERVA ALPHA' : 'ALPHA';
@@ -274,7 +274,7 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
         const badgeLabel = isReserve ? 'RESERVA ÔMEGA' : 'ÔMEGA';
         unitBadge = `<span class="badge rounded-0 border border-danger text-danger ms-2" style="background-color: rgba(255, 70, 85, 0.1);" title="SQUAD ÔMEGA"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>${badgeLabel}</span>`;
     } else {
-        unitBadge = `<span class="badge rounded-0 border border-warning text-warning ms-2" style="background-color: rgba(255, 206, 86, 0.1);" title="ESQUADRÃO WINGMAN"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>WINGMAN</span>`;
+        unitBadge = `<span class="badge rounded-0 border border-warning text-warning ms-2" style="background-color: rgba(255, 206, 86, 0.1);" title="UNIDADE DE APOIO"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>APOIO</span>`;
     }
 
     const eloHTML = safeRankIcon ? `<img src="${safeRankIcon}" alt="${player.currentRank}" class="${opaqueClass}" style="width: 20px; height: 20px;"> <span class="${opaqueClass}">${player.currentRank}</span>` : `<span class="${opaqueClass}">${player.currentRank}</span>`;
@@ -545,7 +545,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const { error } = await supabaseClient.from('players').insert([{ 
                     riot_id: riotId, 
                     role_raw: role, 
-                    unit: 'WINGMAN',
+                    unit: 'UNIDADE DE APOIO',
                     current_rank: 'Processando...' 
                 }]);
                 
