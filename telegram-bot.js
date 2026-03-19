@@ -7,7 +7,8 @@ const express = require('express');
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
-const ADMIN_ID = parseInt(process.env.ADMIN_TELEGRAM_ID, 10); // Lendo do arquivo .env
+const rawAdminId = process.env.ADMIN_TELEGRAM_ID ? process.env.ADMIN_TELEGRAM_ID.trim() : null;
+const ADMIN_ID = rawAdminId ? parseInt(rawAdminId, 10) : NaN; // Tentando ler do .env
 
 if (!token || !supabaseUrl || !supabaseKey) {
     console.error('🔥 ERRO: Variáveis de ambiente faltando.');
@@ -409,10 +410,12 @@ bot.onText(/^\/site(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
 bot.onText(/^\/meu_id(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
     const isAdmin = msg.from.id === ADMIN_ID;
+    const rawVal = process.env.ADMIN_TELEGRAM_ID ? `"${process.env.ADMIN_TELEGRAM_ID}"` : 'undefined';
     const response = `🆔 *[KAY/O: STATUS]*\n\n` +
                      `Seu ID de rádio: \`${msg.from.id}\`\n` +
                      `Status Admin: ${isAdmin ? '✅ AUTORIZADO' : '❌ NEGADO'}\n` +
-                     `ID no Sistema: \`${ADMIN_ID}\` (Tipo: ${typeof ADMIN_ID})`;
+                     `ID no Sistema (Processado): \`${ADMIN_ID}\`\n` +
+                     `Valor Bruto no .env: \`${rawVal}\``;
     bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
 });
 
