@@ -29,7 +29,7 @@ O design adota uma perspetiva interativa onde as tabelas de classificação e in
 
 * 💠 **UNIDADE ALPHA (Elite):** Vagas restritas a líderes arquitetos sob o comando da **Comandante Venenosa**. O painel é dominado por ciano escuro. Especialistas em controle tático.
 * 🔥 **UNIDADE ÔMEGA (Elite):** Controle de fogo de artilharia pesada guiado pelo **Comandante Cachorro Velho**. Texturas vermelhas delimitam a sua interface angular.
-* ⚙️ **RESERVA ATIVA:** A zona de espera gerida pelo sistema de logística. Qualquer codinome que perca a posição por pontuação ("Sinergia") aguarda aqui a sua vez de provar mérito de novo.
+* ⚙️ **DEPÓSITO DE TORRETAS:** A reserva técnica do Protocolo. Onde codinomes auxiliam a elite enquanto forjam seu mérito para a linha de frente.
 * 🤖 **SISTEMA K.A.I.O.:** Toda a comunicação via rádio (Telegram) é gerida pelo sistema central. Como uma inteligência focada na eficiência, fornece instruções claras, exemplos de uso e monitoramento em tempo real do status do grupo.
 
 ---

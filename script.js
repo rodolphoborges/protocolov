@@ -274,7 +274,7 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
         const badgeLabel = isReserve ? 'RESERVA ÔMEGA' : 'ÔMEGA';
         unitBadge = `<span class="badge rounded-0 border border-danger text-danger ms-2" style="background-color: rgba(255, 70, 85, 0.1);" title="SQUAD ÔMEGA"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>${badgeLabel}</span>`;
     } else {
-        unitBadge = `<span class="badge rounded-0 border border-warning text-warning ms-2" style="background-color: rgba(255, 206, 86, 0.1);" title="UNIDADE DE APOIO"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>APOIO</span>`;
+        unitBadge = `<span class="badge rounded-0 border border-secondary text-secondary ms-2" style="background-color: rgba(100, 116, 139, 0.1);" title="RESIDUAL: DEPÓSITO DE TORRETAS"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="me-1 mb-1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>TORRETA</span>`;
     }
 
     const eloHTML = safeRankIcon ? `<img src="${safeRankIcon}" alt="${player.currentRank}" class="${opaqueClass}" style="width: 20px; height: 20px;"> <span class="${opaqueClass}">${player.currentRank}</span>` : `<span class="${opaqueClass}">${player.currentRank}</span>`;
@@ -473,8 +473,8 @@ function renderSquads() {
                 <img src="https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/fullportrait.png" style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; object-fit: cover; object-position: right top; opacity: 0.15; pointer-events: none; filter: grayscale(80%);">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 position-relative z-1">
                     <div>
-                        <h3 class="role-title" style="color: #a2d12f;">COMANDANTE DA RESERVA ATIVA</h3>
-                        <p class="text-muted small mb-0">Sob supervisão da Reserva Ativa. Prontidão para inserção tática imediata.</p>
+                        <h3 class="role-title" style="color: #64748b;">DEPÓSITO DE TORRETAS</h3>
+                        <p class="text-muted small mb-0">Unidade de suporte e prontidão. Agentes auxiliares em espera para cobertura tática e reforço dos esquadrões de elite.</p>
                     </div>
                     <span class="badge rounded-0 mt-3 mt-md-0" style="background-color: #bef33e; color: var(--val-dark); font-family: 'Inter', sans-serif; font-weight: 800;">${esquadraoWingman.length} AGENTES NA ESCUTA</span>
                 </div>
