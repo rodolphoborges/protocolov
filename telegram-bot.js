@@ -414,6 +414,9 @@ bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
     }
 });
 
+// --- SERVIDOR EXPRESS (Camuflado) ---
+const app = express();
+
 // Rota de Monitoramento para evitar o "sono" do Render (Keep-alive)
 app.get('/vanguard-health', (req, res) => {
     console.log('📡 [RADAR] Pulso de vitalidade recebido. Sistema operando.');
