@@ -220,9 +220,11 @@ bot.onText(/^\/unidade(?:@[\w_]+)?(?:\s+(\w+))?/, async (msg, match) => {
             parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: "🧪 Mover para ALPHA (Titular)", callback_data: `uni_ALPHA_${player.riot_id}` }],
-                    [{ text: "🛰️ Mover para ÔMEGA (Titular)", callback_data: `uni_OMEGA_${player.riot_id}` }],
-                    [{ text: "🛹 Mover para WINGMAN (Reserva)", callback_data: `uni_WINGMAN_${player.riot_id}` }]
+                    [
+                        { text: "Comandante VENENOSA (ALPHA)", callback_data: "unidade:ALPHA" },
+                        { text: "Comandante CACHORRO VELHO (OMEGA)", callback_data: "unidade:OMEGA" },
+                        { text: "RESERVA ATIVA", callback_data: "unidade:WINGMAN" }
+                    ]
                 ]
             }
         });

@@ -19,7 +19,7 @@ window.ProtocolConfig = {
         squads: {
             'ALPHA': { 
                 title: 'UNIDADE ALPHA', 
-                desc: 'Liderança de Nível Elite: Arquitetos. Precisão tática e controle absoluto de campo.', 
+                desc: 'Comandante Venenosa. Precisão tática e controle absoluto de campo.', 
                 commanderImg: 'https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/fullportrait.png',
                 commanderBg: 'rgba(0, 255, 157, 0.03)',
                 theme: 'alpha-theme',
@@ -27,7 +27,7 @@ window.ProtocolConfig = {
             },
             'OMEGA': { 
                 title: 'UNIDADE ÔMEGA', 
-                desc: 'Liderança de Nível Elite: Comandantes. Força de assalto e suporte pesado.', 
+                desc: 'Comandante Cachorro Velho. Força de assalto e suporte pesado.', 
                 commanderImg: 'https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/fullportrait.png',
                 commanderBg: 'rgba(255, 70, 85, 0.03)',
                 theme: 'omega-theme',
