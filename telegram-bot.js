@@ -8,7 +8,11 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const rawAdminId = process.env.ADMIN_TELEGRAM_ID ? process.env.ADMIN_TELEGRAM_ID.trim() : null;
-const ADMIN_ID = rawAdminId ? parseInt(rawAdminId, 10) : NaN; // Tentando ler do .env
+const ADMIN_ID = rawAdminId ? parseInt(rawAdminId, 10) : null; 
+
+if (!ADMIN_ID) {
+    console.warn('⚠️ AVISO: ADMIN_TELEGRAM_ID não configurado. Comandos de administrador desabilitados.');
+}
 
 if (!token || !supabaseUrl || !supabaseKey) {
     console.error('🔥 ERRO: Variáveis de ambiente faltando.');
