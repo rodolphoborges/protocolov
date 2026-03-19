@@ -27,7 +27,12 @@ if (process.env.WEBHOOK_URL) {
     bot = new TelegramBot(token);
     bot.setWebHook(`${process.env.WEBHOOK_URL}/bot${token}`);
 } else {
-    bot = new TelegramBot(token, { polling: true });
+    // Iniciar sem polling imediato, limpar rastro de webhook e depois ativar polling
+    bot = new TelegramBot(token, { polling: false });
+    bot.deleteWebHook().then(() => {
+        bot.startPolling();
+        console.log("🌐 Terminal Avançado: POLLING ATIVO e rádio limpo.");
+    });
 }
 
 // Configuração do Menu de Comandos (PT-BR Valorant)
