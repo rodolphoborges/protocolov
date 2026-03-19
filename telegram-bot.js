@@ -405,6 +405,12 @@ bot.onText(/^\/site(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown', disable_web_page_preview: true });
 });
 
+// --- COMANDO DE DIAGNÓSTICO ---
+bot.onText(/^\/meu_id(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, `🆔 *[KAY/O]*: Seu ID de rádio é: \`${msg.from.id}\``, { parse_mode: 'Markdown' });
+});
+
 // --- COMANDOS SECRETOS DE ADMINISTRAÇÃO ---
 bot.onText(/^\/expurgar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     if (msg.from.id !== ADMIN_ID) return; 
