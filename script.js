@@ -727,14 +727,22 @@ async function fetchIntelData() {
         const wolvesEl = document.getElementById('intel-wolves-data');
         if (wolvesEl) {
             if (tacticalAlerts.length > 0) {
-                wolvesEl.innerHTML = tacticalAlerts.map(a => 
-                    `<div class="mb-2 d-flex align-items-center justify-content-between">
-                        <span class="text-light fw-bold">${a.name}</span>
-                        <span class="text-danger small fw-bold" style="font-size: 0.7rem;">[${a.reason}: ${a.info}]</span>
-                    </div>`
-                ).join('');
+                wolvesEl.innerHTML = `
+                    <div class="row row-cols-1 row-cols-sm-2 g-2">
+                        ${tacticalAlerts.map(a => `
+                            <div class="col">
+                                <div class="p-2 border border-secondary border-opacity-10 d-flex flex-column" style="background: rgba(255,255,255,0.02);">
+                                    <span class="text-light fw-bold mb-1" style="font-size: 0.85rem;">${a.name}</span>
+                                    <span class="text-danger fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">${a.reason}: ${a.info}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
             } else {
-                wolvesEl.innerHTML = `<span class="text-success blink-terminal">NENHUM AGENTE DESALINHADO.</span>`;
+                wolvesEl.innerHTML = `<div class="p-3 text-center border border-secondary border-opacity-10" style="background: rgba(255,255,255,0.02);">
+                    <span class="text-success blink-terminal fw-bold" style="font-size: 0.8rem;">SISTEMA OPERACIONAL: NENHUM DESVIO DETECTADO</span>
+                </div>`;
             }
         }
         

@@ -3,6 +3,8 @@
     --val-light: #ece8e1;
     --val-red: #ff4655;
     --val-gray: #768079;
+    --val-blue: #47a2ff;
+    --val-info: #0dcaf0;
 }
 
 html, body {
@@ -254,4 +256,20 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
     /* Prevenir overflow de rows em mobile */
     .row { margin-left: 0; margin-right: 0; }
     .row > * { padding-left: 15px; padding-right: 15px; }
+}
+
+/* =========================================
+   CUSTOM SCROLLBAR (Command Center)
+========================================= */
+.custom-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+    background: var(--val-blue);
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: #fff;
 }
