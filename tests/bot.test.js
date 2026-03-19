@@ -187,4 +187,38 @@ describe('K.A.I.O. Telegram Bot - Unit Tests', () => {
             expect.any(Object)
         );
     });
+
+    test('Callback Query "uni_cancel" deveria abortar transferência tática', async () => {
+        const callbackHandler = botHandlers['callback_query'];
+        const query = {
+            id: 'q125',
+            from: { id: 1104821838 },
+            data: 'uni_cancel',
+            message: { chat: { id: 456 }, message_id: 791 }
+        };
+
+        await callbackHandler(query);
+
+        expect(mockBotInstance.editMessageText).toHaveBeenCalledWith(
+            expect.stringContaining('Operação de transferência abortada'),
+            expect.any(Object)
+        );
+    });
+
+    test('Callback Query "cvc_cancel" deveria abortar convocação', async () => {
+        const callbackHandler = botHandlers['callback_query'];
+        const query = {
+            id: 'q126',
+            from: { id: 1104821838 },
+            data: 'cvc_cancel',
+            message: { chat: { id: 456 }, message_id: 792 }
+        };
+
+        await callbackHandler(query);
+
+        expect(mockBotInstance.editMessageText).toHaveBeenCalledWith(
+            expect.stringContaining('Protocolo de convocação cancelado'),
+            expect.any(Object)
+        );
+    });
 });

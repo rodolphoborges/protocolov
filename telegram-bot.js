@@ -100,6 +100,10 @@ bot.on('callback_query', async (query) => {
 
     // TRANSFERÊNCIA DE UNIDADE FINAL
     if (callbackData.startsWith('uni_')) {
+        if (callbackData === 'uni_cancel') {
+            bot.editMessageText("🤖 *[K.A.I.O.]*: Operação de transferência abortada pelo agente.", { chat_id: chatId, message_id: messageId, parse_mode: 'Markdown' });
+            return bot.answerCallbackQuery(query.id);
+        }
         const partes = callbackData.split('_');
         const unidadeAlvo = partes[1]; 
         const nickRaw = partes.slice(2).join('_');
@@ -149,6 +153,10 @@ bot.on('callback_query', async (query) => {
 
     // INTERAÇÃO: /CONVOCAR (CVX)
     if (callbackData.startsWith('cvc_')) {
+        if (callbackData === 'cvc_cancel') {
+            bot.editMessageText("🤖 *[K.A.I.O.]*: Protocolo de convocação cancelado. Retornando ao modo de espera.", { chat_id: chatId, message_id: messageId, parse_mode: 'Markdown' });
+            return bot.answerCallbackQuery(query.id);
+        }
         const partes = callbackData.split('_');
         const action = partes[1];
         const commanderName = partes[2];
@@ -239,7 +247,8 @@ bot.onText(/^\/unidade(?:@[\w_]+)?(?:\s+(\w+))?/, async (msg, match) => {
                 inline_keyboard: [
                     [{ text: "Comandante VENENOSA (ALPHA)", callback_data: `uni_ALPHA_${player.riot_id}` }],
                     [{ text: "Comandante CACHORRO VELHO (OMEGA)", callback_data: `uni_OMEGA_${player.riot_id}` }],
-                    [{ text: "DEPÓSITO DE TORRETAS", callback_data: `uni_WINGMAN_${player.riot_id}` }]
+                    [{ text: "DEPÓSITO DE TORRETAS", callback_data: `uni_WINGMAN_${player.riot_id}` }],
+                    [{ text: "❌ ABORTAR TRANSFERÊNCIA", callback_data: "uni_cancel" }]
                 ]
             }
         });
@@ -358,7 +367,8 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
             reply_markup: {
                 inline_keyboard: [
                     [{ text: "✅ Sim, tenho o código", callback_data: `cvc_yes_${commanderName}` }],
-                    [{ text: "❌ Não, puxar sem código", callback_data: `cvc_no_${commanderName}` }]
+                    [{ text: "❌ Não, puxar sem código", callback_data: `cvc_no_${commanderName}` }],
+                    [{ text: "🚫 ABORTAR CONVOCAÇÃO", callback_data: "cvc_cancel" }]
                 ]
             }
         });
