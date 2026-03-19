@@ -642,8 +642,6 @@ async function fetchIntelData() {
                 });
             });
             
-            });
-            
             // UI - Zonas de Domínio
             const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             const syncInfo = document.getElementById('intel-sync-info');
@@ -744,3 +742,4 @@ async function fetchIntelData() {
         console.error('Falha na extração de Intel:', error);
     }
 }
+
