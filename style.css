@@ -102,7 +102,7 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 .waitlist-section { border-top: 1px dashed rgba(118, 128, 121, 0.4); margin-top: 20px; padding-top: 15px; }
 .waitlist-label { font-family: 'Teko', sans-serif; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; }
 
-.player-card.is-waiting { opacity: 0.65; background-color: rgba(15, 25, 35, 0.5); }
+.player-card.is-waiting { opacity: 0.9; background-color: rgba(15, 25, 35, 0.9); }
 .player-card.is-waiting:hover { opacity: 1; border-left-color: var(--val-gray); background-color: var(--val-dark); transform: translateX(5px); }
 .player-card.is-waiting .player-avatar { width: 48px; height: 48px; }
 
@@ -115,8 +115,8 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 .omega-theme { border-left-color: #ff4655 !important; }
 .omega-theme:hover { background-color: rgba(255, 70, 85, 0.05) !important; border-left-color: #ff4655 !important; }
 
-.wingman-theme { border-left-color: #bef33e !important; }
-.wingman-theme:hover { background-color: rgba(190, 243, 62, 0.05) !important; border-left-color: #bef33e !important; }
+.wingman-theme { border-left-color: #64748b !important; }
+.wingman-theme:hover { background-color: rgba(100, 116, 139, 0.15) !important; border-left-color: #64748b !important; }
 
 /* =========================================
    HISTÓRICO DE OPERAÇÕES
