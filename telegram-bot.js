@@ -130,6 +130,26 @@ bot.on('callback_query', async (query) => {
         }
         bot.answerCallbackQuery(query.id);
     }
+
+    // INTERAÇÃO: /CONVOCAR (CVX)
+    if (callbackData.startsWith('cvc_')) {
+        const [, action, commanderName] = callbackData.split('_');
+        
+        if (action === 'no') {
+            exec_convocar(chatId, commanderName, null);
+            bot.editMessageText("🤖 *[KAY/O]*: Iniciando convocação sem código.", { chat_id: chatId, message_id: messageId });
+        } else if (action === 'yes') {
+            bot.sendMessage(chatId, "🤖 *[KAY/O]*: Digite apenas o código do grupo agora:", {
+                reply_markup: { force_reply: true }
+            }).then(sent => {
+                bot.onReplyToMessage(chatId, sent.message_id, (msg) => {
+                    exec_convocar(chatId, commanderName, msg.text);
+                });
+            });
+            bot.editMessageText("🤖 *[KAY/O]*: Aguardando código...", { chat_id: chatId, message_id: messageId });
+        }
+        bot.answerCallbackQuery(query.id);
+    }
 });
 
 // --- COMANDO /START ---
@@ -287,35 +307,54 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const codigoLobby = matchAlfanumerico ? matchAlfanumerico[0] : "Solicite invite no Telegram";
 
     try {
-        // Verifica se o usuário está vinculado
         const { data: user } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
-
         if (!user || user.length === 0) {
             return bot.sendMessage(chatId, "❌ *[KAY/O]*: Você precisa vincular seu rádio primeiro. Use \`/vincular MeuNick#TAG\`.", { parse_mode: 'Markdown' });
         }
 
-        const now = Date.now();
         const commanderName = user[0].riot_id.split('#')[0];
+        const now = Date.now();
 
-        // Verifica se JÁ EXISTE QUALQUER sinalizador ativo (global)
-        const { data: activeCalls } = await supabase.from('active_calls')
-            .select('*')
-            .gt('expires_at', now)
-            .order('expires_at', { ascending: false })
-            .limit(1);
-            
+        // 1. Verifica se já existe sinalizador ativo
+        const { data: activeCalls } = await supabase.from('active_calls').select('*').gt('expires_at', now).order('expires_at', { ascending: false }).limit(1);
         if (activeCalls && activeCalls.length > 0) {
             const call = activeCalls[0];
-            
             if (call.commander === commanderName) {
                 return bot.sendMessage(chatId, `⚠️ *[KAY/O]*: Seu sinalizador já está ativo para o código: *${call.party_code}*.`, { parse_mode: 'Markdown' });
             } else {
-                return bot.sendMessage(chatId, `⚠️ *[KAY/O]*: O agente *${call.commander}* já está convocando reforços. Aguarde o sinal dele expirar ou entre no grupo dele.`, { parse_mode: 'Markdown' });
+                return bot.sendMessage(chatId, `⚠️ *[KAY/O]*: O agente *${call.commander}* já está convocando reforços. Aguarde o sinal dele expirar.`, { parse_mode: 'Markdown' });
             }
         }
 
-        const expiresAt = now + (30 * 60 * 1000); // Expira em 30 minutos
+        // 2. Se o usuário já passou o código no comando, pula a interação
+        if (match[1] && match[1].trim().length > 0) {
+            return exec_convocar(chatId, commanderName, match[1].trim());
+        }
 
+        // 3. Caso contrário, inicia interação
+        bot.sendMessage(chatId, "🤖 *[KAY/O]*: Você tem um código de grupo (lobby) para compartilhar agora?", {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: "✅ Sim, tenho o código", callback_data: `cvc_yes_${commanderName}` }],
+                    [{ text: "❌ Não, puxar sem código", callback_data: `cvc_no_${commanderName}` }]
+                ]
+            }
+        });
+
+    } catch (err) {
+        bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Erro ao iniciar protocolo de convocação.", { parse_mode: 'Markdown' });
+    }
+});
+
+// FUNÇÃO AUXILIAR PARA EXECUTAR A CONVOCAÇÃO
+async function exec_convocar(chatId, commanderName, codigoRaw) {
+    const matchAlfanumerico = codigoRaw ? codigoRaw.match(/[a-zA-Z0-9]+/) : null;
+    const codigoLobby = matchAlfanumerico ? matchAlfanumerico[0] : "Solicite invite no PV";
+    const now = Date.now();
+    const expiresAt = now + (30 * 60 * 1000);
+
+    try {
         const { data: insertedCall } = await supabase.from('active_calls').insert([{
             commander: commanderName,
             party_code: codigoLobby,
@@ -323,22 +362,19 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
         }]).select();
 
         const callId = insertedCall && insertedCall.length > 0 ? insertedCall[0].id : 'global';
-
         const alertMsg = `🚨 *[KAY/O: LFG ATIVO]*\n\nO agente *${escapeMarkdown(commanderName)}* está puxando fila e precisa de reforços.\n\nCódigo do Lobby: \`${codigoLobby}\`\n\nEsquadrão: 1/5\n- ${escapeMarkdown(commanderName)}`;
         
         bot.sendMessage(chatId, alertMsg, {
             parse_mode: 'Markdown',
             reply_markup: {
-                inline_keyboard: [
-                    [{ text: "🟢 Aceitar Convocação", callback_data: `lfg_join_${callId}` }]
-                ]
+                inline_keyboard: [[{ text: "🟢 Aceitar Convocação", callback_data: `lfg_join_${callId}` }]]
             }
         });
-
     } catch (err) {
-        bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Erro ao acionar sinalizador.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Erro ao registrar sinalizador.", { parse_mode: 'Markdown' });
     }
-});
+}
+
 
 // --- COMANDO /AJUDA ---
 bot.onText(/^\/ajuda(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
