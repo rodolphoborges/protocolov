@@ -24,6 +24,18 @@ if (process.env.WEBHOOK_URL) {
     bot = new TelegramBot(token, { polling: true });
 }
 
+// Configuração do Menu de Comandos (PT-BR Valorant)
+bot.setMyCommands([
+    { command: 'start', description: '🤖 Inicializar Protocolo V' },
+    { command: 'vincular', description: '📡 Vincular seu Riot ID' },
+    { command: 'convocar', description: '🚨 Puxar fila (Avisar no site)' },
+    { command: 'unidade', description: '🔄 Trocar de Esquadrão' },
+    { command: 'perfil', description: '📂 Ver info de um agente' },
+    { command: 'ranking', description: '🏆 Ranking de Sinergia' },
+    { command: 'site', description: '🌐 Ir para o site do Protocolo V' },
+    { command: 'ajuda', description: '⚙️ Manual do KAY/O' }
+]);
+
 function escapeMarkdown(text) {
     if (!text) return '';
     return text.toString().replace(/[_*`\[\]]/g, '\\$&');
@@ -38,37 +50,37 @@ bot.on('callback_query', async (query) => {
     // INTERAÇÃO: SINALIZADOR LFG
     if (callbackData.startsWith('lfg_join_')) {
         const { data: userRef } = await supabase.from('players').select('riot_id').eq('telegram_id', query.from.id).limit(1);
-        if (!userRef || userRef.length === 0) return bot.answerCallbackQuery(query.id, { text: "Rádio não vinculado. Usa /vincular", show_alert: true });
+        if (!userRef || userRef.length === 0) return bot.answerCallbackQuery(query.id, { text: "Rádio não vinculado. Use /vincular", show_alert: true });
         
         const joinerName = userRef[0].riot_id.split('#')[0];
         const rawText = query.message.text;
         
         if (rawText.includes(`- ${joinerName}`)) {
-            return bot.answerCallbackQuery(query.id, { text: "Já estás neste esquadrão." });
+            return bot.answerCallbackQuery(query.id, { text: "Você já está nesse grupo." });
         }
         
         const lines = rawText.split('\n');
         const listAgents = lines.filter(l => l.trim().startsWith('- '));
         if (listAgents.length >= 5) {
-            return bot.answerCallbackQuery(query.id, { text: "Esquadrão já está cheio (5/5).", show_alert: true });
+            return bot.answerCallbackQuery(query.id, { text: "O grupo já está cheio (5/5).", show_alert: true });
         }
 
         listAgents.push(`- ${joinerName}`);
         
-        let newMd = `🚨 *[SINALIZADOR ORBITAL ZONA QUENTE]*\n\n` +
-                    `> 📡 *Reforços LFG detectados:*\n` +
-                    `_Agentes confirmados no esquadrão:_ ${listAgents.length}/5\n` +
+        let newMd = `🚨 *[KAY/O: LFG ATIVO]*\n\n` +
+                    `> 📡 *Reforços solicitados:*\n` +
+                    `Agentes no grupo: ${listAgents.length}/5\n` +
                     listAgents.map(a => escapeMarkdown(a)).join('\n');
         
         if (listAgents.length >= 5) {
-            bot.editMessageText(newMd + "\n\n✅ *[ESQUADRÃO FECHADO]* - Encontrem-se na base.", { chat_id: chatId, message_id: messageId, parse_mode: 'Markdown' });
+            bot.editMessageText(newMd + "\n\n✅ *[GRUPO FECHADO]* - Iniciando partida.", { chat_id: chatId, message_id: messageId, parse_mode: 'Markdown' });
         } else {
             bot.editMessageText(newMd, { 
                 chat_id: chatId, message_id: messageId, parse_mode: 'Markdown',
                 reply_markup: query.message.reply_markup
             });
         }
-        return bot.answerCallbackQuery(query.id, { text: "O teu sinal foi emitido!" });
+        return bot.answerCallbackQuery(query.id, { text: "Confirmação enviada!" });
     }
 
     // TRANSFERÊNCIA DE UNIDADE FINAL
@@ -96,7 +108,7 @@ bot.on('callback_query', async (query) => {
                     .limit(1);
 
                 if (ocupante && ocupante.length > 0 && ocupante[0].synergy_score > player.synergy_score) {
-                    avisoReserva = `\n\n⚠️ *NOTA:* A vaga de *${player.role_raw}* na ${unidadeAlvo} já está ocupada por um veterano. Ficarás como *Reserva* até subires a tua Sinergia.`;
+                    avisoReserva = `\n\n⚠️ *NOTA:* A vaga na unidade ${unidadeAlvo} já está ocupada por um agente com maior sinergia. Você ficará como *Reserva*.`;
                 }
             }
 
@@ -104,14 +116,14 @@ bot.on('callback_query', async (query) => {
             
             let msgLore = '';
             if (unidadeAlvo === 'ALPHA') {
-                msgLore = `> 🧪 *[ALPHA] Viper:* "Transferência autorizada. Bem-vindo à elite, ${safeNick}. Mantenha o silêncio e seja letal."`;
+                msgLore = `🤖 *[KAY/O]*: Transferência para o esquadrão *ALPHA* concluída. Siga as ordens.`;
             } else if (unidadeAlvo === 'OMEGA') {
-                msgLore = `> 🛰️ *[ÔMEGA] Brimstone:* "Excelente. A Unidade Ômega conta com a sua mira, ${safeNick}. Prepare-se."`;
+                msgLore = `🤖 *[KAY/O]*: Transferência para o esquadrão *ÔMEGA* concluída. Prepare-se.`;
             } else {
-                msgLore = `> 🛹 *[WINGMAN] Gekko:* "Aí sim, ${safeNick}! Wingman tá felizão. Fica na reserva tática com a gente."`;
+                msgLore = `🤖 *[KAY/O]*: Você agora é *RESERVA* (Wingman). Aguarde convocação.`;
             }
 
-            bot.sendMessage(chatId, `🔄 *[SISTEMA]* Atualização de patente processada.\n\n${msgLore}${avisoReserva}`, { parse_mode: 'Markdown' });
+            bot.sendMessage(chatId, msgLore + avisoReserva, { parse_mode: 'Markdown' });
             bot.editMessageReplyMarkup({ inline_keyboard: [] }, { chat_id: chatId, message_id: messageId });
         } catch (err) {
             console.error(err);
