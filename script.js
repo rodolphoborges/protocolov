@@ -589,11 +589,25 @@ async function fetchIntelData() {
         let mapCounts = {};
         let mapWins = {};
         let playerStats = {}; 
-        let loneWolves = [];
+        let tacticalAlerts = [];
         
-        const { data: pData } = await supabaseClient.from('players').select('riot_id, lone_wolf');
+        const { data: pData } = await supabaseClient.from('players').select('riot_id, lone_wolf, synergy_score, updated_at');
         if (pData) {
-            loneWolves = pData.filter(p => p.lone_wolf).map(p => p.riot_id.split('#')[0]);
+            pData.forEach(p => {
+                if (p.lone_wolf) {
+                    tacticalAlerts.push({ 
+                        name: p.riot_id.split('#')[0], 
+                        reason: 'SOLO QUEUE', 
+                        info: 'Detectado fora do grupo' 
+                    });
+                } else if (p.synergy_score === 0) {
+                    tacticalAlerts.push({ 
+                        name: p.riot_id.split('#')[0], 
+                        reason: 'ESTAGNADO', 
+                        info: 'Sinergia Zero' 
+                    });
+                }
+            });
         }
 
         if (data && data.length > 0) {
@@ -628,7 +642,13 @@ async function fetchIntelData() {
                 });
             });
             
+            });
+            
             // UI - Zonas de Domínio
+            const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const syncInfo = document.getElementById('intel-sync-info');
+            if (syncInfo) syncInfo.innerText = `SINC: ${nowTime}`;
+
             let bestMap = 'N/A';
             let bestMapWinrate = 0;
             let bestMapPlays = 0;
@@ -705,13 +725,18 @@ async function fetchIntelData() {
             });
         }
         
-        // UI - Lobos 
+        // UI - Alertas Táticos
         const wolvesEl = document.getElementById('intel-wolves-data');
         if (wolvesEl) {
-            if (loneWolves.length > 0) {
-                wolvesEl.innerHTML = loneWolves.join(', ');
+            if (tacticalAlerts.length > 0) {
+                wolvesEl.innerHTML = tacticalAlerts.map(a => 
+                    `<div class="mb-2 d-flex align-items-center justify-content-between">
+                        <span class="text-light fw-bold">${a.name}</span>
+                        <span class="text-danger small fw-bold" style="font-size: 0.7rem;">[${a.reason}: ${a.info}]</span>
+                    </div>`
+                ).join('');
             } else {
-                wolvesEl.innerHTML = `<span class="text-success blink-terminal">NENHUM AGENTE PERDIDO.</span>`;
+                wolvesEl.innerHTML = `<span class="text-success blink-terminal">NENHUM AGENTE DESALINHADO.</span>`;
             }
         }
         
