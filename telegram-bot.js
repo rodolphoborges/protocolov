@@ -9,6 +9,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const rawAdminId = process.env.ADMIN_TELEGRAM_ID ? process.env.ADMIN_TELEGRAM_ID.trim() : null;
 const ADMIN_ID = rawAdminId ? parseInt(rawAdminId, 10) : null; 
+const henrikApiKey = process.env.HENRIK_API_KEY;
 
 if (!ADMIN_ID) {
     console.warn('⚠️ AVISO: ADMIN_TELEGRAM_ID não configurado. Comandos de administrador desabilitados.');
@@ -472,7 +473,9 @@ bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
     bot.sendMessage(chatId, "🤖 *[KAY/O]*: Testando conexão com a API...", { parse_mode: 'Markdown' });
     try {
         const start = Date.now();
-        const res = await fetch('https://api.henrikdev.xyz/valorant/v1/status/br');
+        const res = await fetch('https://api.henrikdev.xyz/valorant/v1/status/br', {
+            headers: { 'Authorization': henrikApiKey }
+        });
         const ping = Date.now() - start;
         
         if (res.status === 200) {
