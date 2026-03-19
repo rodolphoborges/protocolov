@@ -3,36 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resumo Cypher | Protocolo V</title>
+    <title>Manual KAY/O | Protocolo V</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        .text-cypher { color: #00e5ff !important; }
-        .bg-cypher { background-color: #00e5ff !important; }
-        .border-cypher { border-color: #00e5ff !important; }
+        .text-kayo { color: var(--val-blue) !important; }
+        .bg-kayo { background-color: var(--val-blue) !important; }
+        .border-kayo { border-color: var(--val-blue) !important; }
 
-        .btn-cypher {
+        .btn-kayo {
             display: inline-flex; align-items: center; justify-content: center;
-            background-color: transparent; border: 1px solid #00e5ff; color: #00e5ff; font-family: 'Teko', sans-serif;
+            background-color: transparent; border: 1px solid var(--val-blue); color: var(--val-blue); font-family: 'Teko', sans-serif;
             font-size: 1.5rem; padding: 10px 30px; text-decoration: none; text-transform: uppercase; position: relative;
             transition: 0.2s ease-in-out; cursor: pointer; line-height: 1; text-align: center;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
-        .btn-cypher:hover { background-color: #00e5ff; color: var(--val-dark); transform: translateY(-2px); }
+        .btn-kayo:hover { background-color: var(--val-blue); color: var(--val-dark); transform: translateY(-2px); }
 
-        .cypher-section-header::after { content: ''; position: absolute; bottom: -10px; left: 0; width: 60px; height: 8px; background-color: #00e5ff; }
-        .cypher-decor-square { width: 10px; height: 10px; background-color: #00e5ff; display: inline-block; margin-right: 15px; }
+        .kayo-section-header::after { content: ''; position: absolute; bottom: -10px; left: 0; width: 60px; height: 8px; background-color: var(--val-blue); }
+        .kayo-decor-square { width: 10px; height: 10px; background-color: var(--val-blue); display: inline-block; margin-right: 15px; }
 
         .sync-bar-container { background: rgba(255,255,255,0.1); height: 4px; width: 100%; margin-bottom: 40px; }
-        .sync-bar-fill { background: #00e5ff; height: 100%; width: 20%; transition: width 0.5s ease; }
+        .sync-bar-fill { background: var(--val-blue); height: 100%; width: 20%; transition: width 0.5s ease; }
         .module-step { display: none; margin-bottom: 40px; }
         .module-step.active { display: block; animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .lore-text { color: #b0b8b4; font-size: 1.15rem; line-height: 1.7; font-weight: 500; }
         .cmd-box { 
-            background: rgba(0,0,0,0.6); border-left: 4px solid #00e5ff; 
+            background: rgba(0,0,0,0.6); border-left: 4px solid var(--val-blue); 
             padding: 18px; font-family: 'Courier New', Courier, monospace; 
             margin: 20px 0; font-size: 1.05rem; color: #ffffff; border-radius: 0 4px 4px 0;
         }
@@ -40,16 +40,16 @@
 </head>
 <body class="bg-dark-section">
 
-    <!-- CYPHER BACKGROUNDS -->
-    <div class="val-bg-text-massive" style="-webkit-text-stroke: 2px rgba(0, 229, 255, 0.05); top: 10vh; left: -5vw; z-index: 0;">CYPHER</div>
-    <img src="https://media.valorant-api.com/agents/117ed9e3-49f3-6512-3ccf-0cada7e3823b/fullportrait.png" style="position: fixed; right: -15vw; bottom: 0; height: 110vh; max-height: 1000px; opacity: 0.15; z-index: 0; pointer-events: none; filter: grayscale(80%) sepia(20%) hue-rotate(180deg);">
+    <!-- KAY/O BACKGROUNDS -->
+    <div class="val-bg-text-massive" style="-webkit-text-stroke: 2px rgba(71, 162, 255, 0.05); top: 10vh; left: -5vw; z-index: 0;">KAY/O</div>
+    <img src="https://media.valorant-api.com/agents/ebb9b349-704d-0430-78c4-201f3460a3b1/fullportrait.png" style="position: fixed; right: -15vw; bottom: 0; height: 110vh; max-height: 1000px; opacity: 0.15; z-index: 0; pointer-events: none; filter: grayscale(80%) brightness(0.8);">
 
     <div class="container py-5 content-wrapper position-relative" style="max-width: 800px; z-index: 1;">
         
         <div class="d-flex align-items-center mb-5">
-            <h1 class="val-section-header cypher-section-header m-0 text-white" id="page-title">
-                <span class="cypher-decor-square d-none d-md-inline-block"></span>
-                REDE DE <span class="text-cypher">INFORMAÇÕES</span>
+            <h1 class="val-section-header kayo-section-header m-0 text-white" id="page-title">
+                <span class="kayo-decor-square d-none d-md-inline-block"></span>
+                MANUAL DE <span class="text-kayo">OPERADOR</span>
             </h1>
         </div>
 
@@ -58,65 +58,65 @@
         </div>
 
         <div class="module-step active" id="step1">
-            <h2 class="mb-4 text-cypher" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">1. ESQUADRÃO WINGMAN (RESERVA)</h2>
+            <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">1. STATUS: RESERVA (WINGMAN)</h2>
             <p class="lore-text">
-                "Eu sei exatamente quem você é. Os meus fios-armadilha dizem-me que o seu alistamento foi concluído. Guardei o seu segredo. Por agora, os meus olhos colocaram-no na nossa força de prontidão: o <span class="text-cypher fw-bold">Esquadrão Wingman</span>. Sob a tutela do Agente 22 (Gekko), aguardará nas sombras."
+                "Processamento de alistamento concluído com sucesso. Sua entrada na base de dados foi autorizada. Por enquanto, você foi alocado no suporte tático: a <span class="text-kayo fw-bold">Unidade Wingman</span>. Sob a tutela do Agente 22 (Gekko)."
             </p>
             <p class="lore-text">
-                "A partir de agora, mesmo na reserva, as minhas câmaras já vigiam o seu desempenho na <strong>Sala de Treino</strong>. Cada abate no modo Mata-Mata gera dados para a minha rede. Melhore a mira antes de solicitar a transferência. Eu estarei a ver."
+                "Meus sensores já estão monitorando seu desempenho na <strong>Sala de Treino</strong> (Mata-Mata). Cada abate é registrado no meu log. Antes de solicitar transferência para uma unidade de elite, neutralize seus alvos com precisão máxima."
             </p>
-            <button class="btn-cypher mt-3" onclick="nextStep(2)">Estou a ouvi-lo, Cypher.</button>
+            <button class="btn-kayo mt-3" onclick="nextStep(2)">Entendido, KAY/O.</button>
         </div>
 
         <div class="module-step" id="step2">
-            <h2 class="mb-4 text-cypher" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">2. LIDERANÇAS: ALPHA E ÔMEGA</h2>
+            <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">2. UNIDADES DE ELITE: ALPHA E ÔMEGA</h2>
             <p class="lore-text">
-                "As sombras são úteis, mas o verdadeiro objetivo é o palco principal. As Unidades <strong class="text-white">Alpha</strong> (Viper) e <strong class="text-white">Ômega</strong> (Brimstone) são os peões mais valiosos no tabuleiro. Elas possuem <span class="text-danger fw-bold">vagas estritas de 1 Agente por Função</span> (Apenas um Duelista Alpha, um Controlador Ômega, etc)."
+                "As Unidades <strong class="text-white">Alpha</strong> (Viper) e <strong class="text-white">Ômega</strong> (Brimstone) são os pilares da nossa operação. Elas possuem <span class="text-danger fw-bold">vagas limitadas por função</span>. Apenas os agentes mais letais ocupam estas posições."
             </p>
             <p class="lore-text">
-                "Para sair do Wingman e entrar na sua linha de visão, você terá de intercetar os meus canais de comunicação corporativos (Bot do Telegram) e ordenar a transferência."
+                "Para ser transferido e entrar na linha de frente, use o canal tático via Telegram e envie o comando de transferência:"
             </p>
             <div class="cmd-box">
                 > /unidade ALPHA SeuNome<br>
                 > /unidade OMEGA SeuNome
             </div>
-            <button class="btn-cypher mt-3" onclick="nextStep(3)">Qual é o preço da vaga?</button>
+            <button class="btn-kayo mt-3" onclick="nextStep(3)">Quais os requisitos?</button>
         </div>
 
         <div class="module-step" id="step3">
-            <h2 class="mb-4 text-cypher" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">3. MÉRITO E SINERGIA (SN)</h2>
+            <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">3. PROTOCOLO DE SINERGIA (SN)</h2>
             <p class="lore-text">
-                "O que acontece se você desejar o lugar de um veterano titular? A minha rede avalia apenas um dado: <span class="text-cypher fw-bold">Sinergia (SN)</span>."
+                "Minha diretriz é clara: a eficiência do grupo precede a glória individual. Avalio sua prontidão através da <span class="text-kayo fw-bold">Sinergia (SN)</span>."
             </p>
             <p class="lore-text">
-                "A Sinergia é a nossa moeda de troca, adquirida <strong class="text-white">exclusivamente ao jogar Ranqueadas com a comunidade</strong>. Se tiver mais informações (Sinergia) que o titular atual, a vaga é sua. Se eu vir que tem menos, o sistema tranca-lhe as portas. Sozinho você não é nada; em equipa, você é uma rede impenetrável."
+                "A Sinergia é acumulada <strong class="text-white">exclusivamente ao jogar Ranqueadas com o grupo</strong>. Se seu log de Sinergia for superior ao do titular da vaga, a transferência é executada automaticamente. Sozinho você é um alvo; em equipe, somos o protocolo."
             </p>
-            <button class="btn-cypher mt-3" onclick="nextStep(4)">Comandos de vigilância?</button>
+            <button class="btn-kayo mt-3" onclick="nextStep(4)">Quais os comandos de rádio?</button>
         </div>
 
         <div class="module-step" id="step4">
-            <h2 class="mb-4 text-cypher" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">4. ENCRIPTAÇÃO DE CANAL (TELEGRAM)</h2>
+            <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">4. TERMINAL TÁTICO (TELEGRAM)</h2>
             <p class="lore-text">
-                "O nosso Terminal no Telegram é o seu novo ciberespaço. Memorize estes atalhos antes que eu apague o seu rastro:"
+                "Acesse o rádio via Telegram para gerenciar suas missões. Siga as instruções para evitar falhas táticas:"
             </p>
             <div class="cmd-box">
-                <span class="text-cypher fw-bold">📢 /convocar [CÓDIGO_LOBBY]</span> - Alerta a minha rede e recruta reforços vivos.<br>
-                <span class="text-cypher fw-bold">🔄 /unidade [SQUAD] [NOME]</span> - Injeta o seu nome num novo esquadrão.<br>
-                <span class="text-cypher fw-bold">👤 /perfil [NOME]</span> - Rouba o dossiê confidencial de um agente.<br>
-                <span class="text-cypher fw-bold">🏆 /ranking</span> - Expõe todos os líderes do quadro de mérito.
+                <span class="text-kayo fw-bold">📢 /convocar</span> - Aciona o sinal de reforços para o grupo.<br>
+                <span class="text-kayo fw-bold">🔄 /unidade [SQUAD] [NICK]</span> - Solicita nova alocação de esquadrão.<br>
+                <span class="text-kayo fw-bold">👤 /perfil [NICK]</span> - Consulta informações confidenciais de um agente.<br>
+                <span class="text-kayo fw-bold">🏆 /ranking</span> - Exibe a hierarquia de Sinergia do grupo.
             </div>
-            <button class="btn-cypher mt-3" onclick="nextStep(5)">Desligar Transmissão.</button>
+            <button class="btn-kayo mt-3" onclick="nextStep(5)">Encerrar Briefing.</button>
         </div>
 
         <div class="module-step" id="finalStep">
-            <div class="card mt-4 p-5" style="background-color: rgba(0, 0, 0, 0.4); border: none; border-left: 4px solid #00e5ff; clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%, 0 15px);">
+            <div class="card mt-4 p-5" style="background-color: rgba(0, 0, 0, 0.4); border: none; border-left: 4px solid var(--val-blue); clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%, 0 15px);">
                 <div class="card-body text-center p-0">
-                    <h2 class="text-cypher mb-0" style="font-size: 4.5rem; font-family: 'Teko', sans-serif; line-height: 0.9;">"EU SEI ONDE ESTÁS."</h2>
-                    <p class="lore-text my-5">Os meus servidores aceitaram a sua entrada. Aceda ao terminal escondido no Telegram para investigar os esquadrões ou espionar o seu primeiro alvo.</p>
+                    <h2 class="text-kayo mb-3" style="font-size: 4.5rem; font-family: 'Teko', sans-serif; line-height: 0.9;">"OBJETIVO ADQUIRIDO."</h2>
+                    <p class="lore-text my-5">Memória atualizada. Você está operacional. Acesse o terminal tático no Telegram para gerenciar seu esquadrão e iniciar a caçada.</p>
                     
-                    <a href="https://t.me/ProtocoloV_Intel_Bot" target="_blank" class="btn-cypher mb-4" style="background-color: #00e5ff; color: var(--val-dark); border: none;">
+                    <a href="https://t.me/ProtocoloV_Intel_Bot" target="_blank" class="btn-kayo mb-4" style="background-color: var(--val-blue); color: var(--val-dark); border: none;">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="me-2 mb-1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.62-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
-                        ACESSAR TERMINAL DA REDE
+                        ACESSAR TERMINAL TÁTICO
                     </a><br>
                     <a href="index.html" class="text-white small text-decoration-none" style="opacity: 0.6; transition: opacity 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">[Desconectar e voltar ao QG Principal]</a>
                 </div>
@@ -129,14 +129,14 @@
         const isReview = urlParams.get('mode') === 'review';
 
         if (isReview) {
-            document.getElementById('page-title').innerHTML = '<span class="cypher-decor-square d-none d-md-inline-block"></span> VAZAMENTO DE <span class="text-cypher">DADOS</span>';
+            document.getElementById('page-title').innerHTML = '<span class="kayo-decor-square d-none d-md-inline-block"></span> VAZAMENTO DE <span class="text-kayo">DADOS</span>';
             document.getElementById('syncContainer').style.display = 'none';
             
             document.querySelectorAll('.module-step').forEach(step => {
                 step.classList.add('active');
             });
             
-            document.querySelectorAll('.btn-cypher[onclick^="nextStep"]').forEach(btn => {
+            document.querySelectorAll('.btn-kayo[onclick^="nextStep"]').forEach(btn => {
                 btn.style.display = 'none';
             });
             
