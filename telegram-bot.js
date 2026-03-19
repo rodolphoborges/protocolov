@@ -414,12 +414,11 @@ bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
     }
 });
 
-// --- SERVIDOR EXPRESS (Camuflado) ---
-const app = express();
-// Removemos a rota raiz "/" e criamos um endpoint que apenas o serviço de Uptime (ex: UptimeRobot) conhece
-const HEALTH_SECRET = process.env.HEALTH_SECRET || 'protocolo-v-ping-123';
-
-app.get(`/${HEALTH_SECRET}`, (req, res) => res.send('✅ Sistema Vital do Protocolo V: ONLINE'));
+// Rota de Monitoramento para evitar o "sono" do Render (Keep-alive)
+app.get('/vanguard-health', (req, res) => {
+    console.log('📡 [RADAR] Pulso de vitalidade recebido. Sistema operando.');
+    res.send('✅ Sistema Vital do Protocolo V: ONLINE');
+});
 
 // Se alguém bater na raiz, não devolvemos nada (corta scanners)
 app.get('/', (req, res) => res.status(404).end());
