@@ -41,7 +41,7 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 }
 .bg-dark-section .val-section-header { color: var(--val-light); }
 .val-section-header::after {
-    content: ''; position: absolute; bottom: -10px; left: 0; width: 60px; height: 8px; background-color: var(--val-red);
+    content: ''; position: absolute; bottom: -10px; left: 0; width: 60px; height: 3px; background-color: var(--val-red);
 }
 
 .decor-square { width: 10px; height: 10px; background-color: var(--val-red); display: inline-block; margin-right: 15px; }
