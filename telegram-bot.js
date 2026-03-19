@@ -223,7 +223,7 @@ bot.onText(/^\/unidade(?:@[\w_]+)?(?:\s+(\w+))?/, async (msg, match) => {
                     [
                         { text: "Comandante VENENOSA (ALPHA)", callback_data: "unidade:ALPHA" },
                         { text: "Comandante CACHORRO VELHO (OMEGA)", callback_data: "unidade:OMEGA" },
-                        { text: "RESERVA ATIVA", callback_data: "unidade:WINGMAN" }
+                        { text: "DEPÓSITO DE TORRETAS", callback_data: "unidade:WINGMAN" }
                     ]
                 ]
             }
