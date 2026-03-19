@@ -487,7 +487,7 @@ bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
         const ping = Date.now() - start;
         
         if (res.status === 200) {
-            bot.sendMessage(chatId, `🟢 *[K.A.I.O.]*: API Online. Latência: \`${ping}ms\``, { parse_mode: 'Markdown' });
+            bot.sendMessage(chatId, `🟢 *[K.A.I.O.: CONEXÃO ESTABELECIDA]*\n\nStatus: **OPERACIONAL**\nLatência: \`${ping}ms\`\n\nOs sistemas de rastreamento de Sinergia e os protocolos de atualização estão agora autorizados a operar com carga total.`, { parse_mode: 'Markdown' });
         } else if (res.status === 401) {
             const maskedKey = henrikApiKey ? `${henrikApiKey.slice(0, 4)}***${henrikApiKey.slice(-4)}` : 'NÃO DETECTADA';
             bot.sendMessage(chatId, `🟡 *[K.A.I.O.]*: Erro de Autenticação (401).\n\nSua chave carregada: \`${maskedKey}\`\n\nCertifique-se de que a variável \`HENRIK_API_KEY\` no Render não contém espaços e é uma chave válida da HenrikDev.`, { parse_mode: 'Markdown' });
