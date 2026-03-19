@@ -5,11 +5,14 @@
     --val-gray: #768079;
 }
 
-body {
+html, body {
     background-color: var(--val-light);
     color: var(--val-dark);
     font-family: 'Inter', sans-serif;
     overflow-x: hidden;
+    width: 100%;
+    margin: 0;
+    padding: 0;
     scroll-behavior: smooth;
 }
 
@@ -24,6 +27,8 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
     -webkit-text-stroke: 2px rgba(15, 25, 35, 0.05);
     z-index: 0; pointer-events: none; user-select: none; font-weight: 700;
     white-space: nowrap;
+    max-width: 100vw;
+    overflow: hidden;
 }
 .bg-dark-section .val-bg-text-massive { -webkit-text-stroke: 2px rgba(236, 232, 225, 0.03); }
 
@@ -245,4 +250,8 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
     .val-section-header { font-size: 3.2rem !important; }
     .d-flex.flex-wrap.align-items-center.gap-3 { flex-direction: column !important; align-items: stretch !important; gap: 15px !important; }
     .btn-val, .telegram-link-header { width: 100%; text-align: center; padding: 15px 10px; }
+    
+    /* Prevenir overflow de rows em mobile */
+    .row { margin-left: 0; margin-right: 0; }
+    .row > * { padding-left: 15px; padding-right: 15px; }
 }
