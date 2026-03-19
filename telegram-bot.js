@@ -9,7 +9,11 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const rawAdminId = process.env.ADMIN_TELEGRAM_ID ? process.env.ADMIN_TELEGRAM_ID.trim() : null;
 const ADMIN_ID = rawAdminId ? parseInt(rawAdminId, 10) : null; 
-const henrikApiKey = process.env.HENRIK_API_KEY;
+const henrikApiKey = process.env.HENRIK_API_KEY ? process.env.HENRIK_API_KEY.trim() : null;
+
+if (!henrikApiKey || henrikApiKey === 'INSIRA_SUA_CHAVE_AQUI') {
+    console.warn('⚠️ AVISO: HENRIK_API_KEY não configurada ou usando placeholder.');
+}
 
 if (!ADMIN_ID) {
     console.warn('⚠️ AVISO: ADMIN_TELEGRAM_ID não configurado. Comandos de administrador desabilitados.');
@@ -484,6 +488,9 @@ bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
         
         if (res.status === 200) {
             bot.sendMessage(chatId, `🟢 *[K.A.I.O.]*: API Online. Latência: \`${ping}ms\``, { parse_mode: 'Markdown' });
+        } else if (res.status === 401) {
+            const maskedKey = henrikApiKey ? `${henrikApiKey.slice(0, 4)}***${henrikApiKey.slice(-4)}` : 'NÃO DETECTADA';
+            bot.sendMessage(chatId, `🟡 *[K.A.I.O.]*: Erro de Autenticação (401).\n\nSua chave carregada: \`${maskedKey}\`\n\nCertifique-se de que a variável \`HENRIK_API_KEY\` no Render não contém espaços e é uma chave válida da HenrikDev.`, { parse_mode: 'Markdown' });
         } else {
             bot.sendMessage(chatId, `🟡 *[K.A.I.O.]*: API instável (Status: ${res.status}).`, { parse_mode: 'Markdown' });
         }
