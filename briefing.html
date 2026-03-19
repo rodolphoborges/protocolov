@@ -99,11 +99,11 @@
             <p class="lore-text">
                 "Para ser transferido e entrar na linha de frente, use o rádio via Telegram e envie o comando de transferência:"
             </p>
-            <div class="cmd-box" onclick="copyToClipboard('/unidade ALPHA', this)">
-                > /unidade ALPHA SeuNome
+            <div class="cmd-box d-flex justify-content-between align-items-center" onclick="copyToClipboard('/unidade ALPHA', this)">
+                <span>> /unidade ALPHA <span class="text-muted opacity-50" style="font-size: 0.9rem;">nick#exemplo</span></span>
             </div>
-            <div class="cmd-box" onclick="copyToClipboard('/unidade OMEGA', this)">
-                > /unidade OMEGA SeuNome
+            <div class="cmd-box d-flex justify-content-between align-items-center" onclick="copyToClipboard('/unidade OMEGA', this)">
+                <span>> /unidade OMEGA <span class="text-muted opacity-50" style="font-size: 0.9rem;">nick#exemplo</span></span>
             </div>
             <button class="btn-kayo mt-3" onclick="nextStep(3)">Quais os requisitos?</button>
         </div>
@@ -125,16 +125,16 @@
                 "Acesse o rádio via Telegram para gerenciar suas missões. Siga as instruções para evitar falhas táticas:"
             </p>
             <div class="cmd-box" onclick="copyToClipboard('/convocar', this)">
-                <span class="text-kayo fw-bold">📢 /convocar</span> - Aciona o sinal de reforços para o grupo.
+                <span class="text-kayo fw-bold">📢 /convocar</span> - Sinal de reforço imediato.
             </div>
             <div class="cmd-box" onclick="copyToClipboard('/unidade', this)">
-                <span class="text-kayo fw-bold">🔄 /unidade [SQUAD] [NICK]</span> - Solicita nova alocação de esquadrão.
+                <span class="text-kayo fw-bold">🔄 /unidade [SQUAD] [NICK#TAG]</span>
             </div>
             <div class="cmd-box" onclick="copyToClipboard('/perfil', this)">
-                <span class="text-kayo fw-bold">👤 /perfil [NICK]</span> - Consulta informações confidenciais de um agente.
+                <span class="text-kayo fw-bold">👤 /perfil [NICK#TAG]</span>
             </div>
             <div class="cmd-box" onclick="copyToClipboard('/ranking', this)">
-                <span class="text-kayo fw-bold">🏆 /ranking</span> - Exibe a hierarquia de Sinergia do grupo.
+                <span class="text-kayo fw-bold">🏆 /ranking</span> - Status de Sinergia.
             </div>
             <button class="btn-kayo mt-3" onclick="nextStep(5)">Encerrar Briefing.</button>
         </div>
@@ -221,7 +221,7 @@
             try {
                 await navigator.clipboard.writeText(text);
                 const originalText = element.innerHTML;
-                element.innerHTML = '<span class="text-success fw-bold">CABO DE DADOS CONECTADO: COPIADO!</span>';
+                element.innerHTML = '<span class="text-success fw-bold">COMANDO COPIADO!</span>';
                 element.style.backgroundColor = 'rgba(25, 135, 84, 0.1)';
                 setTimeout(() => {
                     element.innerHTML = originalText;
