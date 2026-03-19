@@ -107,7 +107,7 @@ h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: upper
 .player-card.is-waiting .player-avatar { width: 48px; height: 48px; }
 
 /* =========================================
-   LORE THEMES (Alpha-Viper, Omega-Brimstone, Wingman-Gekko)
+   LORE THEMES (Alpha-Arquiteto, Omega-Comandante, Mobilização de Apoio)
 ========================================= */
 .alpha-theme { border-left-color: #00ff9d !important; }
 .alpha-theme:hover { background-color: rgba(0, 255, 157, 0.05) !important; border-left-color: #00ff9d !important; }

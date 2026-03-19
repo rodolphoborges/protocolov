@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manual KAY/O | Protocolo V</title>
+    <title>Manual K.A.I.O | Protocolo V</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -41,7 +41,7 @@
 <body class="bg-dark-section">
 
     <!-- KAY/O BACKGROUNDS -->
-    <div class="val-bg-text-massive" style="-webkit-text-stroke: 2px rgba(71, 162, 255, 0.05); top: 10vh; left: -5vw; z-index: 0;">KAY/O</div>
+    <div class="val-bg-text-massive" style="-webkit-text-stroke: 2px rgba(71, 162, 255, 0.05); top: 10vh; left: -5vw; z-index: 0;">K.A.I.O</div>
     <img src="https://media.valorant-api.com/agents/ebb9b349-704d-0430-78c4-201f3460a3b1/fullportrait.png" style="position: fixed; right: -15vw; bottom: 0; height: 110vh; max-height: 1000px; opacity: 0.15; z-index: 0; pointer-events: none; filter: grayscale(80%) brightness(0.8);">
 
     <div class="container py-5 content-wrapper position-relative" style="max-width: 800px; z-index: 1;">
@@ -58,23 +58,23 @@
         </div>
 
         <div class="module-step active" id="step1">
-            <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">1. STATUS: RESERVA (WINGMAN)</h2>
+            <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">1. STATUS: RESERVA (APOIO)</h2>
             <p class="lore-text">
-                "Processamento de alistamento concluído com sucesso. Sua entrada na base de dados foi autorizada. Por enquanto, você foi alocado no suporte tático: a <span class="text-kayo fw-bold">Unidade Wingman</span>. Sob a tutela do Agente 22 (Gekko)."
+                "Processamento de alistamento concluído com sucesso. Sua entrada na base de dados foi autorizada. Por enquanto, você foi alocado no suporte tático: a <span class="text-kayo fw-bold">Unidade de Apoio</span>."
             </p>
             <p class="lore-text">
                 "Meus sensores já estão monitorando seu desempenho na <strong>Sala de Treino</strong> (Mata-Mata). Cada abate é registrado no meu log. Antes de solicitar transferência para uma unidade de elite, neutralize seus alvos com precisão máxima."
             </p>
-            <button class="btn-kayo mt-3" onclick="nextStep(2)">Entendido, KAY/O.</button>
+            <button class="btn-kayo mt-3" onclick="nextStep(2)">Entendido, K.A.I.O.</button>
         </div>
 
         <div class="module-step" id="step2">
             <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">2. UNIDADES DE ELITE: ALPHA E ÔMEGA</h2>
             <p class="lore-text">
-                "As Unidades <strong class="text-white">Alpha</strong> (Viper) e <strong class="text-white">Ômega</strong> (Brimstone) são os pilares da nossa operação. Elas possuem <span class="text-danger fw-bold">vagas limitadas por função</span>. Apenas os agentes mais letais ocupam estas posições."
+                "As Unidades <strong class="text-white">Alpha</strong> (Arquitetos) e <strong class="text-white">Ômega</strong> (Comandantes) são os pilares da nossa operação. Elas possuem <span class="text-danger fw-bold">vagas limitadas por função</span>. Apenas os agentes mais letais ocupam estas posições."
             </p>
             <p class="lore-text">
-                "Para ser transferido e entrar na linha de frente, use o canal tático via Telegram e envie o comando de transferência:"
+                "Para ser transferido e entrar na linha de frente, use o rádio via Telegram e envie o comando de transferência:"
             </p>
             <div class="cmd-box">
                 > /unidade ALPHA SeuNome<br>
@@ -119,6 +119,12 @@
                         ACESSAR TERMINAL TÁTICO
                     </a><br>
                     <a href="index.html" class="text-white small text-decoration-none" style="opacity: 0.6; transition: opacity 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">[Desconectar e voltar ao QG Principal]</a>
+                    
+                    <div class="mt-5 pt-4 border-top border-secondary border-opacity-10 text-start">
+                        <p class="text-muted" style="font-size: 0.55rem; line-height: 1.4; opacity: 0.5;">
+                            O Protocolo V é um projeto feito por fãs. Ele não é endossado pela Riot Games e não reflete as visões ou opiniões da Riot Games ou de qualquer pessoa oficialmente envolvida na produção ou gerenciamento do VALORANT. VALORANT e Riot Games são marcas comerciais ou marcas registradas da Riot Games, Inc.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
