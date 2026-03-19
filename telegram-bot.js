@@ -123,14 +123,13 @@ bot.on('callback_query', async (query) => {
 // --- COMANDO /START ---
 bot.onText(/^\/start(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `💻 *[TERMINAL VANGUARD: ONLINE]*\n_Acesso concedido. Bem-vindo à rede Protocolo V._\n\n` +
-    `> *DIRETÓRIO DE JANELAS:*\n` +
-    `📡 \`/convocar [cod]\` - Aciona radar LFG de reforços\n` +
-    `🔄 \`/unidade\` - Solicita transferência de patente\n` +
-    `📂 \`/perfil [nick]\` - Interceta dossiê de agente\n` +
-    `🏆 \`/ranking\` - Classificação de Sinergia\n` +
-    `🌐 \`/site\` - Intranet Oficial\n` +
-    `⚙️ \`/ajuda\` - Manual de Comandos`;
+    const mensagem = `🤖 *[KAY/O: INICIALIZADO]*\n_Conectado à rede do Protocolo V._\n\n` +
+    `Estou aqui para gerenciar os esquadrões e monitorar a sinergia. Utilize os comandos abaixo para operar:\n\n` +
+    `📡 \`/convocar\` - Avisar no site que você está puxando fila e precisa de gente.\n` +
+    `🔄 \`/unidade\` - Trocar entre Alpha, Ômega ou Wingman.\n` +
+    `📂 \`/perfil\` - Ver o elo e a sinergia de um agente.\n` +
+    `🏆 \`/ranking\` - Ver quem são os Top 10 mais ativos.\n` +
+    `⚙️ \`/ajuda\` - Ver como usar cada comando com exemplos.`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown' });
 });
 
@@ -141,23 +140,23 @@ bot.onText(/^\/vincular(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const riotId = match[1] ? match[1].trim() : null;
 
     if (!riotId) {
-        return bot.sendMessage(chatId, "> 🤖 *[SISTEMA] Killjoy:* Informa o teu Riot ID para vincular o rádio. (Ex: `/vincular OUSADIA#013`)", { parse_mode: 'Markdown' });
+        return bot.sendMessage(chatId, "🤖 *[KAY/O]*: Informe o seu Riot ID para vincular o rádio.\n\nExemplo: \`/vincular MeuNick#BR1\`", { parse_mode: 'Markdown' });
     }
 
     try {
         const { data: players } = await supabase.from('players').select('*').ilike('riot_id', `%${riotId}%`).limit(1);
         
         if (!players || players.length === 0) {
-            return bot.sendMessage(chatId, "> 🛰️ *Brimstone:* ID não encontrado no banco de dados. Já fizeste o alistamento no site?", { parse_mode: 'Markdown' });
+            return bot.sendMessage(chatId, "❌ *[KAY/O]*: Esse Riot ID não foi encontrado. Você já se alistou no site?", { parse_mode: 'Markdown' });
         }
 
         const player = players[0];
         if (player.telegram_id && player.telegram_id !== telegramId) {
-            return bot.sendMessage(chatId, "> 👁️ *Cypher:* Recusado. Este Riot ID já está sob a vigilância de outro rádio.", { parse_mode: 'Markdown' });
+            return bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Esse Riot ID já está vinculado a outro usuário.", { parse_mode: 'Markdown' });
         }
 
         await supabase.from('players').update({ telegram_id: telegramId }).eq('riot_id', player.riot_id);
-        bot.sendMessage(chatId, `✅ *[AUTENTICAÇÃO ACEITE]*\n> Identidade confirmada: *${escapeMarkdown(player.riot_id)}*.\n_A partir de agora, os teus comandos usarão esta credencial._`, { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, `✅ *[KAY/O]*: Rádio vinculado com sucesso ao agente *${escapeMarkdown(player.riot_id)}*.`, { parse_mode: 'Markdown' });
 
     } catch (err) {
         bot.sendMessage(chatId, "🔥 *Falha nos servidores do Protocolo.* Tenta novamente.", { parse_mode: 'Markdown' });
@@ -181,13 +180,13 @@ bot.onText(/^\/unidade(?:@[\w_]+)?(?:\s+(\w+))?/, async (msg, match) => {
     const player = userRecord[0];
 
     if (!unidade) {
-        return bot.sendMessage(chatId, `> 🤖 *[SISTEMA] Killjoy:* "Agente ${escapeMarkdown(player.riot_id.split('#')[0])}, para qual divisão desejas transferência?"`, {
+        return bot.sendMessage(chatId, `🤖 *[KAY/O]*: Agente ${escapeMarkdown(player.riot_id.split('#')[0])}, para qual esquadrão deseja transferência?`, {
             parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: "🧪 Transferir para ALPHA", callback_data: `uni_ALPHA_${player.riot_id}` }],
-                    [{ text: "🛰️ Transferir para ÔMEGA", callback_data: `uni_OMEGA_${player.riot_id}` }],
-                    [{ text: "🛹 Voltar para WINGMAN", callback_data: `uni_WINGMAN_${player.riot_id}` }]
+                    [{ text: "🧪 Mover para ALPHA (Titular)", callback_data: `uni_ALPHA_${player.riot_id}` }],
+                    [{ text: "🛰️ Mover para ÔMEGA (Titular)", callback_data: `uni_OMEGA_${player.riot_id}` }],
+                    [{ text: "🛹 Mover para WINGMAN (Reserva)", callback_data: `uni_WINGMAN_${player.riot_id}` }]
                 ]
             }
         });
@@ -209,7 +208,7 @@ bot.onText(/^\/unidade(?:@[\w_]+)?(?:\s+(\w+))?/, async (msg, match) => {
         }
 
         await supabase.from('players').update({ unit: unidade }).eq('riot_id', player.riot_id);
-        bot.sendMessage(chatId, `🔄 *[SISTEMA]* Transferência do agente *${escapeMarkdown(player.riot_id)}* para *${unidade}* concluída.${aviso}`, { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, `🔄 *[KAY/O]*: Transferência de *${escapeMarkdown(player.riot_id)}* para o esquadrão *${unidade}* concluída.${aviso}`, { parse_mode: 'Markdown' });
     } catch (error) { 
         bot.sendMessage(chatId, "🔥 *Killjoy:* Falha na sincronização.", { parse_mode: 'Markdown' }); 
     }
@@ -226,10 +225,10 @@ bot.onText(/^\/ranking(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
         data.forEach((p, i) => {
             rankMsg += `\`[ ${String(i + 1).padStart(2, '0')} ]\` 💠 *${escapeMarkdown(p.riot_id.split('#')[0])}* ➔ ${p.synergy_score || 0} pts _(${p.unit || 'Reserva'})_\n`;
         });
-        rankMsg += `\n_Para constar no relatório, feche esquadrões e reporte vitórias._`;
+        rankMsg += `\n_Ganhe pontos de sinergia fechando esquadrões com os outros agentes._`;
         bot.sendMessage(chatId, rankMsg, { parse_mode: 'Markdown' });
     } catch (err) {
-        bot.sendMessage(chatId, "> 🤖 *[ERRO]* Falha na conexão com o banco de dados da Vanguard.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Erro ao acessar banco de dados do Protocolo.", { parse_mode: 'Markdown' });
     }
 });
 
@@ -239,28 +238,29 @@ bot.onText(/^\/perfil(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const argumentoRaw = match[1] ? match[1].trim() : null;
     const argumento = argumentoRaw ? argumentoRaw.replace(/[%_]/g, '') : null;
 
-    if (!argumento || argumento.length < 3) return bot.sendMessage(chatId, "> 👁️ *Cypher:* Preciso de um alvo válido para investigar (mínimo 3 letras). Usa o formato: `/perfil Nick`.", { parse_mode: 'Markdown' });
+    if (!argumento || argumento.length < 3) {
+        return bot.sendMessage(chatId, "🤖 *[KAY/O]*: Informe quem deseja pesquisar.\n\nExemplo: \`/perfil Nick\`", { parse_mode: 'Markdown' });
+    }
 
     try {
         const { data } = await supabase.from('players').select('*').ilike('riot_id', `%${argumento}%`).limit(1);
-        if (!data || data.length === 0) return bot.sendMessage(chatId, "> 👁️ *Cypher:* O meu espião não encontrou registos deste agente na nossa rede.", { parse_mode: 'Markdown' });
+        if (!data || data.length === 0) return bot.sendMessage(chatId, "🤖 *[KAY/O]*: Nenhum agente encontrado com esse nome.", { parse_mode: 'Markdown' });
         
         const p = data[0];
-        const statusLobo = p.lone_wolf ? 'Positivo 🐺 (Intervenção tática pendente)' : 'Negativo (Opera em equipa)';
-        const safeRank = p.current_rank && p.current_rank !== 'Processando...' ? p.current_rank : 'Pendente...';
+        const statusLobo = p.lone_wolf ? 'Sim 🐺 (Só joga solo)' : 'Não (Joga em equipe)';
+        const safeRank = p.current_rank && p.current_rank !== 'Processando...' ? p.current_rank : 'Pendente';
         
-        const msgPerfil = `📂 *[DOSSIÊ INTERCETADO]*\n` +
-                          `_> Alvo: ${escapeMarkdown(p.riot_id)}_\n\n` +
-                          `🛡️ *Designação:* ${p.unit || 'Desconhecida'}\n` +
-                          `⚔️ *Classe Tática:* ${p.role_raw || 'Não Declarada'}\n` +
-                          `🎖️ *Nível de Ameaça:* ${safeRank}\n\n` +
-                          `*>> STATUS OPERACIONAL <<*\n` +
-                          `🔹 *Sinergia:* \`${p.synergy_score || 0} pts\`\n` +
-                          `🎯 *Mata-Mata:* \`${p.dm_score_total || p.dm_score || 0} pts\`\n` +
-                          `⚠️ *Aviso de Lobo Solitário:* ${statusLobo}`;
+        const msgPerfil = `📂 *[INFOS DO AGENTE]*\n` +
+                          `Riot ID: *${escapeMarkdown(p.riot_id)}*\n\n` +
+                          `🛡️ *Esquadrão:* ${p.unit || 'Reserva'}\n` +
+                          `⚔️ *Função:* ${p.role_raw || 'Não Definida'}\n` +
+                          `🎖️ *Elo Atual:* ${safeRank}\n\n` +
+                          `🤝 *Sinergia:* \`${p.synergy_score || 0} pts\`\n` +
+                          `🎯 *Treino (DM):* \`${p.dm_score_total || p.dm_score || 0} pts\`\n` +
+                          `⚠️ *Lobo Solitário:* ${statusLobo}`;
         bot.sendMessage(chatId, msgPerfil, { parse_mode: 'Markdown' });
     } catch (err) {
-        bot.sendMessage(chatId, "> 🤖 *Falha de Criptografia:* Impossível extrair o dossiê neste momento.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Erro ao buscar perfil. Tente novamente.", { parse_mode: 'Markdown' });
     }
 });
 
@@ -279,7 +279,7 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
         const { data: user } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
 
         if (!user || user.length === 0) {
-            return bot.sendMessage(chatId, "❌ *Acesso Negado:* Vincula o teu rádio primeiro com `/vincular`.", { parse_mode: 'Markdown' });
+            return bot.sendMessage(chatId, "❌ *[KAY/O]*: Você precisa vincular seu rádio primeiro. Use \`/vincular MeuNick#TAG\`.", { parse_mode: 'Markdown' });
         }
 
         const now = Date.now();
@@ -294,12 +294,11 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
             
         if (activeCalls && activeCalls.length > 0) {
             const call = activeCalls[0];
-            const relMins = Math.ceil((call.expires_at - now) / 60000);
             
             if (call.commander === commanderName) {
-                return bot.sendMessage(chatId, `⚠️ *SINALIZADOR JÁ ATIVO:* Já tens um reforço convocado para o código *${call.party_code}*. O aviso permanecerá no ar por mais *${relMins} minutos*.`, { parse_mode: 'Markdown' });
+                return bot.sendMessage(chatId, `⚠️ *[KAY/O]*: Seu sinalizador já está ativo para o código: *${call.party_code}*.`, { parse_mode: 'Markdown' });
             } else {
-                return bot.sendMessage(chatId, `⚠️ *RADAR OCUPADO:* O agente *${call.commander}* já convocou reforços (Código: *${call.party_code}*). O sinalizador dele estará ativo por mais *${relMins} minutos*. Junta-te a ele ou aguarda expirarem os reforços.`, { parse_mode: 'Markdown' });
+                return bot.sendMessage(chatId, `⚠️ *[KAY/O]*: O agente *${call.commander}* já está convocando reforços. Aguarde o sinal dele expirar ou entre no grupo dele.`, { parse_mode: 'Markdown' });
             }
         }
 
@@ -313,7 +312,7 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 
         const callId = insertedCall && insertedCall.length > 0 ? insertedCall[0].id : 'global';
 
-        const alertMsg = `🚨 *[SINALIZADOR ORBITAL ZONA QUENTE]*\n\n> 📡 *Reforços LFG detectados para:* \`${codigoLobby}\`\n_Agentes confirmados no esquadrão:_ 1/5\n- ${escapeMarkdown(commanderName)}`;
+        const alertMsg = `🚨 *[KAY/O: LFG ATIVO]*\n\nO agente *${escapeMarkdown(commanderName)}* está puxando fila e precisa de reforços.\n\nCódigo do Lobby: \`${codigoLobby}\`\n\nEsquadrão: 1/5\n- ${escapeMarkdown(commanderName)}`;
         
         bot.sendMessage(chatId, alertMsg, {
             parse_mode: 'Markdown',
@@ -325,46 +324,47 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
         });
 
     } catch (err) {
-        bot.sendMessage(chatId, "> 🤖 *Erro:* Falha ao acionar sinalizador.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Erro ao acionar sinalizador.", { parse_mode: 'Markdown' });
     }
 });
 
 // --- COMANDO /AJUDA ---
 bot.onText(/^\/ajuda(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `💻 *[TERMINAL VANGUARD: MANUAL]*\n\n` +
-        `_> Diretório de Comandos Analíticos:_\n` +
-        `📡 \`/vincular [Nick#TAG]\` - Conecta teu dispositivo.\n` +
-        `🚨 \`/convocar [código]\` - Marca LFG no site.\n` +
-        `🔄 \`/unidade\` - Troca de esquadrão tático.\n` +
-        `📂 \`/perfil [nick]\` - Extrai dossiê de agente.\n` +
-        `🏆 \`/ranking\` - Mostra os líderes em Sinergia.\n` +
-        `🌐 \`/site\` - URL da plataforma base.\n` +
-        `⚙️ \`/ajuda\` - Atualiza esta janela.`;
+    const mensagem = `💻 *[KAY/O: MANUAL DE OPERAÇÕES]*\n\n` +
+        `📡 \`/vincular [ID]\` -> Conecta seu Telegram ao seu Nick.\n` +
+        `Ex: \`/vincular MeuNick#BR1\`\n\n` +
+        `🚨 \`/convocar [código]\` -> Avisa no site que você precisa de gente.\n` +
+        `Ex: \`/convocar 123456\`\n\n` +
+        `🔄 \`/unidade\` -> Troca entre ser Titular ou Reserva.\n\n` +
+        `📂 \`/perfil [nick]\` -> Vê o elo e sinergia de alguém.\n` +
+        `Ex: \`/perfil Ousadia\`\n\n` +
+        `🏆 \`/ranking\` -> Lista os mais ativos da semana.\n\n` +
+        `🌐 \`/site\` -> Link da nossa plataforma.`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown' });
 });
 
 // --- COMANDO /SITE ---
 bot.onText(/^\/site(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `🌐 *[INTRANET PROTOCOLO V]*\n\n> Acompanhe a movimentação furtiva dos esquadrões, logs de combate e line-up atual no nosso terminal web.\n\n🔗 *Acesso direto:* [ProtocoloV.com](https://protocolov.com)\n_> 🛰️ Brimstone aprova esta ligação._`;
+    const mensagem = `🌐 *[KAY/O]*: Acesse nossa intranet para relatórios detalhados e status da line-up:\n\n🔗 [ProtocoloV.com](https://protocolov.com)`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown', disable_web_page_preview: true });
 });
 
-// --- COMANDOS SECRETOS DE ADMINISTRAÇÃO (BRIMSTONE ONLY) ---
+// --- COMANDOS SECRETOS DE ADMINISTRAÇÃO ---
 bot.onText(/^\/expurgar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     if (msg.from.id !== ADMIN_ID) return; 
 
     const chatId = msg.chat.id;
     const riotId = match[1] ? match[1].trim() : null;
-    if (!riotId) return bot.sendMessage(chatId, "> 🛰️ *Brimstone:* Forneça o Riot ID exato do alvo para expurgação.", { parse_mode: 'Markdown' });
+    if (!riotId) return bot.sendMessage(chatId, "🤖 *[KAY/O]*: Informe o Riot ID para remoção definitiva.", { parse_mode: 'Markdown' });
 
     try {
         const { error } = await supabase.from('players').delete().ilike('riot_id', `%${riotId}%`);
         if (error) throw error;
-        bot.sendMessage(chatId, `> 💥 *[EXPURGO CONFIRMADO]*\nO registo do agente *${escapeMarkdown(riotId)}* foi eliminado fisicamente dos servidores da Vanguard.`, { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, `💥 *[KAY/O]*: Registro de *${escapeMarkdown(riotId)}* removido da base.`, { parse_mode: 'Markdown' });
     } catch(err) {
-        bot.sendMessage(chatId, "> 🤖 *Erro:* A blindagem de dados resistiu ao expurgo.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Falha ao remover registro.", { parse_mode: 'Markdown' });
     }
 });
 
@@ -373,13 +373,13 @@ bot.onText(/^\/alerta_vermelho(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 
     const chatId = msg.chat.id;
     const mensagemAlert = match[1] ? match[1].trim() : null;
-    if (!mensagemAlert) return bot.sendMessage(chatId, "> 🛰️ *Brimstone:* O canal de emergência precisa de uma mensagem para transmitir.", { parse_mode: 'Markdown' });
+    if (!mensagemAlert) return bot.sendMessage(chatId, "🤖 *[KAY/O]*: Informe a mensagem para o alerta global.", { parse_mode: 'Markdown' });
 
     try {
         const { data } = await supabase.from('players').select('telegram_id').not('telegram_id', 'is', null);
         let sentCount = 0;
         
-        const avisoFinal = `🚨 *[ALERTA DE EMERGÊNCIA DA VANGUARD]* 🚨\n\n> 🛰️ *O Comandante Brimstone transmite em canal aberto:*\n_${escapeMarkdown(mensagemAlert)}_\n\n\`[Fim da Transmissão]\``;
+        const avisoFinal = `🚨 *[ALERTA GERAL DO PROTOCOLO V]*\n\n${escapeMarkdown(mensagemAlert)}`;
 
         for (const player of data) {
             try {
@@ -387,9 +387,9 @@ bot.onText(/^\/alerta_vermelho(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
                 sentCount++;
             } catch (e) { /* user blocked the bot */ }
         }
-        bot.sendMessage(chatId, `> 🛰️ *Brimstone:* Transmissão global concluída. ${sentCount} agentes receberam a mensagem nas suas frequências blindadas.`, { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, `✅ *[KAY/O]*: Alerta enviado para ${sentCount} agentes.`, { parse_mode: 'Markdown' });
     } catch(err) {
-        bot.sendMessage(chatId, "> 🤖 *Erro na rede de transmissão global.*", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Falha no envio global.", { parse_mode: 'Markdown' });
     }
 });
 
@@ -397,20 +397,19 @@ bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
     if (msg.from.id !== ADMIN_ID) return;
 
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, "> 🛰️ *Iniciando varredura orbital na infraestrutura HenrikDev...*", { parse_mode: 'Markdown' });
+    bot.sendMessage(chatId, "🤖 *[KAY/O]*: Testando conexão com a API...", { parse_mode: 'Markdown' });
     try {
         const start = Date.now();
-        // node-fetch genérico não nativo no v14, mas no v18 fetch é nativo. Assumimos Node 18 (nativo).
         const res = await fetch('https://api.henrikdev.xyz/valorant/v1/status/br');
         const ping = Date.now() - start;
         
         if (res.status === 200) {
-            bot.sendMessage(chatId, `> 🟢 *[RADAR ONLINE]*\n_A Vanguard está a responder na frequência correta._\nLatência do satélite: \`${ping}ms\``, { parse_mode: 'Markdown' });
+            bot.sendMessage(chatId, `🟢 *[KAY/O]*: API Online. Latência: \`${ping}ms\``, { parse_mode: 'Markdown' });
         } else {
-            bot.sendMessage(chatId, `> 🟡 *[RADAR INSTÁVEL]*\nA API retornou código \`${res.status}\`. O sinal está poluído.`, { parse_mode: 'Markdown' });
+            bot.sendMessage(chatId, `🟡 *[KAY/O]*: API instável (Status: ${res.status}).`, { parse_mode: 'Markdown' });
         }
     } catch (err) {
-        bot.sendMessage(chatId, "> 🔴 *[RADAR DESLIGADO]*\nA infraestrutura externa está incontactável. A Vanguard está sob ataque.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "🔴 *[KAY/O]*: API Offline ou incontactável.", { parse_mode: 'Markdown' });
     }
 });
 
