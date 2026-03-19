@@ -398,7 +398,7 @@ async function run() {
             // Tenta enviar DM privada se o agente estiver vinculado
             const pFound = finalPlayersData.find(p => p.riot_id.split('#')[0] === agente);
             if (pFound && pFound.telegram_id) {
-                const dmPrivada = `> ⚠️ *[INTERFACE MECÂNICA KAY/O]*\n> DETETADA INFRAÇÃO TÁTICA.\n\nPrezado ${agente}, detectamos que operaste sem esquadrão. A tua Sinergia não foi incrementada. Volta à rede de rádio imediatamente.`;
+                const dmPrivada = `> ⚠️ *[INTERFACE MECÂNICA K.A.I.O]*\n> DETETADA INFRAÇÃO TÁTICA.\n\nPrezado ${agente}, detectamos que operaste sem esquadrão. A tua Sinergia não foi incrementada. Volta à rede de rádio imediatamente.`;
                 await notificarTelegram(dmPrivada, pFound.telegram_id);
             }
             await delay(1000);

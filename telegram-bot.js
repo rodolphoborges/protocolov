@@ -39,7 +39,7 @@ bot.setMyCommands([
     { command: 'perfil', description: '📂 Ver info de um agente' },
     { command: 'ranking', description: '🏆 Ranking de Sinergia' },
     { command: 'site', description: '🌐 Ir para o site do Protocolo V' },
-    { command: 'ajuda', description: '⚙️ Manual do KAY/O' }
+    { command: 'ajuda', description: '⚙️ Manual do K.A.I.O.' }
 ]);
 
 function escapeMarkdown(text) {
@@ -73,7 +73,7 @@ bot.on('callback_query', async (query) => {
 
         listAgents.push(`- ${joinerName}`);
         
-        let newMd = `🚨 *[KAY/O: LFG ATIVO]*\n\n` +
+        let newMd = `🚨 *[K.A.I.O.: LFG ATIVO]*\n\n` +
                     `> 📡 *Reforços solicitados:*\n` +
                     `Agentes no grupo: ${listAgents.length}/5\n` +
                     listAgents.map(a => escapeMarkdown(a)).join('\n');
@@ -122,11 +122,11 @@ bot.on('callback_query', async (query) => {
             
             let msgLore = '';
             if (unidadeAlvo === 'ALPHA') {
-                msgLore = `🤖 *[KAY/O]*: Transferência para o esquadrão *ALPHA* concluída. Siga as ordens.`;
+                msgLore = `🤖 *[K.A.I.O.]*: Transferência para o esquadrão *ALPHA* concluída. Siga as ordens.`;
             } else if (unidadeAlvo === 'OMEGA') {
-                msgLore = `🤖 *[KAY/O]*: Transferência para o esquadrão *ÔMEGA* concluída. Prepare-se.`;
+                msgLore = `🤖 *[K.A.I.O.]*: Transferência para o esquadrão *ÔMEGA* concluída. Prepare-se.`;
             } else {
-                msgLore = `🤖 *[KAY/O]*: Você agora é *RESERVA* (Wingman). Aguarde convocação.`;
+                msgLore = `🤖 *[K.A.I.O.]*: Você agora é *RESERVA* (Wingman). Aguarde convocação.`;
             }
 
             bot.sendMessage(chatId, msgLore + avisoReserva, { parse_mode: 'Markdown' });
@@ -163,14 +163,14 @@ bot.on('callback_query', async (query) => {
 // --- COMANDO /START ---
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    const startMsg = `🦾 **SISTEMA OPERACIONAL K.A.I.O INICIALIZADO**\n\n` +
-                   `Protocolo de reconhecimento ativo. Estou online para gerenciar o esquadrão.\n\n` +
-                   `Comandos disponíveis:\n` +
-                   `📢 /convocar - Solicitar reforços\n` +
-                   `🔄 /unidade - Transferência de esquadrão\n` +
-                   `👤 /perfil - Dossiê de Agente\n` +
-                   `🏆 /ranking - Mérito da Unidade\n\n` +
-                   `Use /ajuda para detalhes técnicos.\n\n` +
+    const startMsg = `🦾 **IDENTIDADE RECONHECIDA: SISTEMA K.A.I.O ONLINE**\n\n` +
+                   `Bem-vindo ao centro de comando do **Protocolo V**. Meus sensores estão prontos para gerenciar seu esquadrão e monitorar sua sinergia.\n\n` +
+                   `📡 **/vincular [Nick#Tag]** ➔ Conecta seu rádio ao sistema\n` +
+                   `🚨 **/convocar [Código]** ➔ Aciona reforços e avisa o QG\n` +
+                   `🔄 **/unidade** ➔ Solicita transferência de esquadrão\n` +
+                   `👤 **/perfil [Nick]** ➔ Acessa dossiê de um agente\n` +
+                   `🏆 **/ranking** ➔ Exibe a hierarquia de Sinergia\n\n` +
+                   `Use **/ajuda** para receber o manual de operações completo.\n\n` +
                    `_O Protocolo V é fã-projeto. Não afiliado à Riot Games._`;
     bot.sendMessage(chatId, startMsg, { parse_mode: 'Markdown' });
 });
@@ -321,7 +321,7 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     try {
         const { data: user } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
         if (!user || user.length === 0) {
-            return bot.sendMessage(chatId, "❌ *[KAY/O]*: Você precisa vincular seu rádio primeiro. Use \`/vincular MeuNick#TAG\`.", { parse_mode: 'Markdown' });
+            return bot.sendMessage(chatId, "❌ *[K.A.I.O.]*: Você precisa vincular seu rádio primeiro. Use \`/vincular MeuNick#TAG\`.", { parse_mode: 'Markdown' });
         }
 
         const commanderName = user[0].riot_id.split('#')[0];
@@ -332,9 +332,9 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
         if (activeCalls && activeCalls.length > 0) {
             const call = activeCalls[0];
             if (call.commander === commanderName) {
-                return bot.sendMessage(chatId, `⚠️ *[KAY/O]*: Seu sinalizador já está ativo para o código: *${call.party_code}*.`, { parse_mode: 'Markdown' });
+                return bot.sendMessage(chatId, `⚠️ *[K.A.I.O.]*: Seu sinalizador já está ativo para o código: *${call.party_code}*.`, { parse_mode: 'Markdown' });
             } else {
-                return bot.sendMessage(chatId, `⚠️ *[KAY/O]*: O agente *${call.commander}* já está convocando reforços. Aguarde o sinal dele expirar.`, { parse_mode: 'Markdown' });
+                return bot.sendMessage(chatId, `⚠️ *[K.A.I.O.]*: O agente *${call.commander}* já está convocando reforços. Aguarde o sinal dele expirar.`, { parse_mode: 'Markdown' });
             }
         }
 
@@ -344,7 +344,7 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
         }
 
         // 3. Caso contrário, inicia interação
-        bot.sendMessage(chatId, "🤖 *[KAY/O]*: Você tem um código de grupo (lobby) para compartilhar agora?", {
+        bot.sendMessage(chatId, "🤖 *[K.A.I.O.]*: Você tem um código de grupo (lobby) para compartilhar agora?", {
             parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
@@ -355,7 +355,7 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
         });
 
     } catch (err) {
-        bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Erro ao iniciar protocolo de convocação.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: Erro ao iniciar protocolo de convocação.", { parse_mode: 'Markdown' });
     }
 });
 
@@ -374,7 +374,7 @@ async function exec_convocar(chatId, commanderName, codigoRaw) {
         }]).select();
 
         const callId = insertedCall && insertedCall.length > 0 ? insertedCall[0].id : 'global';
-        const alertMsg = `🚨 *[KAY/O: LFG ATIVO]*\n\nO agente *${escapeMarkdown(commanderName)}* está puxando fila e precisa de reforços.\n\nCódigo do Lobby: \`${codigoLobby}\`\n\nEsquadrão: 1/5\n- ${escapeMarkdown(commanderName)}`;
+        const alertMsg = `🚨 *[K.A.I.O.: LFG ATIVO]*\n\nO agente *${escapeMarkdown(commanderName)}* está puxando fila e precisa de reforços.\n\nCódigo do Lobby: \`${codigoLobby}\`\n\nEsquadrão: 1/5\n- ${escapeMarkdown(commanderName)}`;
         
         bot.sendMessage(chatId, alertMsg, {
             parse_mode: 'Markdown',
@@ -383,7 +383,7 @@ async function exec_convocar(chatId, commanderName, codigoRaw) {
             }
         });
     } catch (err) {
-        bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Erro ao registrar sinalizador.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: Erro ao registrar sinalizador.", { parse_mode: 'Markdown' });
     }
 }
 
@@ -391,23 +391,22 @@ async function exec_convocar(chatId, commanderName, codigoRaw) {
 // --- COMANDO /AJUDA ---
 bot.onText(/^\/ajuda(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `💻 *[KAY/O: MANUAL DE OPERAÇÕES]*\n\n` +
-        `📡 \`/vincular [ID]\` -> Conecta seu Telegram ao seu Nick.\n` +
-        `Ex: \`/vincular MeuNick#BR1\`\n\n` +
-        `🚨 \`/convocar [código]\` -> Avisa no site que você precisa de gente.\n` +
-        `Ex: \`/convocar 123456\`\n\n` +
-        `🔄 \`/unidade\` -> Troca entre ser Titular ou Reserva.\n\n` +
-        `📂 \`/perfil [nick]\` -> Vê o elo e sinergia de alguém.\n` +
-        `Ex: \`/perfil Ousadia\`\n\n` +
-        `🏆 \`/ranking\` -> Lista os mais ativos da semana.\n\n` +
-        `🌐 \`/site\` -> Link da nossa plataforma.`;
+    const mensagem = `💻 **[K.A.I.O.: MANUAL DE OPERAÇÕES TÁTICAS]**\n\n` +
+        `Siga as diretrizes abaixo para garantir a eficiência da missão:\n\n` +
+        `📡 **/vincular [ID]** ➔ Use seu Riot ID (Ex: \`Venenosa#BR1\`) para que eu possa rastrear seus logs.\n\n` +
+        `🚨 **/convocar [Cód]** ➔ Envia um alerta de busca de grupo (LFG) para o site e para este rádio.\n\n` +
+        `🔄 **/unidade** ➔ Abre o painel de transferência entre ALPHA, OMEGA ou DEPÓSITO.\n\n` +
+        `👤 **/perfil [Nick]** ➔ Consulta elo, sinergia e status de um agente específico.\n\n` +
+        `🏆 **/ranking** ➔ Monitora os 10 agentes com maior atividade na semana.\n\n` +
+        `🌐 **/site** ➔ Acesso direto à nossa plataforma de inteligência.\n\n` +
+        `_Lembre-se: Sozinho você é um alvo. Em equipe, somos o protocolo._`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown' });
 });
 
 // --- COMANDO /SITE ---
 bot.onText(/^\/site(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `🌐 *[KAY/O]*: Acesse nossa intranet para relatórios detalhados e status da line-up:\n\n🔗 [ProtocoloV.com](https://protocolov.com)`;
+    const mensagem = `🌐 *[K.A.I.O.]*: Acesse nossa intranet para relatórios detalhados e status da line-up:\n\n🔗 [ProtocoloV.com](https://protocolov.com)`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown', disable_web_page_preview: true });
 });
 
@@ -416,7 +415,7 @@ bot.onText(/^\/meu_id(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
     const isAdmin = msg.from.id === ADMIN_ID;
     const rawVal = process.env.ADMIN_TELEGRAM_ID ? `"${process.env.ADMIN_TELEGRAM_ID}"` : 'undefined';
-    const response = `🆔 *[KAY/O: STATUS]*\n\n` +
+    const response = `🆔 *[K.A.I.O.: STATUS]*\n\n` +
                      `Seu ID de rádio: \`${msg.from.id}\`\n` +
                      `Status Admin: ${isAdmin ? '✅ AUTORIZADO' : '❌ NEGADO'}\n` +
                      `ID no Sistema (Processado): \`${ADMIN_ID}\`\n` +
@@ -430,14 +429,14 @@ bot.onText(/^\/expurgar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 
     const chatId = msg.chat.id;
     const riotId = match[1] ? match[1].trim() : null;
-    if (!riotId) return bot.sendMessage(chatId, "🤖 *[KAY/O]*: Informe o Riot ID para remoção definitiva.", { parse_mode: 'Markdown' });
+    if (!riotId) return bot.sendMessage(chatId, "🤖 *[K.A.I.O.]*: Informe o Riot ID para remoção definitiva.", { parse_mode: 'Markdown' });
 
     try {
         const { error } = await supabase.from('players').delete().ilike('riot_id', `%${riotId}%`);
         if (error) throw error;
-        bot.sendMessage(chatId, `💥 *[KAY/O]*: Registro de *${escapeMarkdown(riotId)}* removido da base.`, { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, `💥 *[K.A.I.O.]*: Registro de *${escapeMarkdown(riotId)}* removido da base.`, { parse_mode: 'Markdown' });
     } catch(err) {
-        bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Falha ao remover registro.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: Falha ao remover registro.", { parse_mode: 'Markdown' });
     }
 });
 
@@ -446,7 +445,7 @@ bot.onText(/^\/alerta_vermelho(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 
     const chatId = msg.chat.id;
     const mensagemAlert = match[1] ? match[1].trim() : null;
-    if (!mensagemAlert) return bot.sendMessage(chatId, "🤖 *[KAY/O]*: Informe a mensagem para o alerta global.", { parse_mode: 'Markdown' });
+    if (!mensagemAlert) return bot.sendMessage(chatId, "🤖 *[K.A.I.O.]*: Informe a mensagem para o alerta global.", { parse_mode: 'Markdown' });
 
     try {
         const { data } = await supabase.from('players').select('telegram_id').not('telegram_id', 'is', null);
@@ -460,9 +459,9 @@ bot.onText(/^\/alerta_vermelho(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
                 sentCount++;
             } catch (e) { /* user blocked the bot */ }
         }
-        bot.sendMessage(chatId, `✅ *[KAY/O]*: Alerta enviado para ${sentCount} agentes.`, { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, `✅ *[K.A.I.O.]*: Alerta enviado para ${sentCount} agentes.`, { parse_mode: 'Markdown' });
     } catch(err) {
-        bot.sendMessage(chatId, "⚠️ *[KAY/O]*: Falha no envio global.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: Falha no envio global.", { parse_mode: 'Markdown' });
     }
 });
 
@@ -470,7 +469,7 @@ bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
     if (msg.from.id !== ADMIN_ID) return;
 
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, "🤖 *[KAY/O]*: Testando conexão com a API...", { parse_mode: 'Markdown' });
+    bot.sendMessage(chatId, "🤖 *[K.A.I.O.]*: Testando conexão com a API...", { parse_mode: 'Markdown' });
     try {
         const start = Date.now();
         const res = await fetch('https://api.henrikdev.xyz/valorant/v1/status/br', {
@@ -479,12 +478,12 @@ bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
         const ping = Date.now() - start;
         
         if (res.status === 200) {
-            bot.sendMessage(chatId, `🟢 *[KAY/O]*: API Online. Latência: \`${ping}ms\``, { parse_mode: 'Markdown' });
+            bot.sendMessage(chatId, `🟢 *[K.A.I.O.]*: API Online. Latência: \`${ping}ms\``, { parse_mode: 'Markdown' });
         } else {
-            bot.sendMessage(chatId, `🟡 *[KAY/O]*: API instável (Status: ${res.status}).`, { parse_mode: 'Markdown' });
+            bot.sendMessage(chatId, `🟡 *[K.A.I.O.]*: API instável (Status: ${res.status}).`, { parse_mode: 'Markdown' });
         }
     } catch (err) {
-        bot.sendMessage(chatId, "🔴 *[KAY/O]*: API Offline ou incontactável.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, "🔴 *[K.A.I.O.]*: API Offline ou incontactável.", { parse_mode: 'Markdown' });
     }
 });
 
