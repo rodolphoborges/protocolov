@@ -139,8 +139,10 @@ bot.on('callback_query', async (query) => {
     }
 
     // INTERAÇÃO: /CONVOCAR (CVX)
-    if (callbackData.startsWith('convocar:')) {
-        const action = callbackData.split(':')[1];
+    if (callbackData.startsWith('cvc_')) {
+        const partes = callbackData.split('_');
+        const action = partes[1];
+        const commanderName = partes[2];
         
         if (action === 'no') {
             exec_convocar(chatId, commanderName, null);
