@@ -469,8 +469,7 @@ function renderSquads() {
     if (esquadraoWingman.length > 0) {
         let wingmanHTML = esquadraoWingman.map(p => createPlayerCardHTML(p, true, 'wingman-theme')).join('');
         fullHTML += `
-            <div class="waitlist-section p-4 mb-5 position-relative" style="background-color: rgba(190, 243, 62, 0.05); border: 1px solid rgba(190, 243, 62, 0.2); overflow: hidden;">
-                <img src="https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/fullportrait.png" style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; object-fit: cover; object-position: right top; opacity: 0.15; pointer-events: none; filter: grayscale(80%);">
+            <div class="waitlist-section p-4 mb-5 position-relative" style="background-color: rgba(100, 116, 139, 0.05); border: 1px solid rgba(100, 116, 139, 0.2); background-image: radial-gradient(var(--val-gray) 1px, transparent 1px); background-size: 20px 20px; overflow: hidden;">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 position-relative z-1">
                     <div>
                         <h3 class="role-title" style="color: #64748b;">DEPÓSITO DE TORRETAS</h3>
