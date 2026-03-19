@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     fetchIntelData();
     setInterval(fetchIntelData, 300000); // Atualiza métricas complexas a cada 5 mins
     
-    const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
+    const observerOptions = { root: null, rootMargin: '0px', threshold: 0.02 };
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -505,6 +505,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const sections = document.querySelectorAll('.fade-in-section');
     sections.forEach(section => observer.observe(section));
+
+    // Fail-Safe: Se após 2 segundos alguma seção crítica ainda estiver invisível, forçar aparição
+    setTimeout(() => {
+        sections.forEach(s => {
+            if (!s.classList.contains('is-visible')) {
+                s.classList.add('is-visible');
+            }
+        });
+    }, 2000);
     
     const loadMoreBtn = document.getElementById('load-more-ops-btn');
     if (loadMoreBtn) {
