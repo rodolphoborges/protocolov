@@ -13,7 +13,7 @@ O sistema monitora automaticamente o desempenho dos agentes, recompensa o jogo e
 ## 🚀 Funcionalidades Principais
 
 * 📝 **Alistamento Automatizado:** Interface web em que novos agentes se inscrevem via Riot ID, escolhendo a sua função principal.
-* 🤖 **Terminal de Inteligência (Telegram Bot):** Um bot integrado que permite a vinculação de contas (`/vincular`), transferências de unidade (`/unidade`), extração de **Dossiês de Agentes** (`/perfil`) e **Convocação de Reforços (LFG)** pelo site usando o comando (`/convocar [CÓDIGO]`).
+* 🤖 **Terminal de Inteligência (KAY/O Bot):** Um bot integrado que permite a vinculação de contas (`/vincular`), trocas de esquadrão (`/unidade`), consulta de atributos de agentes (`/perfil`) e **Convocação de Reforços (LFG)** interativa pelo comando (`/convocar`). O bot agora opera sob a persona do agente KAY/O, com uma interface direta e simplificada.
 * 🚨 **Dashboard de Central de Inteligência:** Novo painel superior atualizado a cada 5 minutos via Supabase que extrai dados mortos para calcular:
   * **[INTEL] Melhor Mapa:** Qual o mapa onde os esquadrões do grupo acumulam o maior número de vitórias.
   * **[DESTAQUE DA SEMANA] MVP Tático:** O melhor KDA da comunidade nos últimos combates.
@@ -30,7 +30,7 @@ O design adota uma perspetiva interativa onde as tabelas de classificação e in
 * 🐍 **UNIDADE ALPHA (Elite):** Vagas restritas a líderes. O painel é dominado por ciano escuro e controlado oficialmente pelo retrato da Agente 02 (**Viper**). Especialistas em controle tático.
 * 🔥 **UNIDADE ÔMEGA (Elite):** Controle de fogo de artilharia pesada guiado sob a postura do Agente 01 (**Brimstone**). Texturas vermelhas delimitam a sua interface angular.
 * 🦎 **ESQUADRÃO WINGMAN (Reserva):** A zona de espera amarela/verde gerida pelo Agente 22 (**Gekko**). Qualquer Agente que perca a posição por pontuação ("Sinergia") aguarda aqui a sua vez de provar mérito de novo.
-* 👁️ **DOSSIÊ "REDE DE INFORMAÇÕES":** O manual de operações do usuário (Página de Briefing) sofreu *interceptação* da inteligência do Agente **Cypher**. Suas regras de engajamento são lidas do ponto de vista deste especialista que vigia "cada um dos seus rastros de dados".
+* 🤖 **INTERFACE DE CAMPO (KAY/O):** Toda a comunicação via rádio (Telegram) é gerida pelo Agente **KAY/O**. Como uma máquina de guerra focada na eficiência, ele fornece instruções claras, exemplos de uso e monitoramento em tempo real do status do grupo, garantindo que ninguém fique sem informação no calor do combate.
 
 ---
 
@@ -39,7 +39,7 @@ O design adota uma perspetiva interativa onde as tabelas de classificação e in
 O recrutamento para as linhas da frente nunca é vitalício. As vagas de elite (1 por Função em cada Unit) devem ser constantemente conquistadas pelas linhas de estatísticas gamificadas:
 
 ### 1. Synergy Score (Pontos de Sinergia)
-Pontos amealhados **exclusivamente a jogar Ranqueadas (Competitivo) com outros membros formados do grupo**.
+Pontos acumulados **exclusivamente ao jogar Ranqueadas (Competitivo) com outros membros do grupo**.
 * **Duos:** +1 Ponto
 * **Trios:** +2 Pontos
 * **Squad Fechado (4 ou 5 agentes):** +5 Pontos
@@ -95,10 +95,10 @@ Para ligar a inteligência conversacional do Bot de Telegram localmente:
 npm start
 ```
 
-Para forçar a extração manual dos dados de rotina dos históricos de partida:
-```bash
-node update-data.js
-```
+### 4. Persistência (Render Free Tier)
+O bot possui uma rota de vitalidade para evitar o "sono" de 15 minutos do Render. 
+Configure um monitor (ex: UptimeRobot) para o seguinte endpoint:
+`https://seu-app.onrender.com/vanguard-health`
 
 ---
 
