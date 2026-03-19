@@ -27,9 +27,9 @@ O sistema monitora automaticamente o desempenho dos agentes, recompensa o jogo e
 
 O design adota uma perspetiva interativa onde as tabelas de classificação e interfaces são personalizadas com recursos e media oficiais da API do Valorant. Cada Esquadrão possui um **Comandante Oficial** cujo porte e estética dão a atmosfera do painel:
 
-* 💠 **UNIDADE ALPHA (Elite):** Vagas restritas a líderes arquitetos. O painel é dominado por ciano escuro. Especialistas em controle tático.
-* 🔥 **UNIDADE ÔMEGA (Elite):** Controle de fogo de artilharia pesada guiado pelos comandantes de campo. Texturas vermelhas delimitam a sua interface angular.
-* ⚙️ **UNIDADE DE APOIO (Reserva):** A zona de espera gerida pelo sistema de logística. Qualquer codinome que perca a posição por pontuação ("Sinergia") aguarda aqui a sua vez de provar mérito de novo.
+* 💠 **UNIDADE ALPHA (Elite):** Vagas restritas a líderes arquitetos sob o comando da **Comandante Venenosa**. O painel é dominado por ciano escuro. Especialistas em controle tático.
+* 🔥 **UNIDADE ÔMEGA (Elite):** Controle de fogo de artilharia pesada guiado pelo **Comandante Cachorro Velho**. Texturas vermelhas delimitam a sua interface angular.
+* ⚙️ **RESERVA ATIVA:** A zona de espera gerida pelo sistema de logística. Qualquer codinome que perca a posição por pontuação ("Sinergia") aguarda aqui a sua vez de provar mérito de novo.
 * 🤖 **SISTEMA K.A.I.O.:** Toda a comunicação via rádio (Telegram) é gerida pelo sistema central. Como uma inteligência focada na eficiência, fornece instruções claras, exemplos de uso e monitoramento em tempo real do status do grupo.
 
 ---
