@@ -341,9 +341,17 @@ bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 
         if (!matchId) return bot.sendMessage(chatId, "🤖 *[K.A.I.O.]*: Informe o ID da partida (UUID) para análise.\n\nExemplo: \`/analisar 5525faf5-034e-4caf-b142-9d9bc8a3e897\`", { parse_mode: 'Markdown' });
 
-        const { error } = await supabase.from('match_analysis_queue').insert([{ match_id: matchId, player_tag: user[0].riot_id, chat_id: chatId, status: 'pending' }]);
+        // Envia o job como 'AUTO' para que o Oráculo V analise todos os agentes do Protocolo V presentes na partida
+        const { error } = await supabase.from('match_analysis_queue').insert([{ 
+            match_id: matchId, 
+            player_tag: 'AUTO', 
+            chat_id: chatId, 
+            status: 'pending',
+            metadata: { requester: user[0].riot_id }
+        }]);
+        
         if (error) throw error;
-        bot.sendMessage(chatId, `📦 *[K.A.I.O.: ORDEM RECEBIDA]*\n\nSua análise da partida \`${matchId}\` foi colocada na fila de processamento e será decodificada pelo Oráculo V.`, { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, `📦 *[K.A.I.O.: ORDEM RECEBIDA]*\n\nA partida \`${matchId}\` foi enviada ao Oráculo V para varredura completa. Todos os agentes do Protocolo V presentes nela serão analisados simultaneamente.`, { parse_mode: 'Markdown' });
     } catch (err) {
         bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: Erro ao registrar pedido de análise na fila.", { parse_mode: 'Markdown' });
     }
