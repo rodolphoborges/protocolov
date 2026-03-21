@@ -47,6 +47,7 @@ bot.setMyCommands([
     { command: 'unidade', description: '🔄 Trocar de Esquadrão' },
     { command: 'perfil', description: '📂 Ver info de um agente' },
     { command: 'ranking', description: '🏆 Ranking de Sinergia' },
+    { command: 'analisar', description: '📊 Analisar desempenho em partida' },
     { command: 'site', description: '🌐 Ir para o site do Protocolo V' },
     { command: 'ajuda', description: '⚙️ Manual do K.A.I.O.' }
 ]);
@@ -326,6 +327,28 @@ bot.onText(/^\/perfil(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     }
 });
 
+// --- COMANDO /ANALISAR (Integração Oráculo V) ---
+bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const telegramId = msg.from.id;
+    const matchId = match[1] ? match[1].trim() : null;
+
+    try {
+        const { data: user } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
+        if (!user || user.length === 0) {
+            return bot.sendMessage(chatId, "❌ *[K.A.I.O.]*: Você precisa vincular seu rádio primeiro. Use \`/vincular MeuNick#TAG\`.", { parse_mode: 'Markdown' });
+        }
+
+        if (!matchId) return bot.sendMessage(chatId, "🤖 *[K.A.I.O.]*: Informe o ID da partida (UUID) para análise.\n\nExemplo: \`/analisar 5525faf5-034e-4caf-b142-9d9bc8a3e897\`", { parse_mode: 'Markdown' });
+
+        const { error } = await supabase.from('match_analysis_queue').insert([{ match_id: matchId, player_tag: user[0].riot_id, chat_id: chatId, status: 'pending' }]);
+        if (error) throw error;
+        bot.sendMessage(chatId, `📦 *[K.A.I.O.: ORDEM RECEBIDA]*\n\nSua análise da partida \`${matchId}\` foi colocada na fila de processamento e será decodificada pelo Oráculo V.`, { parse_mode: 'Markdown' });
+    } catch (err) {
+        bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: Erro ao registrar pedido de análise na fila.", { parse_mode: 'Markdown' });
+    }
+});
+
 // --- COMANDO /CONVOCAR (Sinalizador Orbital) ---
 bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
@@ -416,6 +439,7 @@ bot.onText(/^\/ajuda(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
         `🚨 **/convocar [Cód]** ➔ Envia um alerta de busca de grupo (LFG) para o site e para este rádio.\n\n` +
         `🔄 **/unidade** ➔ Abre o painel de transferência entre ALPHA, OMEGA ou DEPÓSITO.\n\n` +
         `👤 **/perfil [Nick]** ➔ Consulta elo, sinergia e status de um agente específico.\n\n` +
+        `📊 **/analisar [ID]** ➔ Aciona o Oráculo V para dissecar uma partida.\n\n` +
         `🏆 **/ranking** ➔ Monitora os 10 agentes com maior atividade na semana.\n\n` +
         `🌐 **/site** ➔ Acesso direto à nossa plataforma de inteligência.\n\n` +
         `_Lembre-se: Sozinho você é um alvo. Em equipe, somos o protocolo._`;
