@@ -1,0 +1,745 @@
+﻿diff --git a/README.md b/README.md
+index fd14b38..f35dff2 100644
+--- a/README.md
++++ b/README.md
+@@ -4,58 +4,58 @@
+ ![Stack](https://img.shields.io/badge/Stack-Node.js_|_Vanilla_JS_|_Supabase-informational?style=for-the-badge&color=0f1923)
+ ![API](https://img.shields.io/badge/API-HenrikDev-blue?style=for-the-badge)
+ 
+-O **Protocolo V** n├úo ├® apenas uma lista de jogadores; ├® um ecossistema completo de rastreamento, gamifica├º├úo e recrutamento focado em jogadores de Valorant que buscam evolu├º├úo t├ítica e desejam escapar da toxicidade da *Solo Queue*. 
++O **Protocolo V** n├úo ├® apenas uma lista de jogadores; ├® um ecossistema t├ítico avan├ºado de monitoramento, gamifica├º├úo e recrutamento, desenhado para agentes de Valorant que buscam a elite e desejam escapar da desordem da *Solo Queue*. 
+ 
+-O sistema monitora automaticamente o desempenho dos agentes, recompensa o jogo em equipe (Sinergia) e gerencia vagas limitadas em esquadr├Áes de elite, operando com uma est├®tica **Brutalista Geom├®trica** inspirada na interface e na Lore oficial do Valorant.
++O sistema opera em uma est├®tica **Brutalista Geom├®trica**, capturando a ess├¬ncia visual e a Lore oficial do Valorant para gerenciar vagas em esquadr├Áes de elite e recompensar o jogo em equipe (Sinergia).
+ 
+ ---
+ 
+-## ­ƒÜÇ Funcionalidades Principais
++## ­ƒôí Recursos Operacionais (K.A.I.O. System)
+ 
+-* ­ƒôØ **Alistamento Automatizado:** Interface web em que novos codinomes se inscrevem via Riot ID, escolhendo a sua fun├º├úo principal.
+-* ­ƒñû **Terminal de Intelig├¬ncia (K.A.I.O. Bot):** Um bot integrado que permite a vincula├º├úo de contas (`/vincular`), trocas de esquadr├úo (`/unidade`), consulta de atributos de agentes (`/perfil`) e **Convoca├º├úo de Refor├ºos** interativa pelo comando (`/convocar`). O bot agora opera sob o sistema K.A.I.O., com uma interface direta e simplificada.
+-* ­ƒÜ¿ **Dashboard de Central de Intelig├¬ncia:** Novo painel superior atualizado a cada 5 minutos via Supabase que extrai dados mortos para calcular:
+-  * **[INTEL] Melhor Mapa:** Qual o mapa onde os esquadr├Áes do grupo acumulam o maior n├║mero de vit├│rias.
+-  * **[DESTAQUE DA SEMANA] MVP T├ítico:** O melhor KDA da comunidade nos ├║ltimos combates.
+-  * **[ALERTA T├üTICO] Sinal Perdido:** Detecta e exibe em um radar vermelho piscante os "Lobos Solit├írios" que jogam partidas Competitive sem a equipe.
+-* ­ƒôè **Motor de Sincroniza├º├úo Furtiva (GitHub Actions):** O worker automatizado (`update-data.js`) possui um algoritmo adaptativo de *Single Request Truth*. Navega pelo *rate limit* da API HenrikDev e ret├®m requests at├® que resfriem, extraindo dados vitais (KDA, HS%, Agent Info) dos ├║ltimos combates sem bloquear o servidor.
+-* ­ƒÉ║ **Estat├¡sticas Criptografadas por Codinome:** O Player Card de cada Agente lista nativamente a sua **Trilha de Especialidade (Personagem Mais Jogado)** e a **Taxa M├®dia de Headshot (HS%)** a partir do hist├│rico registrado.
++* ­ƒôØ **Alistamento:** Interface web para novos membros se inscreverem via Riot ID e definirem sua fun├º├úo principal.
++* ­ƒñû **Terminal Telegram:** Central de comandos para vincular contas (`/vincular`), trocar unidades (`/unidade`) e acessar perfis de combate (`/perfil`). O comando `/convocar` mobiliza o esquadr├úo.
++* ­ƒÜ¿ **Monitoramento Vanguard (Dashboard):** Painel atualizado a cada 5 minutos via Supabase com m├®tricas cr├¡ticas:
++  * **[INTEL] Dom├¡nio de Mapa:** Identifica o mapa com maior taxa de vit├│rias do grupo.
++  * **[ARQUIVO] MVP Semanal:** Reconhecimento do melhor desempenho individual (KDA) recente.
++  * **[ALERTA] Protocolo Lobo Solit├írio:** Radar que detecta membros jogando partidas Ranqueadas sem a equipe.
++* ­ƒôè **Sincroniza├º├úo de Dados:** Processamento automatizado via GitHub Actions que extrai estat├¡sticas vitais (KDA, HS%, Agent Info) dos ├║ltimos combates.
++* ­ƒÉ║ **Dossi├¬ por Membro:** Player Cards com o Agente mais jogado e taxa de Headshot (HS%).
+ 
+ ---
+ 
+-## ­ƒÄû´©Å Hierarquia e Imers├úo T├ítica
++## ­ƒÄû´©Å Estrutura de Comando
+ 
+-O design adota uma perspetiva interativa onde as tabelas de classifica├º├úo e interfaces s├úo personalizadas com recursos e media oficiais da API do Valorant. Cada Esquadr├úo possui um **Comandante Oficial** cujo porte e est├®tica d├úo a atmosfera do painel:
++A interface t├ítica integra-se ├á identidade operacional do grupo, com visual personalizado para cada unidade:
+ 
+-* ­ƒÆá **UNIDADE ALPHA (Elite):** Vagas restritas a l├¡deres arquitetos sob o comando da **Comandante Venenosa**. O painel ├® dominado por ciano escuro. Especialistas em controle t├ítico.
+-* ­ƒöÑ **UNIDADE ├öMEGA (Elite):** Controle de fogo de artilharia pesada guiado pelo **Comandante Cachorro Velho**. Texturas vermelhas delimitam a sua interface angular.
+-* ÔÜÖ´©Å **DEP├ôSITO DE TORRETAS:** A reserva t├®cnica do Protocolo. Onde codinomes auxiliam a elite enquanto forjam seu m├®rito para a linha de frente.
+-* ­ƒñû **SISTEMA K.A.I.O.:** Toda a comunica├º├úo via r├ídio (Telegram) ├® gerida pelo sistema central. Como uma intelig├¬ncia focada na efici├¬ncia, fornece instru├º├Áes claras, exemplos de uso e monitoramento em tempo real do status do grupo.
++* ­ƒÆá **UNIDADE ALPHA:** Focada em controle t├ítico e suporte. Interface em tons de ciano sob a diretriz da **Comandante Venenosa**. Destinada a especialistas em dom├¡nio de mapa.
++* ­ƒöÑ **UNIDADE ├öMEGA:** Unidade de assalto e linha de frente. Interface em tons escarlates sob o comando do **Comandante Cachorro Velho**, focada em impacto direto e agressividade operacional.
++* ÔÜÖ´©Å **DEP├ôSITO DE TORRETAS:** Zona de reserva e treinamento. Espa├ºo para novos membros em progress├úo e ac├║mulo de m├®rito para as unidades de elite.
++* ­ƒñû **SISTEMA K.A.I.O. (Log├¡stica):** M├│dulo de monitoramento e comunica├º├úo via Telegram. Fornece status do grupo, instru├º├Áes operacionais e suporte aos esquadr├Áes em tempo real.
+ 
+ ---
+ 
+-## ­ƒôê Sistema de Merito & Sinergia (SN)
++## ­ƒôê Protocolo de Promo├º├úo e Sinergia (SN)
+ 
+-O recrutamento para as linhas da frente nunca ├® vital├¡cio. As vagas de elite (1 por Fun├º├úo em cada Unit) devem ser constantemente conquistadas pelas linhas de estat├¡sticas gamificadas:
++O recrutamento para as linhas da frente ├® um processo cont├¡nuo de m├®rito. As vagas de elite nas Unidades Alpha e ├ömega devem ser conquistadas atrav├®s de desempenho t├ítico e coordena├º├úo:
+ 
+-### 1. Synergy Score (Pontos de Sinergia)
+-Pontos acumulados **exclusivamente ao jogar Ranqueadas (Competitivo) com outros membros do grupo**.
+-* **Duos:** +1 Ponto
+-* **Trios:** +2 Pontos
+-* **Squad Fechado (4 ou 5 codinomes):** +5 Pontos
+-* *Modificador T├ítico:* **Vencer = DOBRO DE PONTOS**. 
++### 1. Synergy Score (Sincroniza├º├úo de Unidade)
++Pontos acumulados **exclusivamente ao operar em partidas Ranqueadas (Competitivo) com outros membros do Protocolo**.
++* **Opera├º├úo em Duo:** +1 Ponto
++* **Opera├º├úo em Trio:** +2 Pontos
++* **Full Squad (4 ou 5 Agentes):** +5 Pontos
++* *Modificador de Campo:* **Extra├º├úo com Vit├│ria = DOBRO DE PONTOS**. 
+ 
+-### 2. Sala de Aquecimento (Mata-Mata)
+-A rotina monitoriza tamb├®m perfis de Treino no modo Mata-Mata. O abate (Kill) ├® puro m├®rito m├®trico onde o Top 3 atribui pr├¬mios massivos de avan├ºo de ranking semanal, incentivando a entrada a frio no combate.
++### 2. Sala de Aquecimento (Simula├º├úo de Combate)
++A rede monitora perfis de treino no modo Mata-Mata. O abate ├® puro m├®rito individual: o Top 3 semanal recebe bonifica├º├Áes massivas de avan├ºo de ranking, incentivando a prontid├úo para o combate real.
+ 
+ ---
+ 
+-## ­ƒøá´©Å Arquitetura (Tech Stack)
++## ­ƒøá´©Å Infraestrutura de Vigil├óncia (Tech Stack)
+ 
+-Uma opera├º├úo limpa alimentada por workflows modernos sem depend├¬ncia num servidor Node local ativo de 24 horas para visualiza├º├úo de dados:
++Uma opera├º├úo limpa alimentada por workflows modernos, garantindo a disponibilidade dos dados sem a necessidade de processamento local constante:
+ 
+-* **Frontend Brutalista:** HTML5 + Vanilla JS + CSS3 nativo (`clip-path`, anima├º├Áes de interface `blink`, Integra├º├úo Media Oficial da Riot via Valorant-API). A comunica├º├úo backend do FrontEnd ocorre de forma ass├¡ncrona via CDN pelo **Supabase Client**.
+-* **Backends Aut├┤matos:** Scripts em Node.js ass├¡ncronos que usam **GitHub Actions (`update.yml`, `reset-dm.yml`)** em infraestruturas CI/CD com Agendamento Cron para varreduras a cada 30min invis├¡veis aos jogadores.
++* **Integra├º├úo Visual Vanguard:** HTML5 + Vanilla JS + CSS3 nativo (`clip-path`, anima├º├Áes `blink`, Media Oficial da Riot via Valorant-API). A comunica├º├úo backend do FrontEnd ocorre via CDN pelo **Supabase Client**.
++* **Backends Aut├┤matos:** Scripts Node.js operando via **GitHub Actions (`update.yml`, `reset-dm.yml`)** em infraestruturas CI/CD, realizando varreduras t├íticas a cada 30min de forma invis├¡vel.
+ * **Database Relay:** **Supabase (PostgreSQL)** contendo hist├│ricos din├ómicos de opera├º├Áes e cruzamento complexo de rela├º├Áes ativas.
+ * **Integra├º├Áes de Vigil├óncia:** API Externa oficial [Valorant-API (Media)](https://valorant-api.com) e API estat├¡stica bruta via [HenrikDev API](https://github.com/Henrik-3/unofficial-valorant-api).
+ 
+diff --git a/oraculo.js b/oraculo.js
+new file mode 100644
+index 0000000..3def01e
+--- /dev/null
++++ b/oraculo.js
+@@ -0,0 +1,132 @@
++const { smartFetch } = require('./update-data');
++require('dotenv').config();
++
++const henrikApiKey = process.env.HENRIK_API_KEY;
++
++/**
++ * OR├üCULO-V Core Analysis Engine
++ * Based on vStats Logic and Protocolo V Doctrine.
++ */
++
++async function analyzeMatch(matchId, playerTag) {
++    const [name, tag] = playerTag.split('#');
++    const headers = { 'Authorization': henrikApiKey };
++    const region = 'br';
++
++    try {
++        const url = `https://api.henrikdev.xyz/valorant/v3/match/${matchId}`;
++        const res = await smartFetch(url, headers);
++        
++        if (res.status !== 200) {
++            throw new Error(`Falha ao buscar partida: ${res.status}`);
++        }
++
++        const matchData = await res.json();
++        const match = matchData.data;
++
++        // 1. Identificar o jogador
++        const player = match.players.all_players.find(p => 
++            p.name.toLowerCase() === name.toLowerCase() && 
++            p.tag.toLowerCase() === tag.toLowerCase()
++        );
++
++        if (!player) {
++            throw new Error("Jogador n├úo encontrado nesta partida.");
++        }
++
++        // 2. Extrair M├®tricas B├ísicas
++        const roundsPlayed = match.metadata.rounds_played;
++        const kills = player.stats.kills;
++        const deaths = Math.max(player.stats.deaths, 1);
++        const assists = player.stats.assists;
++        const adr = Math.round(player.damage_made / roundsPlayed);
++        const acs = Math.round(player.stats.score / roundsPlayed);
++        const kd = (kills / deaths).toFixed(2);
++
++        // 3. Calcular Performance Index (0-100)
++        // Score de ADR: 130 ADR = 70 pts. Escala linear.
++        const adrScore = Math.min(100, (adr / 200) * 100);
++        // Score de KD: 1.0 KD = 50 pts. 2.0 KD = 100 pts.
++        const kdScore = Math.min(100, (parseFloat(kd) / 2.0) * 100);
++        const performanceIndex = Math.round((0.6 * adrScore) + (0.4 * kdScore));
++
++        // 4. Analisar Rounds e Doutrina
++        let violationImpacto = adr < 130;
++        let tradeKills = 0;
++        let deathsWithTrade = 0;
++        
++        const roundAnalyses = [];
++
++        match.rounds.forEach((round, index) => {
++            const roundNumber = index + 1;
++            let playerKillsInRound = 0;
++            let playerDiedInRound = false;
++            let wasTraded = false;
++
++            // Analisa eventos de kill no round
++            round.player_stats.forEach(ps => {
++                if (ps.player_display_name.toLowerCase() === playerTag.toLowerCase()) {
++                    playerKillsInRound = ps.kills.length;
++                    if (ps.was_killed) playerDiedInRound = true;
++                }
++            });
++
++            // L├│gica Simplificada de Trade-Kill (se houver kill do time logo ap├│s morte do player)
++            // Nota: API V3 detalhada tem kill events com timestamps se necess├írio.
++            // Aqui vamos usar a flag de trade se dispon├¡vel no match data ou uma heur├¡stica.
++            // A API do Henrik as vezes traz 'tradedBy' em alguns endpoints, mas no match v3 
++            // precisamos olhar os kill events.
++            
++            // Para simplificar seguindo a spec (LLM-ready):
++            roundAnalyses.push({
++                round: roundNumber,
++                kills: playerKillsInRound,
++                died: playerDiedInRound,
++                impacto: playerKillsInRound > 0 ? "Positivo" : (playerDiedInRound ? "Negativo" : "Neutro")
++            });
++        });
++
++        // 5. Gerar Conselho K.A.I.O (vStats Logic)
++        let conselho = "";
++        let alertas = [];
++
++        if (violationImpacto) {
++            alertas.push("Art. 1 (Dano Absoluto): Viola├º├úo de Impacto detectada.");
++            if (adr < 100) {
++                conselho = "Seu ADR est├í criticamente baixo. Reavalie seu posicionamento e agressividade. Voc├¬ est├í sendo um 'passivo' no mapa.";
++            } else {
++                conselho = "Falta volume de fogo. Voc├¬ est├í participando das trocas, mas n├úo finalizando ou gerando dano suficiente para abrir o mapa.";
++            }
++        } else {
++            conselho = "Impacto t├ítico dentro dos par├ómetros. Continue mantendo a press├úo constante sobre os setores inimigos.";
++        }
++
++        // Sinergia (Simplificado na aus├¬ncia de an├ílise de timestamp de kill em tempo real)
++        // Se KD > 1.2 mas ADR < 130, pode indicar 'Exit Kills' ou falta de entrada
++        if (parseFloat(kd) > 1.2 && adr < 110) {
++            alertas.push("Art. 3 (Sinergia): Poss├¡vel colapso de Trade-kill (Stats indicam dano n├úo convertido em impacto real).");
++            conselho += " Cuidado para n├úo coletar apenas 'Exit Kills'. O Protocolo V exige dano de abertura.";
++        }
++
++        return {
++            status: 'completed',
++            report: {
++                player: playerTag,
++                matchId: matchId,
++                performance_index: performanceIndex,
++                adr: adr,
++                acs: acs,
++                kd: kd,
++                conselho_kaio: alertas.length > 0 ? `${alertas.join(' ')} ${conselho}` : `Ô£à Protocolo V Cumprido. ${conselho}`,
++                rounds: roundAnalyses,
++                doctrine_violations: alertas
++            }
++        };
++
++    } catch (error) {
++        console.error(`Erro na an├ílise Or├ículo-V (${matchId}):`, error);
++        return { status: 'failed', error: error.message };
++    }
++}
++
++module.exports = { analyzeMatch };
+diff --git a/package-lock.json b/package-lock.json
+index fc1a413..96541f0 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -51,7 +51,6 @@
+       "integrity": "sha512-CGOfOJqWjg2qW/Mb6zNsDm+u5vFQ8DxXfbM09z69p5Z6+mE1ikP2jUXw+j42Pf1XTYED2Rni5f95npYeuwMDQA==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@babel/code-frame": "^7.29.0",
+         "@babel/generator": "^7.29.0",
+@@ -572,7 +571,6 @@
+       "resolved": "https://registry.npmjs.org/@cypress/request/-/request-3.0.10.tgz",
+       "integrity": "sha512-hauBrOdvu08vOsagkZ/Aju5XuiZx6ldsLfByg1htFeldhex+PeMrYauANzFsMJeAA0+dyPLbDoX2OYuvVoLDkQ==",
+       "license": "Apache-2.0",
+-      "peer": true,
+       "dependencies": {
+         "aws-sign2": "~0.7.0",
+         "aws4": "^1.8.0",
+@@ -1668,6 +1666,7 @@
+       "resolved": "https://registry.npmjs.org/ajv/-/ajv-6.14.0.tgz",
+       "integrity": "sha512-IWrosm/yrn43eiKqkfkHis7QioDleaXQHdDVPKg0FSwwd/DuvyX79TZnFOnYpB7dcsFAMmtFztZuXPDvSePkFw==",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "fast-deep-equal": "^3.1.1",
+         "fast-json-stable-stringify": "^2.0.0",
+@@ -2082,7 +2081,6 @@
+         }
+       ],
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "baseline-browser-mapping": "^2.9.0",
+         "caniuse-lite": "^1.0.30001759",
+@@ -3060,7 +3058,8 @@
+       "version": "3.1.3",
+       "resolved": "https://registry.npmjs.org/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz",
+       "integrity": "sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==",
+-      "license": "MIT"
++      "license": "MIT",
++      "peer": true
+     },
+     "node_modules/fast-json-stable-stringify": {
+       "version": "2.1.0",
+@@ -3431,6 +3430,7 @@
+       "resolved": "https://registry.npmjs.org/har-schema/-/har-schema-2.0.0.tgz",
+       "integrity": "sha512-Oqluz6zhGX8cyRaTQlFMPw80bSJVG2x/cFb8ZPhUILGgHka9SsokCCOQgpveePerqidZOrT14ipqfJb7ILcW5Q==",
+       "license": "ISC",
++      "peer": true,
+       "engines": {
+         "node": ">=4"
+       }
+@@ -3441,6 +3441,7 @@
+       "integrity": "sha512-nmT2T0lljbxdQZfspsno9hgrG3Uir6Ks5afism62poxqBM6sDnMEuPmzTq8XN0OEwqKLLdh1jQI3qyE66Nzb3w==",
+       "deprecated": "this library is no longer supported",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "ajv": "^6.12.3",
+         "har-schema": "^2.0.0"
+@@ -4841,7 +4842,8 @@
+       "version": "0.4.1",
+       "resolved": "https://registry.npmjs.org/json-schema-traverse/-/json-schema-traverse-0.4.1.tgz",
+       "integrity": "sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==",
+-      "license": "MIT"
++      "license": "MIT",
++      "peer": true
+     },
+     "node_modules/json-stringify-safe": {
+       "version": "5.0.1",
+@@ -5189,6 +5191,7 @@
+       "resolved": "https://registry.npmjs.org/oauth-sign/-/oauth-sign-0.9.0.tgz",
+       "integrity": "sha512-fexhUFFPTGV8ybAtSIGbV6gOkSv8UtRbDBnAyLQw4QPKkgNlsH2ByPGtMUqdWkos6YCRmAqViwgZrJc/mRDzZQ==",
+       "license": "Apache-2.0",
++      "peer": true,
+       "engines": {
+         "node": "*"
+       }
+@@ -5712,6 +5715,7 @@
+       "integrity": "sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw==",
+       "deprecated": "request has been deprecated, see https://github.com/request/request/issues/3142",
+       "license": "Apache-2.0",
++      "peer": true,
+       "dependencies": {
+         "aws-sign2": "~0.7.0",
+         "aws4": "^1.8.0",
+@@ -5758,6 +5762,7 @@
+       "resolved": "https://registry.npmjs.org/form-data/-/form-data-2.3.3.tgz",
+       "integrity": "sha512-1lLKB2Mu3aGP1Q/2eCOx0fNbRMe7XdwktwOruhfqqd0rIJWwN4Dh+E3hrPSlDCXnSR7UtZ1N38rVXm+6+MEhJQ==",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "asynckit": "^0.4.0",
+         "combined-stream": "^1.0.6",
+@@ -5772,6 +5777,7 @@
+       "resolved": "https://registry.npmjs.org/http-signature/-/http-signature-1.2.0.tgz",
+       "integrity": "sha512-CAbnr6Rz4CYQkLYUtSNXxQPUH2gK8f3iWexVlsnMeD+GjlsQ0Xsy1cOX+mN3dtxYomRy21CiOzU8Uhw6OwncEQ==",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "assert-plus": "^1.0.0",
+         "jsprim": "^1.2.2",
+@@ -5787,6 +5793,7 @@
+       "resolved": "https://registry.npmjs.org/jsprim/-/jsprim-1.4.2.tgz",
+       "integrity": "sha512-P2bSOMAc/ciLz6DzgjVlGJP9+BrJWu5UDGK70C2iweC5QBIeFf0ZXRvGjEj2uYgrY2MkAAhsSWHDWlFtEroZWw==",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "assert-plus": "1.0.0",
+         "extsprintf": "1.3.0",
+@@ -5802,6 +5809,7 @@
+       "resolved": "https://registry.npmjs.org/qs/-/qs-6.5.5.tgz",
+       "integrity": "sha512-mzR4sElr1bfCaPJe7m8ilJ6ZXdDaGoObcYR0ZHSsktM/Lt21MVHj5De30GQH2eiZ1qGRTO7LCAzQsUeXTNexWQ==",
+       "license": "BSD-3-Clause",
++      "peer": true,
+       "engines": {
+         "node": ">=0.6"
+       }
+@@ -5811,6 +5819,7 @@
+       "resolved": "https://registry.npmjs.org/tough-cookie/-/tough-cookie-2.5.0.tgz",
+       "integrity": "sha512-nlLsUzgm1kfLXSXfRZMc1KLAugd4hqJHDTvc2hDIwS3mZAfMEuMbc03SujMF+GEcpaX/qboeycw6iO8JwVv2+g==",
+       "license": "BSD-3-Clause",
++      "peer": true,
+       "dependencies": {
+         "psl": "^1.1.28",
+         "punycode": "^2.1.1"
+@@ -5825,6 +5834,7 @@
+       "integrity": "sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==",
+       "deprecated": "Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.",
+       "license": "MIT",
++      "peer": true,
+       "bin": {
+         "uuid": "bin/uuid"
+       }
+@@ -6908,6 +6918,7 @@
+       "resolved": "https://registry.npmjs.org/uri-js/-/uri-js-4.4.1.tgz",
+       "integrity": "sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==",
+       "license": "BSD-2-Clause",
++      "peer": true,
+       "dependencies": {
+         "punycode": "^2.1.0"
+       }
+diff --git a/script.js b/script.js
+index 6c0f43b..85b230d 100644
+--- a/script.js
++++ b/script.js
+@@ -11,6 +11,11 @@ let isFetchingOps = false;
+ let isSubmittingForm = false; 
+ let mapImages = {};
+ 
++// --- CONFIGURA├ç├âO ORGANIC CMD ---
++const urlParams = new URLSearchParams(window.location.search);
++const organicPlayer = urlParams.get('player');
++const organicMatchId = urlParams.get('matchId');
++
+ async function fetchMapData() {
+     try {
+         const res = await fetch('https://valorant-api.com/v1/maps');
+@@ -484,7 +489,140 @@ function renderSquads() {
+     container.innerHTML = fullHTML;
+ }
+ 
++async function checkOrganicMode() {
++    if (!organicPlayer || !organicMatchId) return;
++
++    console.log("­ƒº¼ [PROTOCOLO V] MODO ORGANIC CMD ATIVADO");
++    document.body.classList.add('organic-mode');
++    
++    // Ocultar elementos padr├úo
++    const toHide = ['nav', 'header', 'section', 'footer', '.val-bg-text-massive'];
++    toHide.forEach(selector => {
++        document.querySelectorAll(selector).forEach(el => el.style.display = 'none');
++    });
++
++    // Criar container de an├ílise
++    const container = document.createElement('div');
++    container.id = 'organic-container';
++    container.className = 'container py-5';
++    container.innerHTML = `
++        <div class="terminal-loader text-center py-5">
++            <div class="spinner-border text-danger" role="status"></div>
++            <div class="mt-3 font-monospace text-uppercase text-danger blink-terminal">Acedendo ao Or├ículo-V...</div>
++        </div>
++    `;
++    document.body.appendChild(container);
++
++    try {
++        // Tentar buscar do Supabase (mais confi├ível no frontend)
++        const { data, error } = await supabaseClient
++            .from('match_analysis_queue')
++            .select('*')
++            .eq('match_id', organicMatchId)
++            .eq('player_tag', organicPlayer)
++            .order('created_at', { ascending: false })
++            .limit(1);
++
++        if (error) throw error;
++        if (!data || data.length === 0 || data[0].status !== 'completed') {
++            container.innerHTML = `
++                <div class="alert alert-dark border-danger rounded-0 text-center py-5">
++                    <h2 class="teko-font text-danger">RELAT├ôRIO PENDENTE</h2>
++                    <p class="font-monospace text-muted">A an├ílise ainda est├í na fila de processamento ou n├úo foi solicitada.</p>
++                    <button class="btn-val mt-3" onclick="window.location.reload()">RECARREGAR</button>
++                </div>
++            `;
++            return;
++        }
++
++        renderOrganicReport(data[0].report);
++    } catch (err) {
++        container.innerHTML = `<div class="alert alert-danger">Erro ao carregar intel: ${err.message}</div>`;
++    }
++}
++
++function renderOrganicReport(r) {
++    const container = document.getElementById('organic-container');
++    const emojiPerf = r.performance_index >= 70 ? '­ƒƒó' : (r.performance_index >= 50 ? '­ƒƒí' : '­ƒö┤');
++    
++    document.body.style.backgroundColor = '#0f1923';
++    
++    container.innerHTML = `
++        <div class="row justify-content-center">
++            <div class="col-lg-10">
++                <div class="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary pb-3">
++                    <div>
++                        <div class="text-danger fw-bold text-uppercase small" style="letter-spacing: 2px;">V-STATS // TACTICAL ANALYSIS</div>
++                        <h1 class="teko-font text-white fs-1 mb-0">${escapeHtml(r.player)}</h1>
++                    </div>
++                    <div class="text-end">
++                        <div class="text-muted small font-monospace">MATCH_ID: ${organicMatchId}</div>
++                    </div>
++                </div>
++
++                <div class="row g-4">
++                    <div class="col-md-4">
++                        <div class="p-4 border border-secondary h-100 d-flex flex-column justify-content-center text-center" style="background: rgba(255, 70, 85, 0.05);">
++                            <div class="text-muted small text-uppercase fw-bold mb-2">Performance Index</div>
++                            <div class="teko-font text-white" style="font-size: 5rem; line-height: 1;">${r.performance_index}</div>
++                            <div class="fs-4">${emojiPerf}</div>
++                        </div>
++                    </div>
++                    <div class="col-md-8">
++                        <div class="p-4 border border-secondary h-100" style="background: rgba(15, 25, 35, 0.8);">
++                            <div class="text-info small text-uppercase fw-bold mb-3 border-bottom border-info border-opacity-25 pb-2">­ƒôƒ Protocolo V // Conselho T├ítico</div>
++                            <p class="fs-4 text-light teko-font" style="letter-spacing: 0.5px; line-height: 1.2;">
++                                "${escapeHtml(r.conselho_kaio)}"
++                            </p>
++                        </div>
++                    </div>
++                </div>
++
++                <div class="row g-4 mt-1">
++                    <div class="col-md-4">
++                        <div class="p-3 border border-secondary text-center">
++                            <div class="text-muted small text-uppercase font-monospace">ADR (Average Damage)</div>
++                            <div class="fs-2 text-white teko-font">${r.adr}</div>
++                        </div>
++                    </div>
++                    <div class="col-md-4">
++                        <div class="p-3 border border-secondary text-center">
++                            <div class="text-muted small text-uppercase font-monospace">ACS (Combat Score)</div>
++                            <div class="fs-2 text-white teko-font">${r.acs}</div>
++                        </div>
++                    </div>
++                    <div class="col-md-4">
++                        <div class="p-3 border border-secondary text-center">
++                            <div class="text-muted small text-uppercase font-monospace">K/D Ratio</div>
++                            <div class="fs-2 text-white teko-font">${r.kd}</div>
++                        </div>
++                    </div>
++                </div>
++
++                <div class="mt-5">
++                    <h3 class="teko-font text-muted text-uppercase mb-3">Linha do Tempo Operacional</h3>
++                    <div class="row row-cols-2 row-cols-md-5 row-cols-lg-10 g-2">
++                        ${r.rounds.map(rd => `
++                            <div class="col">
++                                <div class="p-2 border border-secondary text-center" style="background: ${rd.impacto === 'Positivo' ? 'rgba(0, 255, 157, 0.1)' : (rd.impacto === 'Negativo' ? 'rgba(255, 70, 85, 0.1)' : 'transparent')}">
++                                    <div class="text-muted" style="font-size: 0.6rem;">RD ${rd.round}</div>
++                                    <div class="fw-bold ${rd.impacto === 'Positivo' ? 'text-success' : (rd.impacto === 'Negativo' ? 'text-danger' : 'text-muted')}">${rd.kills} K</div>
++                                </div>
++                            </div>
++                        `).join('')}
++                    </div>
++                </div>
++
++                <div class="mt-5 pt-4 border-top border-secondary text-center">
++                    <button class="btn-val" onclick="window.location.href='index.html'">VOLTAR AO TERMINAL PRINCIPAL</button>
++                </div>
++            </div>
++        </div>
++    `;
++}
++
+ document.addEventListener('DOMContentLoaded', async () => {
++    checkOrganicMode();
+     await fetchMapData();
+     fetchCachedData();
+     setInterval(fetchCachedData, 300000); // Mant├®m a atualiza├º├úo a cada 5 minutos
+diff --git a/style.css b/style.css
+index e8ece01..344bded 100644
+--- a/style.css
++++ b/style.css
+@@ -18,7 +18,10 @@ html, body {
+     scroll-behavior: smooth;
+ }
+ 
+-h1, h2, h3, .role-title { font-family: 'Teko', sans-serif; text-transform: uppercase; line-height: 0.9; margin: 0; }
++h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-transform: uppercase; line-height: 0.9; margin: 0; }
++
++.organic-mode { background-color: var(--val-dark) !important; color: var(--val-light) !important; }
++.terminal-loader { font-family: 'Teko', sans-serif; letter-spacing: 2px; }
+ 
+ /* =========================================
+    BRUTALIST SYSTEM (PlayValorant UI)
+diff --git a/telegram-bot.js b/telegram-bot.js
+index 60e39f8..82c8a96 100644
+--- a/telegram-bot.js
++++ b/telegram-bot.js
+@@ -2,6 +2,7 @@ require('dotenv').config();
+ const TelegramBot = require('node-telegram-bot-api');
+ const { createClient } = require('@supabase/supabase-js');
+ const express = require('express');
++const { analyzeMatch } = require('./oraculo');
+ 
+ // --- CONFIGURA├ç├âO ---
+ const token = process.env.TELEGRAM_BOT_TOKEN;
+@@ -47,6 +48,7 @@ bot.setMyCommands([
+     { command: 'unidade', description: '­ƒöä Trocar de Esquadr├úo' },
+     { command: 'perfil', description: '­ƒôé Ver info de um agente' },
+     { command: 'ranking', description: '­ƒÅå Ranking de Sinergia' },
++    { command: 'analisar', description: '­ƒôè Analisar desempenho em partida' },
+     { command: 'site', description: '­ƒîÉ Ir para o site do Protocolo V' },
+     { command: 'ajuda', description: 'ÔÜÖ´©Å Manual do K.A.I.O.' }
+ ]);
+@@ -415,7 +417,8 @@ bot.onText(/^\/ajuda(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
+         `­ƒôí **/vincular [ID]** Ô×ö Use seu Riot ID (Ex: \`Venenosa#BR1\`) para que eu possa rastrear seus logs.\n\n` +
+         `­ƒÜ¿ **/convocar [C├│d]** Ô×ö Envia um alerta de busca de grupo (LFG) para o site e para este r├ídio.\n\n` +
+         `­ƒöä **/unidade** Ô×ö Abre o painel de transfer├¬ncia entre ALPHA, OMEGA ou DEP├ôSITO.\n\n` +
+-        `­ƒæñ **/perfil [Nick]** Ô×ö Consulta elo, sinergia e status de um agente espec├¡fico.\n\n` +
++        `­ƒæñ **/perfil [Nick]** Ô×ö Consulta elo, sinergia e status de um agente.\n\n` +
++        `­ƒôè **/analisar [ID]** Ô×ö Aciona o Or├ículo V para dissecar uma partida espec├¡fica.\n\n` +
+         `­ƒÅå **/ranking** Ô×ö Monitora os 10 agentes com maior atividade na semana.\n\n` +
+         `­ƒîÉ **/site** Ô×ö Acesso direto ├á nossa plataforma de intelig├¬ncia.\n\n` +
+         `_Lembre-se: Sozinho voc├¬ ├® um alvo. Em equipe, somos o protocolo._`;
+@@ -429,6 +432,29 @@ bot.onText(/^\/site(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
+     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown', disable_web_page_preview: true });
+ });
+ 
++// --- COMANDO /ANALISAR (Integra├º├úo Or├ículo V) ---
++bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
++    const chatId = msg.chat.id;
++    const telegramId = msg.from.id;
++    const matchId = match[1] ? match[1].trim() : null;
++
++    try {
++        const { data: user } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
++        if (!user || user.length === 0) {
++            return bot.sendMessage(chatId, "ÔØî *[K.A.I.O.]*: Voc├¬ precisa vincular seu r├ídio primeiro. Use \`/vincular MeuNick#TAG\`.", { parse_mode: 'Markdown' });
++        }
++
++        if (!matchId) return bot.sendMessage(chatId, "­ƒñû *[K.A.I.O.]*: Informe o ID da partida (UUID) para an├ílise.\n\nExemplo: \`/analisar 5525faf5-034e-4caf-b142-9d9bc8a3e897\`", { parse_mode: 'Markdown' });
++
++        const { error } = await supabase.from('match_analysis_queue').insert([{ match_id: matchId, player_tag: user[0].riot_id, chat_id: chatId, status: 'pending' }]);
++        if (error) throw error;
++        bot.sendMessage(chatId, `­ƒôª *[K.A.I.O.: ORDEM RECEBIDA]*\n\nSua an├ílise da partida \`${matchId}\` foi colocada na fila de processamento.`, { parse_mode: 'Markdown' });
++    } catch (err) {
++        bot.sendMessage(chatId, "ÔÜá´©Å *[K.A.I.O.]*: Erro ao registrar pedido de an├ílise na fila.", { parse_mode: 'Markdown' });
++    }
++});
++
++
+ // --- COMANDO DE DIAGN├ôSTICO ---
+ bot.onText(/^\/meu_id(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
+     const chatId = msg.chat.id;
+@@ -509,7 +535,57 @@ bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
+     }
+ });
+ 
+-// --- SERVIDOR EXPRESS (Camuflado) ---
++// --- WORKER DE FILA DE AN├üLISE ---
++async function startQueueWorker() {
++    console.log('­ƒª¥ [OR├üCULO-V] Protocolo de An├ílise Ativado.');
++    setInterval(async () => {
++        try {
++            const { data: pending, error } = await supabase
++                .from('match_analysis_queue')
++                .select('*')
++                .eq('status', 'pending')
++                .limit(1);
++
++            if (error) throw error;
++            if (!pending || pending.length === 0) return;
++
++            const job = pending[0];
++            console.log(`­ƒºá [OR├üCULO-V] Analisando partida ${job.match_id} para ${job.player_tag}...`);
++
++            // Atualiza para processing
++            await supabase.from('match_analysis_queue').update({ status: 'processing' }).eq('id', job.id);
++
++            const result = await analyzeMatch(job.match_id, job.player_tag);
++
++            if (result.status === 'completed') {
++                await supabase.from('match_analysis_queue').update({ 
++                    status: 'completed', 
++                    report: result.report 
++                }).eq('id', job.id);
++
++                // Notificar usu├írio via Telegram
++                const r = result.report;
++                const emojiPerf = r.performance_index >= 70 ? '­ƒƒó' : (r.performance_index >= 50 ? '­ƒƒí' : '­ƒö┤');
++                const detailMsg = `­ƒôè *[OR├üCULO-V: AN├üLISE CONCLU├ìDA]*\n\n` +
++                                 `Agente: *${escapeMarkdown(r.player)}*\n` +
++                                 `Performance: ${emojiPerf} *${r.performance_index}/100*\n` +
++                                 `ADR: \`${r.adr}\` | ACS: \`${r.acs}\` | K/D: \`${r.kd}\`\n\n` +
++                                 `­ƒôƒ *CONSELHO K.A.I.O.:*\n_${escapeMarkdown(r.conselho_kaio)}_\n\n` +
++                                 `­ƒöù [Ver Dashboard Completo](http://localhost:3000/index.html?player=${encodeURIComponent(r.player)}&matchId=${job.match_id})`;
++                
++                if (job.chat_id) {
++                    bot.sendMessage(job.chat_id, detailMsg, { parse_mode: 'Markdown' });
++                }
++            } else {
++                await supabase.from('match_analysis_queue').update({ status: 'failed', error: result.error }).eq('id', job.id);
++            }
++        } catch (err) {
++            console.error('­ƒöÑ Erro no Worker Or├ículo-V:', err.message);
++        }
++    }, 15000); // Processa a cada 15 segundos
++}
++
++startQueueWorker();
+ const app = express();
+ 
+ // Rota de Monitoramento para evitar o "sono" do Render (Keep-alive)
+@@ -518,8 +594,45 @@ app.get('/vanguard-health', (req, res) => {
+     res.send('Ô£à Sistema Vital do Protocolo V: ONLINE');
+ });
+ 
+-// Se algu├®m bater na raiz, n├úo devolvemos nada (corta scanners)
+-app.get('/', (req, res) => res.status(404).end());
++// --- API OR├üCULO-V ---
++app.use(express.json());
++
++app.post('/api/queue', async (req, res) => {
++    const { player, matchId } = req.body;
++    if (!player || !matchId) return res.status(400).json({ error: "Faltando player ou matchId" });
++
++    try {
++        const { data, error } = await supabase.from('match_analysis_queue').insert([{ 
++            match_id: matchId, 
++            player_tag: player, 
++            status: 'pending' 
++        }]).select();
++        
++        if (error) throw error;
++        res.json({ jobId: data[0].id, status: 'pending' });
++    } catch (err) {
++        res.status(500).json({ error: err.message });
++    }
++});
++
++app.get('/api/status/:matchId', async (req, res) => {
++    const { matchId } = req.params;
++    try {
++        const { data, error } = await supabase.from('match_analysis_queue')
++            .select('*')
++            .eq('match_id', matchId)
++            .order('created_at', { ascending: false })
++            .limit(1);
++        
++        if (error) throw error;
++        if (!data || data.length === 0) return res.status(404).json({ error: "An├ílise n├úo encontrada" });
++
++        const job = data[0];
++        res.json({ status: job.status, report: job.report });
++    } catch (err) {
++        res.status(500).json({ error: err.message });
++    }
++});
+ 
+ if (process.env.WEBHOOK_URL) {
+     app.use(express.json());
+diff --git a/update-data.js b/update-data.js
+index 8dafe99..165b320 100644
+--- a/update-data.js
++++ b/update-data.js
+@@ -425,6 +425,24 @@ async function run() {
+ 
+                     await notificarTelegram(intelMessage);
+                     await delay(1000);
++
++                    // --- INTEGRA├ç├âO OR├üCULO-V: AUTO-QUEUE ---
++                    console.log(`­ƒºá [OR├üCULO-V] Agendando an├ílise autom├ítica para o esquadr├úo da OP ${op.id}...`);
++                    for (const member of op.squad) {
++                        const playerFound = finalPlayersData.find(p => p.riot_id === member.riotId);
++                        if (playerFound && playerFound.telegram_id) {
++                            try {
++                                await supabase.from('match_analysis_queue').insert([{
++                                    match_id: op.id,
++                                    player_tag: member.riotId,
++                                    chat_id: playerFound.telegram_id,
++                                    status: 'pending'
++                                }]);
++                            } catch (e) {
++                                console.error(`   ÔÜá´©Å Erro ao enfileirar an├ílise para ${member.riotId}:`, e.message);
++                            }
++                        }
++                    }
+                 }
+             }
+         }

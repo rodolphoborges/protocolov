@@ -11,6 +11,11 @@ let isFetchingOps = false;
 let isSubmittingForm = false; 
 let mapImages = {};
 
+// --- CONFIGURAÇÃO ORGANIC CMD ---
+const urlParams = new URLSearchParams(window.location.search);
+const organicPlayer = urlParams.get('player');
+const organicMatchId = urlParams.get('matchId');
+
 async function fetchMapData() {
     try {
         const res = await fetch('https://valorant-api.com/v1/maps');
@@ -484,7 +489,127 @@ function renderSquads() {
     container.innerHTML = fullHTML;
 }
 
+async function checkOrganicMode() {
+    if (!organicPlayer || !organicMatchId) return;
+
+    console.log("🦾 [PROTOCOLO V] MODO ORGANIC CMD ATIVADO");
+    document.body.classList.add('organic-mode');
+    
+    // Ocultar elementos padrão
+    const toHide = ['nav', 'header', 'section', 'footer', '.val-bg-text-massive'];
+    toHide.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => { if (el) el.style.display = 'none'; });
+    });
+
+    // Criar container de análise
+    const container = document.createElement('div');
+    container.id = 'organic-container';
+    container.className = 'container py-5';
+    container.innerHTML = `
+        <div class="terminal-loader text-center py-5">
+            <div class="spinner-border text-danger" role="status"></div>
+            <div class="mt-3 font-monospace text-uppercase text-danger blink-terminal">Acedendo ao Oráculo-V...</div>
+        </div>
+    `;
+    document.body.appendChild(container);
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('match_analysis_queue')
+            .select('*')
+            .eq('match_id', organicMatchId)
+            .eq('player_tag', organicPlayer)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        if (error) throw error;
+        if (!data || data.length === 0 || data[0].status !== 'completed') {
+            container.innerHTML = `
+                <div class="alert alert-dark border-danger rounded-0 text-center py-5">
+                    <h2 class="teko-font text-danger">RELATÓRIO PENDENTE</h2>
+                    <p class="font-monospace text-muted">A análise ainda está na fila de processamento do Oráculo V.</p>
+                    <button class="btn-val mt-3" onclick="window.location.reload()">RECARREGAR</button>
+                    <button class="btn btn-outline-secondary mt-3 ms-2 rounded-0" onclick="window.location.href='index.html'">VOLTAR</button>
+                </div>
+            `;
+            return;
+        }
+
+        renderOrganicReport(data[0].report, data[0].metadata);
+    } catch (err) {
+        container.innerHTML = `<div class="alert alert-danger">Erro ao carregar intel: ${err.message}</div><button class="btn-val mt-3" onclick="window.location.href='index.html'">VOLTAR</button>`;
+    }
+}
+
+function renderOrganicReport(r, meta) {
+    const reportData = r || meta || {};
+    const container = document.getElementById('organic-container');
+    const emojiPerf = reportData.estimated_rank ? '🏅' : ((reportData.performance_index || reportData.perf) >= 70 ? '🟢' : ((reportData.performance_index || reportData.perf) >= 50 ? '🟡' : '🔴'));
+    
+    document.body.style.backgroundColor = '#0f1923';
+    
+    container.innerHTML = `
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary pb-3">
+                    <div>
+                        <div class="text-danger fw-bold text-uppercase small" style="letter-spacing: 2px;">ORÁCULO-V // TACTICAL ANALYSIS</div>
+                        <h1 class="teko-font text-white fs-1 mb-0">${escapeHtml(reportData.player || organicPlayer)}</h1>
+                    </div>
+                    <div class="text-end">
+                        <div class="text-muted small font-monospace">MATCH: ${organicMatchId}</div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="p-4 border border-secondary h-100 d-flex flex-column justify-content-center text-center" style="background: rgba(255, 70, 85, 0.05);">
+                            <div class="text-muted small text-uppercase fw-bold mb-2">Desempenho Geral</div>
+                            <div class="teko-font text-white" style="font-size: 5rem; line-height: 1;">${reportData.performance_index || reportData.perf || reportData.kd || 'N/A'}</div>
+                            <div class="fs-4">${reportData.estimated_rank || emojiPerf}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="p-4 border border-secondary h-100" style="background: rgba(15, 25, 35, 0.8);">
+                            <div class="text-info small text-uppercase fw-bold mb-3 border-bottom border-info border-opacity-25 pb-2">🧠 Conselho Tático (K.A.I.O.)</div>
+                            <p class="fs-4 text-light teko-font" style="letter-spacing: 0.5px; line-height: 1.2;">
+                                "${escapeHtml(reportData.conselho_kaio || 'Análise concluída pelo Oráculo V. Operação registrada com sucesso no banco de dados.')}"
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mt-1">
+                    <div class="col-md-4">
+                        <div class="p-3 border border-secondary text-center">
+                            <div class="text-muted small text-uppercase font-monospace">ADR Real / ACS</div>
+                            <div class="fs-2 text-white teko-font">${reportData.adr || reportData.acs || '--'}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border border-secondary text-center">
+                            <div class="text-muted small text-uppercase font-monospace">Rank / Meta</div>
+                            <div class="fs-2 text-white teko-font">${reportData.target_kd || reportData.meta_category || reportData.rank || 'N/A'}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border border-secondary text-center">
+                            <div class="text-muted small text-uppercase font-monospace">K/D Ratio</div>
+                            <div class="fs-2 text-white teko-font">${reportData.kd || '--'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-4 border-top border-secondary text-center">
+                    <button class="btn-val" onclick="window.location.href='index.html'">VOLTAR AO TERMINAL PRINCIPAL</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+    checkOrganicMode();
     await fetchMapData();
     fetchCachedData();
     setInterval(fetchCachedData, 300000); // Mantém a atualização a cada 5 minutos

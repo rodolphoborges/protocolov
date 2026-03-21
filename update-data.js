@@ -425,6 +425,24 @@ async function run() {
 
                     await notificarTelegram(intelMessage);
                     await delay(1000);
+
+                    // --- INTEGRAÇÃO ORÁCULO-V: AUTO-QUEUE ---
+                    console.log(`🧠 [ORÁCULO-V] Agendando análise automática para o esquadrão da OP ${op.id}...`);
+                    for (const member of op.squad) {
+                        const playerFound = finalPlayersData.find(p => p.riot_id === member.riotId);
+                        if (playerFound && playerFound.telegram_id) {
+                            try {
+                                await supabase.from('match_analysis_queue').insert([{
+                                    match_id: op.id,
+                                    player_tag: member.riotId,
+                                    chat_id: playerFound.telegram_id,
+                                    status: 'pending'
+                                }]);
+                            } catch (e) {
+                                console.error(`   ⚠️ Erro ao enfileirar análise para ${member.riotId}:`, e.message);
+                            }
+                        }
+                    }
                 }
             }
         }
