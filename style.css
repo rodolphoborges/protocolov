@@ -276,3 +276,41 @@ h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-tran
 .custom-scroll::-webkit-scrollbar-thumb:hover {
     background: #fff;
 }
+
+/* =========================================
+   ESTILOS ORGÂNICOS (Relatório Oráculo V)
+========================================= */
+.organic-mode #organic-container {
+    animation: terminal-entry 0.8s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes terminal-entry {
+    from { opacity: 0; filter: blur(10px) brightness(2); transform: scale(1.05); }
+    to { opacity: 1; filter: blur(0) brightness(1); transform: scale(1); }
+}
+
+.organic-mode .border-secondary {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.organic-mode .teko-font {
+    letter-spacing: 1px;
+}
+
+.organic-mode .bg-dark {
+    background-color: #0c1218 !important;
+}
+
+.organic-mode .text-info {
+    color: #4df0ff !important;
+}
+
+/* Fix para a missão row de análise */
+.mission-row {
+    cursor: pointer !important;
+    text-decoration: none !important;
+}
+.mission-row:hover {
+    filter: brightness(1.2);
+}
+

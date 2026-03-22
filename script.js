@@ -409,7 +409,7 @@ function renderOperations(operations, append = false, completedMap = {}) {
             
             const hasAnalysis = completedMap[op.id] && completedMap[op.id].has(m.riotId);
             const intelBtn = hasAnalysis 
-                ? `<a href="?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" target="_blank" class="badge bg-danger rounded-0 text-decoration-none mt-1" style="font-size: 0.65rem; background-color: rgba(255, 70, 85, 0.2) !important; border: 1px solid var(--val-red); padding: 3px 6px;" title="Ver Relatório do Oráculo V">[👁️ INTEL TÁTICA]</a>` 
+                ? `<a href="?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" target="_blank" onclick="event.stopPropagation()" class="badge bg-danger rounded-0 text-decoration-none mt-1" style="font-size: 0.65rem; background-color: rgba(255, 70, 85, 0.2) !important; border: 1px solid var(--val-red); padding: 3px 6px;" title="Ver Relatório do Oráculo V">[👁️ INTEL TÁTICA]</a>` 
                 : '';
 
             squadHTML += `
@@ -442,7 +442,7 @@ function renderOperations(operations, append = false, completedMap = {}) {
         const bgStyle = mapUrl ? `background-image: url('${mapUrl}');` : '';
 
         html += `
-            <a href="https://tracker.gg/valorant/match/${op.id}" target="_blank" aria-label="Ver detalhes da partida ${op.map} no Tracker.gg" class="text-decoration-none mission-row ${resultClass} p-3 p-md-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; display: block; ${bgStyle}">
+            <div onclick="window.open('https://tracker.gg/valorant/match/${op.id}', '_blank')" aria-label="Ver detalhes da partida ${op.map} no Tracker.gg" class="mission-row ${resultClass} p-3 p-md-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; cursor: pointer; ${bgStyle}">
                 <div class="d-flex align-items-center gap-4" style="min-width: 220px;">
                     <div class="text-center" style="min-width: 80px; white-space: nowrap;">
                         <div class="fs-1 fw-bold ${resultColor} lh-1" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;" aria-label="Placar: ${op.score}">${escapeHtml(op.score)}</div>
@@ -457,7 +457,7 @@ function renderOperations(operations, append = false, completedMap = {}) {
                     </div>
                 </div>
                 ${squadHTML}
-            </a>`;
+            </div>`;
     });
     
     if (append) {
@@ -580,7 +580,8 @@ async function checkOrganicMode() {
 }
 
 function renderOrganicReport(r, meta) {
-    const reportData = r || meta || {};
+    // No Oráculo-V v3.0, o relatório fica em metadata.analysis
+    const reportData = r || (meta && meta.analysis) || meta || {};
     const container = document.getElementById('organic-container');
     const emojiPerf = reportData.estimated_rank ? '🏅' : ((reportData.performance_index || reportData.perf) >= 70 ? '🟢' : ((reportData.performance_index || reportData.perf) >= 50 ? '🟡' : '🔴'));
     
