@@ -477,13 +477,14 @@
                 }
 
                 // NEW v3.2: Holt Trend
-                if (report.holt) {
+                if (report.holt && (report.holt.performance_l !== null || report.holt.performance_L !== null)) {
                     const holt = report.holt;
                     document.getElementById('trend-analysis').style.display = 'block';
                     
-                    document.getElementById('trend-level').innerText = (holt.performance_L || 0).toFixed(1);
+                    const lVal = holt.performance_l ?? holt.performance_L ?? 0;
+                    document.getElementById('trend-level').innerText = lVal.toFixed(1);
                     
-                    const tVal = holt.performance_T || 0;
+                    const tVal = holt.performance_t ?? holt.performance_T ?? 0;
                     const tDir = document.getElementById('trend-dir');
                     tDir.innerText = `${tVal > 0 ? '↑' : (tVal < 0 ? '↓' : '→')} ${(Math.abs(tVal)).toFixed(2)}`;
                     tDir.className = `trend-value ${tVal > 0 ? 'trend-up' : (tVal < 0 ? 'trend-down' : 'trend-stable')}`;
@@ -494,7 +495,7 @@
                     fEl.className = `trend-value ${fVal >= 100 ? 'trend-up' : 'trend-down'}`;
 
                     // AIM/KD Trend
-                    const kd_t = holt.kd_T || 0;
+                    const kd_t = holt.kd_t ?? holt.kd_T ?? 0;
                     const aimEl = document.getElementById('trend-aim');
                     aimEl.innerText = kd_t > 0.05 ? 'QUENTE' : (kd_t < -0.05 ? 'FRIA' : 'ESTÁVEL');
                     aimEl.className = `trend-value ${kd_t > 0.05 ? 'trend-up' : (kd_t < -0.05 ? 'trend-down' : 'trend-stable')}`;

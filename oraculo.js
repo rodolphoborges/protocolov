@@ -1,6 +1,12 @@
 require('dotenv').config();
+const { createClient } = require('@supabase/supabase-js');
 
 const henrikApiKey = process.env.HENRIK_API_KEY;
+const oraculoUrl = process.env.ORACULO_SUPABASE_URL;
+const oraculoKey = process.env.ORACULO_SUPABASE_SERVICE_KEY;
+
+// Inicializa o cliente para histórico (Holt-Winters)
+const oraculoDb = (oraculoUrl && oraculoKey) ? createClient(oraculoUrl, oraculoKey) : null;
 
 /**
  * Funçao helper para fetch com retentativa básica (para o motor analítico)
@@ -69,8 +75,67 @@ async function analyzeMatch(matchId, playerTag) {
         const kdScore = Math.min(100, (parseFloat(kd) / 2.0) * 100);
         const performanceIndex = Math.round((0.6 * adrScore) + (0.4 * kdScore));
 
+        // --- NOVO: LÓGICA HOLT-WINTERS (DES) ---
+        let holtResult = {
+            performance_l: null, performance_t: null,
+            adr_l: null, adr_t: null,
+            kd_l: null, kd_t: null,
+            performance_forecast: null, adr_forecast: null, kd_forecast: null
+        };
+
+        if (oraculoDb) {
+            try {
+                // Busca a última análise COMPLETA do jogador
+                const { data: history } = await oraculoDb
+                    .from('match_analysis_queue')
+                    .select('metadata')
+                    .eq('agente_tag', playerTag)
+                    .eq('status', 'completed')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+
+                const alpha = 0.4; // Reatividade
+                const beta = 0.15; // Estabilidade da tendência
+
+                const calculateHolt = (current, prevL, prevT) => {
+                    if (prevL === null || prevL === undefined) {
+                        return { l: current, t: 0 };
+                    }
+                    const l = alpha * current + (1 - alpha) * (prevL + prevT);
+                    const t = beta * (l - prevL) + (1 - beta) * prevT;
+                    return { l, t };
+                };
+
+                const prevHolt = history && history[0] && history[0].metadata && history[0].metadata.analysis && history[0].metadata.analysis.holt 
+                    ? history[0].metadata.analysis.holt 
+                    : null;
+
+                // 1. Performance Index
+                const perfHolt = calculateHolt(performanceIndex, prevHolt?.performance_l, prevHolt?.performance_t);
+                holtResult.performance_l = perfHolt.l;
+                holtResult.performance_t = perfHolt.t;
+                holtResult.performance_forecast = perfHolt.l + perfHolt.t;
+
+                // 2. ADR
+                const adrHolt = calculateHolt(adr, prevHolt?.adr_l, prevHolt?.adr_t);
+                holtResult.adr_l = adrHolt.l;
+                holtResult.adr_t = adrHolt.t;
+                holtResult.adr_forecast = adrHolt.l + adrHolt.t;
+
+                // 3. KD
+                const kdHolt = calculateHolt(parseFloat(kd), prevHolt?.kd_l, prevHolt?.kd_t);
+                holtResult.kd_l = kdHolt.l;
+                holtResult.kd_t = kdHolt.t;
+                holtResult.kd_forecast = kdHolt.l + kdHolt.t;
+
+            } catch (holtErr) {
+                console.warn("⚠️ Falha ao calcular Holt-Winters:", holtErr.message);
+            }
+        }
+
         // 4. Analisar Rounds e Doutrina
         let firstBloods = 0;
+        const roundAnalyses = [];
         match.rounds.forEach((round, index) => {
             const roundNumber = index + 1;
             let playerKillsInRound = 0;
@@ -162,6 +227,7 @@ async function analyzeMatch(matchId, playerTag) {
                 meta_kd: metaKd,
                 first_bloods: firstBloods,
                 conselho_kaio: alertas.length > 0 ? `${alertas.join(' ')} ${conselho}` : `✅ Protocolo V Cumprido. ${conselho}`,
+                holt: holtResult,
                 rounds: roundAnalyses,
                 doctrine_violations: alertas,
                 focus_point: (() => {
