@@ -356,10 +356,15 @@
                         if (r.tactical_events && Array.isArray(r.tactical_events)) {
                             r.tactical_events.forEach(ev => {
                                 let badgeClass = '';
-                                let label = ev.replace('_', ' ');
-                                if (ev === 'FIRST_BLOOD') badgeClass = 'badge-fb';
-                                if (ev === 'TACTICAL_PLANT') badgeClass = 'badge-plant';
-                                if (ev === 'TACTICAL_DEFUSE') badgeClass = 'badge-defuse';
+                                
+                                // SAFETY: Handle both string and object formats
+                                let type = typeof ev === 'string' ? ev : (ev.type || ev.text || 'EVENTO');
+                                let label = (typeof type === 'string') ? type.replace('_', ' ') : 'EVENTO';
+                                
+                                if (type === 'FIRST_BLOOD') badgeClass = 'badge-fb';
+                                if (type === 'TACTICAL_PLANT') badgeClass = 'badge-plant';
+                                if (type === 'TACTICAL_DEFUSE') badgeClass = 'badge-defuse';
+                                
                                 eventsBadges += `<span class="badge bg-dark border border-opacity-25 ms-2 ${badgeClass}">${label}</span>`;
                             });
                         }
