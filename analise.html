@@ -153,6 +153,7 @@
         }
 
         .badge-fb { border-color: #fbbf24 !important; color: #fbbf24 !important; }
+        .badge-fd { border-color: #ff4655 !important; color: #ff4655 !important; opacity: 0.8; }
         .badge-plant { border-color: #f43f5e !important; color: #f43f5e !important; }
         .badge-defuse { border-color: #0ea5e9 !important; color: #0ea5e9 !important; }
 
@@ -334,8 +335,8 @@
                         <span class="text-white fw-bold"><span id="kd-val">--</span> <span class="opacity-25">|</span> <span id="meta-kd-val" class="opacity-50">--</span></span>
                     </div>
                     <div class="stat-row">
-                        <span class="stat-label-term">FIRST BLOODS</span>
-                        <span class="text-warning fw-bold" id="fb-val">--</span>
+                        <span class="stat-label-term">FK <span class="opacity-25">|</span> FD</span>
+                        <span class="text-warning fw-bold"><span id="fb-val">--</span> <span class="opacity-25">|</span> <span id="fd-val" class="text-danger opacity-75">--</span></span>
                     </div>
                     <div class="stat-row">
                         <span class="stat-label-term">ADR / ARMA</span>
@@ -504,6 +505,7 @@
                 document.getElementById('kd-val').innerText = (parseFloat(report.kd) || 0).toFixed(2);
                 document.getElementById('meta-kd-val').innerText = (parseFloat(report.target_kd || report.meta_kd) || 1.15).toFixed(2);
                 document.getElementById('fb-val').innerText = (report.first_bloods !== undefined && report.first_bloods !== null) ? report.first_bloods : '--';
+                document.getElementById('fd-val').innerText = (report.first_deaths !== undefined && report.first_deaths !== null) ? report.first_deaths : '--';
                 
                 document.getElementById('adr-val').innerText = Math.round(parseFloat(report.adr) || 135);
                 document.getElementById('rank-val').innerText = report.estimated_rank || report.rank || (report.killer_agent ? `VIA ${report.killer_agent}` : 'ESTIMANDO...');
@@ -601,6 +603,7 @@
                                 let label = (typeof type === 'string') ? type.replace('_', ' ').toUpperCase() : 'EVENTO';
                                 
                                 if (type.includes('FIRST_BLOOD')) badgeClass = 'badge-fb';
+                                if (type.includes('FIRST_DEATH')) badgeClass = 'badge-fd';
                                 if (type.includes('PLANT')) badgeClass = 'badge-plant';
                                 if (type.includes('DEFUSE')) badgeClass = 'badge-defuse';
                                 if (type.includes('CLUTCH')) badgeClass = 'badge-fb'; // Reuse FB color for clutches

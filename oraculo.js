@@ -37,7 +37,7 @@ async function analyzeMatch(matchId, playerTag) {
     const region = 'br';
 
     try {
-        const url = `https://api.henrikdev.xyz/valorant/v3/match/${matchId}`;
+        const url = `https://api.henrikdev.xyz/valorant/v2/match/${matchId}`;
         const res = await smartFetch(url, headers);
         
         if (res.status !== 200) {
@@ -136,6 +136,7 @@ async function analyzeMatch(matchId, playerTag) {
 
         // 4. Analisar Rounds e Doutrina
         let firstBloods = 0;
+        let firstDeaths = 0;
         const roundAnalyses = [];
         match.rounds.forEach((round, index) => {
             const roundNumber = index + 1;
@@ -157,27 +158,51 @@ async function analyzeMatch(matchId, playerTag) {
                 if (stats.was_killed) playerDiedInRound = true;
             }
 
-            // Checar First Blood (Primeira eliminação do round)
-            // Se round.kills existir e o primeiro killer for o player
-            if (round.kills && round.kills.length > 0) {
-                const firstKill = round.kills[0];
+            // Checar First Blood (Primeira eliminação do round) - ORDERNADO POR TEMPO
+            // No Henrik v2, as kills ficam na raiz: match.kills
+            const roundKills = (match.kills || []).filter(k => k.round === index);
+
+            if (roundKills.length > 0) {
+                // Ordenar kills por tempo para garantir que pegamos o FB real
+                const sortedKills = [...roundKills].sort((a, b) => {
+                    const timeA = a.kill_time_in_round || a.time_in_round_ms || 0;
+                    const timeB = b.kill_time_in_round || b.time_in_round_ms || 0;
+                    return timeA - timeB;
+                });
+
+                const firstKill = sortedKills[0];
                 const killerName = firstKill.killer_display_name || "";
+                const victimName = firstKill.victim_display_name || "";
                 
-                // Identificação robusta (por nome exato, nome sem tag ou PUUID se disponível)
+                // Identificação robusta do Killer
                 const isPlayerKiller = 
                     killerName.toLowerCase() === playerTag.toLowerCase() ||
                     killerName.toLowerCase() === name.toLowerCase() ||
                     (player.puuid && firstKill.killer_puuid === player.puuid);
 
+                // Identificação robusta da Vítima (First Death)
+                const isPlayerVictim = 
+                    victimName.toLowerCase() === playerTag.toLowerCase() ||
+                    victimName.toLowerCase() === name.toLowerCase() ||
+                    (player.puuid && firstKill.victim_puuid === player.puuid);
+
                 if (isPlayerKiller) {
                     playerFirstBlood = true;
                     firstBloods++;
+                }
+
+                if (isPlayerVictim) {
+                    firstDeaths++;
                 }
             }
 
             // Identificar Eventos Táticos (Símbolos)
             let tacticalEvents = [];
             if (playerFirstBlood) tacticalEvents.push('FIRST_BLOOD');
+            
+            // Checar se foi First Death neste round
+            const isFirstDeathThisRound = firstDeaths > roundAnalyses.filter(r => r.fd).length;
+            if (isFirstDeathThisRound) tacticalEvents.push('FIRST_DEATH');
             
             // Checar Plant/Defuse (Simulando baseado no comentário ou se disponível no round)
             if (round.bomb_planted && round.plant_events && round.plant_events.planted_by && round.plant_events.planted_by.display_name.toLowerCase() === playerTag.toLowerCase()) {
@@ -205,7 +230,9 @@ async function analyzeMatch(matchId, playerTag) {
                 died: playerDiedInRound,
                 comment: comment,
                 impacto: playerKillsInRound > 0 || playerFirstBlood ? "Positivo" : (playerDiedInRound ? "Negativo" : "Neutro"),
-                tactical_events: tacticalEvents
+                tactical_events: tacticalEvents,
+                fb: playerFirstBlood,
+                fd: isFirstDeathThisRound
             });
         });
 
@@ -246,6 +273,7 @@ async function analyzeMatch(matchId, playerTag) {
                 kd: kd,
                 meta_kd: metaKd,
                 first_bloods: firstBloods,
+                first_deaths: firstDeaths,
                 conselho_kaio: alertas.length > 0 ? `${alertas.join(' ')} ${conselho}` : `✅ Protocolo V Cumprido. ${conselho}`,
                 holt: holtResult,
                 rounds: roundAnalyses,
