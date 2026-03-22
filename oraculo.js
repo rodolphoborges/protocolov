@@ -164,8 +164,21 @@ async function analyzeMatch(matchId, playerTag) {
                 conselho_kaio: alertas.length > 0 ? `${alertas.join(' ')} ${conselho}` : `✅ Protocolo V Cumprido. ${conselho}`,
                 rounds: roundAnalyses,
                 doctrine_violations: alertas,
-                focus_point: adr < 130 ? "Volume de Dano" : (parseFloat(kd) < 1.0 ? "Posicionamento" : "Sinergia de Squad"),
-                synergy_comment: parseFloat(kd) > 1.2 && adr > 150 ? "Liderança de Campo Detectada" : "Cooperação operacional padrão"
+                focus_point: (() => {
+                    if (adr > 165 && firstBloods >= 3) return "PREDAÇÃO DE ELITE";
+                    if (adr > 165) return "EFICIÊNCIA LETAL";
+                    if (firstBloods >= 3) return "PREDAÇÃO OPERACIONAL";
+                    if (parseFloat(kd) > 1.6 && adr < 135) return "SÍNDROME DE KDA (EXIT FRAGS)";
+                    if (parseFloat(kd) < 0.85 && (match.rounds.filter(r => r.player_stats.find(ps => ps.player_display_name.toLowerCase() === playerTag.toLowerCase())?.was_killed).length / roundsPlayed) > 0.8) return "COLAPSO DE SINERGIA";
+                    if (parseFloat(kd) >= 1.0) return "PARÂMETROS CONSTITUCIONAIS";
+                    return "VOLUME DE FOGO";
+                })(),
+                synergy_comment: (() => {
+                    const deathRatio = match.rounds.filter(r => r.player_stats.find(ps => ps.player_display_name.toLowerCase() === playerTag.toLowerCase())?.was_killed).length / roundsPlayed;
+                    if (parseFloat(kd) < 0.85 && deathRatio > 0.8) return "ALTO RISCO (SEM TRADE-KILLS)";
+                    if (parseFloat(kd) > 1.2 && firstBloods >= 2) return "DOMÍNIO DE SETOR / LIDERANÇA";
+                    return "COOPERAÇÃO OPERACIONAL PADRÃO";
+                })()
             }
         };
 

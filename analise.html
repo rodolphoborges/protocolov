@@ -362,7 +362,12 @@
                 
                 const statusEl = document.getElementById('perf-status');
                 const status = report.performance_status || (report.kd >= 1.15 ? 'ABOVE_BASELINE' : 'BELOW_BASELINE');
-                statusEl.innerText = status.replace('_', ' ');
+                
+                let statusLabel = status.replace('_', ' ');
+                if (status === 'ABOVE_BASELINE') statusLabel = 'OPERACIONALIDADE SUPERIOR';
+                if (status === 'BELOW_BASELINE') statusLabel = 'INSUFICIÊNCIA TÁTICA';
+                
+                statusEl.innerText = statusLabel;
                 statusEl.className = `performance-status teko-font ${status === 'ABOVE_BASELINE' ? 'status-above' : 'status-below'}`;
 
                 document.getElementById('kd-val').innerText = (parseFloat(report.kd) || 0).toFixed(2);
@@ -371,8 +376,31 @@
                 
                 document.getElementById('adr-val').innerText = Math.round(parseFloat(report.adr) || 0) || report.acs || report.weapon || '--';
                 document.getElementById('rank-val').innerText = report.estimated_rank || report.rank || (report.killer_agent ? `VIA ${report.killer_agent}` : 'ESTIMANDO...');
-                document.getElementById('focus-val').innerText = report.focus_point || (report.adr < 130 ? 'Volume de Dano' : 'Não identificado');
-                document.getElementById('synergy-val').innerText = report.synergy_comment || 'Cooperação operacional padrão';
+                
+                // Refined Focus Point & Synergy (with K.A.I.O. Doctrine Fallback)
+                const adr = parseFloat(report.adr) || 0;
+                const kd = parseFloat(report.kd) || 1.0;
+                const fb = report.first_bloods || 0;
+
+                const getFocusPoint = () => {
+                    if (report.focus_point) return report.focus_point;
+                    if (adr > 165 && fb >= 3) return "PREDAÇÃO DE ELITE";
+                    if (adr > 165) return "EFICIÊNCIA LETAL";
+                    if (fb >= 3) return "PREDAÇÃO OPERACIONAL";
+                    if (kd > 1.6 && adr < 135) return "SÍNDROME DE KDA (EXIT FRAGS)";
+                    if (kd >= 1.0) return "PARÂMETROS CONSTITUCIONAIS";
+                    return "VOLUME DE FOGO";
+                };
+
+                const getSynergy = () => {
+                    if (report.synergy_comment) return report.synergy_comment;
+                    if (kd > 1.2 && fb >= 2) return "DOMÍNIO DE SETOR / LIDERANÇA";
+                    if (kd < 0.85) return "ALTO RISCO (SEM TRADE-KILLS)";
+                    return "COOPERAÇÃO OPERACIONAL PADRÃO";
+                };
+
+                document.getElementById('focus-val').innerText = getFocusPoint();
+                document.getElementById('synergy-val').innerText = getSynergy();
 
                 // THE FIX: Populate multiple rounds/events
                 const roundsContainer = document.getElementById('rounds-container');
