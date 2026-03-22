@@ -498,6 +498,14 @@
                     const aimEl = document.getElementById('trend-aim');
                     aimEl.innerText = kd_t > 0.05 ? 'QUENTE' : (kd_t < -0.05 ? 'FRIA' : 'ESTÁVEL');
                     aimEl.className = `trend-value ${kd_t > 0.05 ? 'trend-up' : (kd_t < -0.05 ? 'trend-down' : 'trend-stable')}`;
+                } else {
+                    // Mostrar que o sistema está ativo mas não há dados para esta partida antiga
+                    document.getElementById('trend-analysis').style.display = 'block';
+                    document.getElementById('trend-level').innerText = 'N/A';
+                    document.getElementById('trend-dir').innerText = '---';
+                    document.getElementById('trend-forecast').innerText = '---';
+                    document.getElementById('trend-aim').innerText = 'ESTÁVEL';
+                    document.getElementById('trend-analysis').querySelector('.stat-label-term').innerHTML += ' <span style="font-size:0.5rem; opacity:0.5;">(INDISPONÍVEL PARA ESTA MISSÃO)</span>';
                 }
 
                 // Refined Focus Point & Synergy (Valorant Lore / BR Vibe)
