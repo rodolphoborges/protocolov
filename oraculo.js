@@ -59,6 +59,10 @@ async function analyzeMatch(matchId, playerTag) {
         const adr = Math.round(player.damage_made / roundsPlayed);
         const acs = Math.round(player.stats.score / roundsPlayed);
         const kd = (kills / deaths).toFixed(2);
+        
+        // 3. Baselines e Status (Doutrina Oráculo-V)
+        const metaKd = 1.15; // Baseline padrão para agentes de Impacto
+        const performanceStatus = kd >= metaKd ? 'ABOVE_BASELINE' : 'BELOW_BASELINE';
 
         // 3. Calcular Performance Index (0-100) - K.A.I.O. Heuristic
         const adrScore = Math.min(100, (adr / 200) * 100);
@@ -66,12 +70,12 @@ async function analyzeMatch(matchId, playerTag) {
         const performanceIndex = Math.round((0.6 * adrScore) + (0.4 * kdScore));
 
         // 4. Analisar Rounds e Doutrina
-        const roundAnalyses = [];
-
+        let firstBloods = 0;
         match.rounds.forEach((round, index) => {
             const roundNumber = index + 1;
             let playerKillsInRound = 0;
             let playerDiedInRound = false;
+            let playerFirstBlood = false;
 
             // Analisa o desempenho do player no round
             const stats = round.player_stats.find(ps => 
@@ -79,13 +83,41 @@ async function analyzeMatch(matchId, playerTag) {
             );
 
             if (stats) {
+                playerKillsInRound = stats.kills; // Henrik v3 returns Number here in some versions, or array in others. Oraculo.js previously used .length
+                // Correction: stats.kills is usually a Number in this context, or an array if it's the full match data.
+                // Let's check line 82: playerKillsInRound = stats.kills.length; 
+                // So it's an array.
                 playerKillsInRound = stats.kills.length;
                 if (stats.was_killed) playerDiedInRound = true;
             }
 
-            // Descrição tática simplificada baseada no resultado do round
+            // Checar First Blood (Primeira eliminação do round)
+            // Se round.kills existir e o primeiro killer for o player
+            if (round.kills && round.kills.length > 0) {
+                const firstKill = round.kills[0];
+                if (firstKill.killer_display_name.toLowerCase() === playerTag.toLowerCase()) {
+                    playerFirstBlood = true;
+                    firstBloods++;
+                }
+            }
+
+            // Identificar Eventos Táticos (Símbolos)
+            let tacticalEvents = [];
+            if (playerFirstBlood) tacticalEvents.push('FIRST_BLOOD');
+            
+            // Checar Plant/Defuse (Simulando baseado no comentário ou se disponível no round)
+            if (round.bomb_planted && round.plant_events && round.plant_events.planted_by && round.plant_events.planted_by.display_name.toLowerCase() === playerTag.toLowerCase()) {
+                tacticalEvents.push('TACTICAL_PLANT');
+            }
+            if (round.bomb_defused && round.defuse_events && round.defuse_events.defused_by && round.defuse_events.defused_by.display_name.toLowerCase() === playerTag.toLowerCase()) {
+                tacticalEvents.push('TACTICAL_DEFUSE');
+            }
+
+            // Descrição tática simplificada
             let comment = "";
-            if (playerKillsInRound > 0) {
+            if (playerFirstBlood) {
+                comment = `Iniciativa de combate. Obteve o First Blood.`;
+            } else if (playerKillsInRound > 0) {
                 comment = `Eliminou ${playerKillsInRound} oponente(s). Volume de fogo eficaz.`;
             } else if (playerDiedInRound) {
                 comment = `Agente neutralizado. Reavaliar cobertura operacional.`;
@@ -98,7 +130,8 @@ async function analyzeMatch(matchId, playerTag) {
                 kills: playerKillsInRound,
                 died: playerDiedInRound,
                 comment: comment,
-                impacto: playerKillsInRound > 0 ? "Positivo" : (playerDiedInRound ? "Negativo" : "Neutro")
+                impacto: playerKillsInRound > 0 || playerFirstBlood ? "Positivo" : (playerDiedInRound ? "Negativo" : "Neutro"),
+                tactical_events: tacticalEvents
             });
         });
 
@@ -122,9 +155,12 @@ async function analyzeMatch(matchId, playerTag) {
                 player: playerTag,
                 matchId: matchId,
                 performance_index: performanceIndex,
+                performance_status: performanceStatus,
                 adr: adr,
                 acs: acs,
                 kd: kd,
+                meta_kd: metaKd,
+                first_bloods: firstBloods,
                 conselho_kaio: alertas.length > 0 ? `${alertas.join(' ')} ${conselho}` : `✅ Protocolo V Cumprido. ${conselho}`,
                 rounds: roundAnalyses,
                 doctrine_violations: alertas,
