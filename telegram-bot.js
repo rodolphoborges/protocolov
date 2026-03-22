@@ -504,6 +504,25 @@ bot.onText(/^\/reciclar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     }
 });
 
+bot.onText(/^\/reciclar_tudo(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
+    if (msg.from.id !== ADMIN_ID) return; 
+
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, "⏳ *[K.A.I.O.]*: Iniciando reciclagem global de dados... Aguarde confirmação.", { parse_mode: 'Markdown' });
+
+    try {
+        const { error } = await oraculoExt.from('match_analysis_queue').update({ 
+            status: 'pending',
+            error_message: null
+        }).in('status', ['completed', 'failed']);
+
+        if (error) throw error;
+        bot.sendMessage(chatId, "♻️ *[K.A.I.O.: SUCESSO]*: Todos os relatórios foram reinseridos na fila. O Oráculo V irá reprocessar as missões em ordem cronológica.", { parse_mode: 'Markdown' });
+    } catch(err) {
+        bot.sendMessage(chatId, `⚠️ *[K.A.I.O.]*: Falha na purga global: ${err.message}`, { parse_mode: 'Markdown' });
+    }
+});
+
 bot.onText(/^\/expurgar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     if (msg.from.id !== ADMIN_ID) return; 
 
