@@ -165,19 +165,19 @@ async function analyzeMatch(matchId, playerTag) {
                 rounds: roundAnalyses,
                 doctrine_violations: alertas,
                 focus_point: (() => {
-                    if (adr > 165 && firstBloods >= 3) return "PREDAÇÃO DE ELITE";
-                    if (adr > 165) return "EFICIÊNCIA LETAL";
-                    if (firstBloods >= 3) return "PREDAÇÃO OPERACIONAL";
-                    if (parseFloat(kd) > 1.6 && adr < 135) return "SÍNDROME DE KDA (EXIT FRAGS)";
-                    if (parseFloat(kd) < 0.85 && (match.rounds.filter(r => r.player_stats.find(ps => ps.player_display_name.toLowerCase() === playerTag.toLowerCase())?.was_killed).length / roundsPlayed) > 0.8) return "COLAPSO DE SINERGIA";
-                    if (parseFloat(kd) >= 1.0) return "PARÂMETROS CONSTITUCIONAIS";
-                    return "VOLUME DE FOGO";
+                    if (adr > 165 && firstBloods >= 3) return "DUELISTA NATO (ENTRY)";
+                    if (adr > 165) return "DANO BRUTO (AMASSANDO)";
+                    if (firstBloods >= 3) return "PRESSÃO INICIAL (ENTRY)";
+                    if (parseFloat(kd) > 1.6 && adr < 135) return "KDA PLAYER (BAITEIRO?)";
+                    if (parseFloat(kd) < 0.85 && (match.rounds.filter(r => r.player_stats.find(ps => ps.player_display_name.toLowerCase() === playerTag.toLowerCase())?.was_killed).length / roundsPlayed) > 0.8) return "FALTA DE TRADE / ISOLADO";
+                    if (parseFloat(kd) >= 1.0) return "JOGANDO O FINO";
+                    return "ABAIXO DO IMPACTO ESPERADO";
                 })(),
                 synergy_comment: (() => {
                     const deathRatio = match.rounds.filter(r => r.player_stats.find(ps => ps.player_display_name.toLowerCase() === playerTag.toLowerCase())?.was_killed).length / roundsPlayed;
-                    if (parseFloat(kd) < 0.85 && deathRatio > 0.8) return "ALTO RISCO (SEM TRADE-KILLS)";
-                    if (parseFloat(kd) > 1.2 && firstBloods >= 2) return "DOMÍNIO DE SETOR / LIDERANÇA";
-                    return "COOPERAÇÃO OPERACIONAL PADRÃO";
+                    if (parseFloat(kd) < 0.85 && deathRatio > 0.8) return "JOGANDO NO ESCURO (SEM TRADE)";
+                    if (parseFloat(kd) > 1.2 && firstBloods >= 2) return "DOMÍNIO DE MAPA / LIDERANÇA";
+                    return "COOPERAÇÃO OPERACIONAL";
                 })()
             }
         };

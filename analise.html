@@ -364,8 +364,8 @@
                 const status = report.performance_status || (report.kd >= 1.15 ? 'ABOVE_BASELINE' : 'BELOW_BASELINE');
                 
                 let statusLabel = status.replace('_', ' ');
-                if (status === 'ABOVE_BASELINE') statusLabel = 'OPERACIONALIDADE SUPERIOR';
-                if (status === 'BELOW_BASELINE') statusLabel = 'INSUFICIÊNCIA TÁTICA';
+                if (status === 'ABOVE_BASELINE') statusLabel = 'ESTADO: DIFERENCIADO';
+                if (status === 'BELOW_BASELINE') statusLabel = 'ABAIXO DO POTENCIAL';
                 
                 statusEl.innerText = statusLabel;
                 statusEl.className = `performance-status teko-font ${status === 'ABOVE_BASELINE' ? 'status-above' : 'status-below'}`;
@@ -377,26 +377,26 @@
                 document.getElementById('adr-val').innerText = Math.round(parseFloat(report.adr) || 0) || report.acs || report.weapon || '--';
                 document.getElementById('rank-val').innerText = report.estimated_rank || report.rank || (report.killer_agent ? `VIA ${report.killer_agent}` : 'ESTIMANDO...');
                 
-                // Refined Focus Point & Synergy (with K.A.I.O. Doctrine Fallback)
+                // Refined Focus Point & Synergy (Valorant Lore / BR Vibe)
                 const adr = parseFloat(report.adr) || 0;
                 const kd = parseFloat(report.kd) || 1.0;
                 const fb = report.first_bloods || 0;
 
                 const getFocusPoint = () => {
                     if (report.focus_point) return report.focus_point;
-                    if (adr > 165 && fb >= 3) return "PREDAÇÃO DE ELITE";
-                    if (adr > 165) return "EFICIÊNCIA LETAL";
-                    if (fb >= 3) return "PREDAÇÃO OPERACIONAL";
-                    if (kd > 1.6 && adr < 135) return "SÍNDROME DE KDA (EXIT FRAGS)";
-                    if (kd >= 1.0) return "PARÂMETROS CONSTITUCIONAIS";
-                    return "VOLUME DE FOGO";
+                    if (adr > 165 && fb >= 3) return "DUELISTA NATO (ENTRY)";
+                    if (adr > 165) return "DANO BRUTO (AMASSANDO)";
+                    if (fb >= 3) return "PRESSÃO INICIAL (ENTRY)";
+                    if (kd > 1.6 && adr < 135) return "KDA PLAYER (BAITEIRO?)";
+                    if (kd >= 1.0) return "JOGANDO O FINO";
+                    return "ABAIXO DO IMPACTO ESPERADO";
                 };
 
                 const getSynergy = () => {
                     if (report.synergy_comment) return report.synergy_comment;
-                    if (kd > 1.2 && fb >= 2) return "DOMÍNIO DE SETOR / LIDERANÇA";
-                    if (kd < 0.85) return "ALTO RISCO (SEM TRADE-KILLS)";
-                    return "COOPERAÇÃO OPERACIONAL PADRÃO";
+                    if (kd > 1.2 && fb >= 2) return "DOMÍNIO DE MAPA / LIDERANÇA";
+                    if (kd < 0.85) return "JOGANDO NO ESCURO (SEM TRADE)";
+                    return "COOPERAÇÃO OPERACIONAL";
                 };
 
                 document.getElementById('focus-val').innerText = getFocusPoint();
