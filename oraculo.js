@@ -161,7 +161,15 @@ async function analyzeMatch(matchId, playerTag) {
             // Se round.kills existir e o primeiro killer for o player
             if (round.kills && round.kills.length > 0) {
                 const firstKill = round.kills[0];
-                if (firstKill.killer_display_name.toLowerCase() === playerTag.toLowerCase()) {
+                const killerName = firstKill.killer_display_name || "";
+                
+                // Identificação robusta (por nome exato, nome sem tag ou PUUID se disponível)
+                const isPlayerKiller = 
+                    killerName.toLowerCase() === playerTag.toLowerCase() ||
+                    killerName.toLowerCase() === name.toLowerCase() ||
+                    (player.puuid && firstKill.killer_puuid === player.puuid);
+
+                if (isPlayerKiller) {
                     playerFirstBlood = true;
                     firstBloods++;
                 }
@@ -213,6 +221,17 @@ async function analyzeMatch(matchId, playerTag) {
             conselho = "Apesar do dano, sua taxa de conversão em abates/sobrevida está baixa. Melhore o trade-kill.";
         } else {
             conselho = "Impacto tático dentro dos parâmetros. Continue mantendo a pressão constante sobre os setores inimigos.";
+        }
+
+        // --- NOVO: ALERTAS DE TENDÊNCIA (HOLT-WINTERS) ---
+        if (holtResult.performance_t !== null) {
+            const t = holtResult.performance_t;
+            const tPerc = (Math.abs(t)).toFixed(1);
+            if (t > 5) {
+                alertas.unshift(`📈 ALERTA DE EVOLUÇÃO: Tendência de performance positiva identificada (+${tPerc}). Seu nível técnico está em ascensão constante.`);
+            } else if (t < -5) {
+                alertas.unshift(`📉 ALERTA DE QUEDA: Tendência de performance negativa identificada (-${tPerc}). Seu nível técnico está oscilando para baixo. Reavalie sua postura tática antes da próxima partida.`);
+            }
         }
 
         return {
