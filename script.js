@@ -2,6 +2,10 @@ const supabaseUrl = window.ProtocolConfig.supabase.url;
 const supabaseAnonKey = window.ProtocolConfig.supabase.anonKey;
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
+const oUrl = window.ProtocolConfig.oraculo ? window.ProtocolConfig.oraculo.url : '';
+const oKey = window.ProtocolConfig.oraculo ? window.ProtocolConfig.oraculo.anonKey : '';
+window.oraculoClient = (oUrl && !oUrl.includes('INSIRA_URL')) ? window.supabase.createClient(oUrl, oKey) : null;
+
 const squadsConfig = window.ProtocolConfig.ui.squads;
 
 let esquadraoWingman = []; // Fila de Reserva
@@ -193,14 +197,18 @@ async function fetchOperations(append = false) {
 
         if (data && data.length > 0) {
             const matchIds = data.map(op => op.id);
-            const { data: analysesData } = await supabaseClient
-                .from('match_analysis_queue')
-                .select('match_id, agente_tag')
-                .in('match_id', matchIds)
-                .eq('status', 'completed');
+            let analysesData = [];
+            if (window.oraculoClient) {
+                const res = await window.oraculoClient
+                    .from('match_analysis_queue')
+                    .select('match_id, agente_tag')
+                    .in('match_id', matchIds)
+                    .eq('status', 'completed');
+                analysesData = res.data || [];
+            }
             
             const completedMap = {};
-            if (analysesData) {
+            if (analysesData && analysesData.length > 0) {
                 analysesData.forEach(a => {
                     if (!completedMap[a.match_id]) completedMap[a.match_id] = new Set();
                     completedMap[a.match_id].add(a.agente_tag);
@@ -542,7 +550,9 @@ async function checkOrganicMode() {
     document.body.appendChild(container);
 
     try {
-        const { data, error } = await supabaseClient
+        if (!window.oraculoClient) throw new Error("Módulo Oráculo V não configurado.");
+
+        const { data, error } = await window.oraculoClient
             .from('match_analysis_queue')
             .select('*')
             .eq('match_id', organicMatchId)

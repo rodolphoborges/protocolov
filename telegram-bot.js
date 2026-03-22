@@ -7,6 +7,8 @@ const express = require('express');
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+const oraculoUrl = process.env.ORACULO_SUPABASE_URL;
+const oraculoKey = process.env.ORACULO_SUPABASE_SERVICE_KEY;
 const rawAdminId = process.env.ADMIN_TELEGRAM_ID ? process.env.ADMIN_TELEGRAM_ID.trim() : null;
 const ADMIN_ID = rawAdminId ? parseInt(rawAdminId, 10) : null; 
 const henrikApiKey = process.env.HENRIK_API_KEY ? process.env.HENRIK_API_KEY.trim() : null;
@@ -25,6 +27,7 @@ if (!token || !supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+const oraculoExt = (oraculoUrl && oraculoKey) ? createClient(oraculoUrl, oraculoKey) : null;
 
 let bot;
 if (process.env.WEBHOOK_URL) {
@@ -341,8 +344,10 @@ bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 
         if (!matchId) return bot.sendMessage(chatId, "🤖 *[K.A.I.O.]*: Informe o ID da partida (UUID) para análise.\n\nExemplo: \`/analisar 5525faf5-034e-4caf-b142-9d9bc8a3e897\`", { parse_mode: 'Markdown' });
 
+        if (!oraculoExt) return bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: O módulo de conexão com o Oráculo V está offline. Configure ORACULO_SUPABASE_URL no ambiente.", { parse_mode: 'Markdown' });
+
         // Envia o job como 'AUTO' para que o Oráculo V analise todos os agentes do Protocolo V presentes na partida
-        const { error } = await supabase.from('match_analysis_queue').insert([{ 
+        const { error } = await oraculoExt.from('match_analysis_queue').insert([{ 
             match_id: matchId, 
             agente_tag: 'AUTO', 
             chat_id: chatId, 

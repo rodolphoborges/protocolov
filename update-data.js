@@ -3,8 +3,12 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+const oraculoUrl = process.env.ORACULO_SUPABASE_URL;
+const oraculoKey = process.env.ORACULO_SUPABASE_SERVICE_KEY;
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+const oraculoExt = (oraculoUrl && oraculoKey) ? createClient(oraculoUrl, oraculoKey) : null;
+
 
 const settings = require('./settings.json');
 
@@ -431,15 +435,19 @@ async function run() {
                     for (const member of op.squad) {
                         const playerFound = finalPlayersData.find(p => p.riot_id === member.riotId);
                         if (playerFound && playerFound.telegram_id) {
-                            try {
-                                await supabase.from('match_analysis_queue').insert([{
-                                    match_id: op.id,
-                                    agente_tag: member.riotId,
-                                    chat_id: playerFound.telegram_id,
-                                    status: 'pending'
-                                }]);
-                            } catch (e) {
-                                console.error(`   ⚠️ Erro ao enfileirar análise para ${member.riotId}:`, e.message);
+                            if (oraculoExt) {
+                                try {
+                                    await oraculoExt.from('match_analysis_queue').insert([{
+                                        match_id: op.id,
+                                        agente_tag: member.riotId,
+                                        chat_id: playerFound.telegram_id,
+                                        status: 'pending'
+                                    }]);
+                                } catch (e) {
+                                    console.error(`   ⚠️ Erro ao enfileirar análise para ${member.riotId}:`, e.message);
+                                }
+                            } else {
+                                console.log(`   ⚠️ Analisador Oráculo V offline (Faltam chaves de ambiente). Ignorando fila para ${member.riotId}`);
                             }
                         }
                     }
