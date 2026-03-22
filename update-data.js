@@ -434,7 +434,7 @@ async function run() {
                             try {
                                 await supabase.from('match_analysis_queue').insert([{
                                     match_id: op.id,
-                                    player_tag: member.riotId,
+                                    agente_tag: member.riotId,
                                     chat_id: playerFound.telegram_id,
                                     status: 'pending'
                                 }]);

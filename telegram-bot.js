@@ -344,7 +344,7 @@ bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
         // Envia o job como 'AUTO' para que o Oráculo V analise todos os agentes do Protocolo V presentes na partida
         const { error } = await supabase.from('match_analysis_queue').insert([{ 
             match_id: matchId, 
-            player_tag: 'AUTO', 
+            agente_tag: 'AUTO', 
             chat_id: chatId, 
             status: 'pending',
             metadata: { requester: user[0].riot_id }
