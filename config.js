@@ -10,6 +10,11 @@ window.ProtocolConfig = {
         url: 'https://gzbzfmvgwfvzjqurowku.supabase.co',
         anonKey: 'sb_publishable_EBbK4nq9kpV0VNFmOzFEqQ_2mooasVD'
     },
+    // Configurações do Oráculo V (Microserviço de Análise)
+    oraculo: {
+        url: 'INSIRA_URL_DO_ORACULO_AQUI_SE_POSSUIR',
+        anonKey: 'INSIRA_ANON_KEY_DO_ORACULO_AQUI_SE_POSSUIR'
+    },
     
     // Configurações do Painel de Operações
     ui: {
