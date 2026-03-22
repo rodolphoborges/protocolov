@@ -436,7 +436,7 @@ function renderOperations(operations, append = false, completedMap = {}) {
         html += `
             <a href="https://tracker.gg/valorant/match/${op.id}" target="_blank" aria-label="Ver detalhes da partida ${op.map} no Tracker.gg" class="text-decoration-none mission-row ${resultClass} p-3 p-md-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; display: block; ${bgStyle}">
                 <div class="d-flex align-items-center gap-4" style="min-width: 220px;">
-                    <div class="text-center" style="width: 80px;">
+                    <div class="text-center" style="min-width: 80px; white-space: nowrap;">
                         <div class="fs-1 fw-bold ${resultColor} lh-1" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;" aria-label="Placar: ${op.score}">${escapeHtml(op.score)}</div>
                         <div class="${resultColor} text-uppercase mt-2 fw-bold" style="font-size: 0.85rem; letter-spacing: 2px; opacity: 0.9;">${escapeHtml(op.result)}</div>
                     </div>
