@@ -195,7 +195,7 @@ async function fetchOperations(append = false) {
             const matchIds = data.map(op => op.id);
             const { data: analysesData } = await supabaseClient
                 .from('match_analysis_queue')
-                .select('match_id, player_tag')
+                .select('match_id, agente_tag')
                 .in('match_id', matchIds)
                 .eq('status', 'completed');
             
@@ -203,7 +203,7 @@ async function fetchOperations(append = false) {
             if (analysesData) {
                 analysesData.forEach(a => {
                     if (!completedMap[a.match_id]) completedMap[a.match_id] = new Set();
-                    completedMap[a.match_id].add(a.player_tag);
+                    completedMap[a.match_id].add(a.agente_tag);
                 });
             }
 
@@ -546,7 +546,7 @@ async function checkOrganicMode() {
             .from('match_analysis_queue')
             .select('*')
             .eq('match_id', organicMatchId)
-            .eq('player_tag', organicPlayer)
+            .eq('agente_tag', organicPlayer)
             .order('created_at', { ascending: false })
             .limit(1);
 
