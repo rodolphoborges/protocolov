@@ -8,7 +8,7 @@ const supabase = createClient(url, key);
 const matchId = '2c7944be-f3c4-4429-a0fa-8d3604acd7a7';
 
 async function reanalyzeAll() {
-    const players = ['Guxxtavo#easy', 'DefeitoDeFábrica#ZzZ'];
+    const players = ['Guxxtavo#easy', 'DefeitoDeFábrica#ZzZ', 'm4sna#chama'];
     
     for (const playerTag of players) {
         console.log(`Re-analyzing match ${matchId} for ${playerTag}...`);
