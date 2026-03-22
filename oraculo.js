@@ -256,6 +256,8 @@ async function analyzeMatch(matchId, playerTag) {
             const tPerc = (Math.abs(t)).toFixed(1);
             if (t > 5) {
                 alertas.unshift(`📈 ALERTA DE EVOLUÇÃO: Tendência de performance positiva identificada (+${tPerc}). Seu nível técnico está em ascensão constante.`);
+            } else if (t < -5) {
+                alertas.unshift(`📉 ALERTA DE QUEDA: Tendência de performance negativa identificada (-${tPerc}). Seu nível técnico está oscilando para baixo. Reavalie sua postura tática antes da próxima partida.`);
             }
         }
 
