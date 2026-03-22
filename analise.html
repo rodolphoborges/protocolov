@@ -201,6 +201,54 @@
             display: inline-block;
             min-width: 45px;
         }
+
+        /* NEW v3.0 Styles */
+        .kaio-box {
+            background: rgba(0, 255, 65, 0.05);
+            border: 1px double #00ff41;
+            padding: 20px;
+            margin-bottom: 25px;
+            position: relative;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.05);
+        }
+        .kaio-box::before {
+            content: "DIRETRIZ TÁTICA K.A.I.O.";
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: #050505;
+            padding: 0 10px;
+            font-family: 'Teko', sans-serif;
+            font-size: 0.9rem;
+            color: #00ff41;
+            letter-spacing: 2px;
+        }
+        .trend-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 255, 65, 0.2);
+        }
+        .trend-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .trend-item {
+            font-family: 'Teko', sans-serif;
+            text-transform: uppercase;
+        }
+        .trend-label {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            display: block;
+        }
+        .trend-value {
+            font-size: 1.4rem;
+            color: #fff;
+        }
+        .trend-up { color: #00ff41; }
+        .trend-down { color: #ff4655; }
+        .trend-stable { color: #eab308; }
     </style>
 </head>
 <body>
@@ -258,11 +306,40 @@
                         <span class="stat-label-term">RANK ESTIMADO</span>
                         <span class="text-info fw-bold" id="rank-val">--</span>
                     </div>
+
+                    <!-- Holt Trend Section -->
+                    <div id="trend-analysis" class="trend-section" style="display: none;">
+                        <div class="stat-label-term mb-3" style="font-size: 0.7rem;">_ TENDÊNCIA OPERACIONAL (HOLT-WINTERS)</div>
+                        <div class="trend-grid">
+                            <div class="trend-item">
+                                <span class="trend-label">Nível Atual</span>
+                                <span class="trend-value" id="trend-level">--</span>
+                            </div>
+                            <div class="trend-item">
+                                <span class="trend-label">Tendência</span>
+                                <span class="trend-value" id="trend-dir">--</span>
+                            </div>
+                            <div class="trend-item">
+                                <span class="trend-label">Próxima Partida</span>
+                                <span class="trend-value" id="trend-forecast">--</span>
+                            </div>
+                            <div class="trend-item">
+                                <span class="trend-label">Status Mira</span>
+                                <span class="trend-value" id="trend-aim">--</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Analysis Main -->
                 <div class="col-md-8 border-start border-success border-opacity-25 ps-md-4">
                     <div class="mb-4">
+                        <div id="kaio-directive-container" style="display: none;">
+                            <div class="kaio-box terminal-text" id="kaio-text">
+                                <!-- K.A.I.O. Directive will be here -->
+                            </div>
+                        </div>
+
                         <div class="text-info fw-bold mb-3 teko-font" style="letter-spacing: 1px;">_ ANÁLISE TÁTICA E EVENTOS DE COMBATE:</div>
                         <div id="rounds-container">
                             <!-- Rounds will be populated here -->
@@ -371,12 +448,43 @@
                 statusEl.className = `performance-status teko-font ${status === 'ABOVE_BASELINE' ? 'status-above' : 'status-below'}`;
 
                 document.getElementById('kd-val').innerText = (parseFloat(report.kd) || 0).toFixed(2);
-                document.getElementById('meta-kd-val').innerText = (parseFloat(report.meta_kd) || 1.15).toFixed(2);
+                document.getElementById('meta-kd-val').innerText = (parseFloat(report.target_kd || report.meta_kd) || 1.15).toFixed(2);
                 document.getElementById('fb-val').innerText = report.first_bloods !== undefined ? report.first_bloods : '--';
                 
-                document.getElementById('adr-val').innerText = Math.round(parseFloat(report.adr) || 0) || report.acs || report.weapon || '--';
+                document.getElementById('adr-val').innerText = Math.round(parseFloat(report.adr) || 135);
                 document.getElementById('rank-val').innerText = report.estimated_rank || report.rank || (report.killer_agent ? `VIA ${report.killer_agent}` : 'ESTIMANDO...');
                 
+                // NEW v3.0: K.A.I.O. Directive
+                const kaioText = report.conselho_kaio || report.advice;
+                if (kaioText) {
+                    document.getElementById('kaio-directive-container').style.display = 'block';
+                    document.getElementById('kaio-text').innerText = kaioText;
+                }
+
+                // NEW v3.2: Holt Trend
+                if (report.holt) {
+                    const holt = report.holt;
+                    document.getElementById('trend-analysis').style.display = 'block';
+                    
+                    document.getElementById('trend-level').innerText = (holt.performance_L || 0).toFixed(1);
+                    
+                    const tVal = holt.performance_T || 0;
+                    const tDir = document.getElementById('trend-dir');
+                    tDir.innerText = `${tVal > 0 ? '↑' : (tVal < 0 ? '↓' : '→')} ${(Math.abs(tVal)).toFixed(2)}`;
+                    tDir.className = `trend-value ${tVal > 0 ? 'trend-up' : (tVal < 0 ? 'trend-down' : 'trend-stable')}`;
+                    
+                    const fVal = holt.performance_forecast || 0;
+                    const fEl = document.getElementById('trend-forecast');
+                    fEl.innerText = Math.round(fVal);
+                    fEl.className = `trend-value ${fVal >= 100 ? 'trend-up' : 'trend-down'}`;
+
+                    // AIM/KD Trend
+                    const kd_t = holt.kd_T || 0;
+                    const aimEl = document.getElementById('trend-aim');
+                    aimEl.innerText = kd_t > 0.05 ? 'QUENTE' : (kd_t < -0.05 ? 'FRIA' : 'ESTÁVEL');
+                    aimEl.className = `trend-value ${kd_t > 0.05 ? 'trend-up' : (kd_t < -0.05 ? 'trend-down' : 'trend-stable')}`;
+                }
+
                 // Refined Focus Point & Synergy (Valorant Lore / BR Vibe)
                 const adr = parseFloat(report.adr) || 0;
                 const kd = parseFloat(report.kd) || 1.0;
@@ -458,6 +566,7 @@
                                             let nHtml = '<ul class="timeline-list">';
                                             narrative.forEach(evItem => {
                                                 const time = evItem.time || evItem.timestamp || '';
+                                                // Support Portuguese fields (texto, tipo)
                                                 const txt = evItem.texto || evItem.text || evItem.event || '';
                                                 nHtml += `
                                                     <li class="timeline-item">
@@ -468,7 +577,9 @@
                                             nHtml += '</ul>';
                                             return nHtml;
                                         } else {
-                                            return `<span class="ps-2 opacity-75">${comment}</span>`;
+                                            // Fallback to comment -> pos/neg as per guidance
+                                            const content = comment || r.pos || r.neg || 'Sem dados detalhados para este segmento.';
+                                            return `<span class="ps-2 opacity-75">${content}</span>`;
                                         }
                                     })()}
                                 </div>
