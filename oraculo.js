@@ -91,6 +91,7 @@ async function analyzeMatch(matchId, playerTag) {
                     .select('metadata')
                     .eq('agente_tag', playerTag)
                     .eq('status', 'completed')
+                    .neq('match_id', matchId)
                     .order('created_at', { ascending: false })
                     .limit(1);
 
