@@ -152,11 +152,19 @@
             50% { opacity: 0; }
         }
 
-        .custom-loader .spinner-border {
-            width: 3rem;
-            height: 3rem;
-            border-width: 0.3em;
+        .badge-fb { border-color: #fbbf24 !important; color: #fbbf24 !important; }
+        .badge-plant { border-color: #f43f5e !important; color: #f43f5e !important; }
+        .badge-defuse { border-color: #0ea5e9 !important; color: #0ea5e9 !important; }
+
+        .performance-status {
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            font-weight: 800;
+            margin-top: -5px;
+            margin-bottom: 10px;
         }
+        .status-above { color: #00ff41; }
+        .status-below { color: #ff4655; opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -194,12 +202,17 @@
                     <div class="p-4 border border-success border-opacity-25 text-center mb-4">
                         <div class="stat-label-term">Índice de Performance</div>
                         <div class="performance-value" id="perf-val">--</div>
+                        <div id="perf-status" class="performance-status teko-font">---</div>
                         <div class="small opacity-50 mt-2 teko-font" style="letter-spacing: 1px;">CÁLCULO HEURÍSTICO K.A.I.O.</div>
                     </div>
 
                     <div class="stat-row">
-                        <span class="stat-label-term">K/D</span>
-                        <span class="text-white fw-bold" id="kd-val">--</span>
+                        <span class="stat-label-term">K/D | META</span>
+                        <span class="text-white fw-bold"><span id="kd-val">--</span> <span class="opacity-25">|</span> <span id="meta-kd-val" class="opacity-50">--</span></span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label-term">FIRST BLOODS</span>
+                        <span class="text-warning fw-bold" id="fb-val">--</span>
                     </div>
                     <div class="stat-row">
                         <span class="stat-label-term">ADR / ARMA</span>
@@ -310,7 +323,16 @@
 
                 // Populate stats (with multi-source fallback)
                 document.getElementById('perf-val').innerText = report.performance_index || report.perf || '--';
-                document.getElementById('kd-val').innerText = report.kd || report.kda || (report.is_player_killer ? 'WIN' : (report.is_player_victim ? 'LOSS' : '--'));
+                
+                const statusEl = document.getElementById('perf-status');
+                const status = report.performance_status || (report.kd >= 1.15 ? 'ABOVE_BASELINE' : 'BELOW_BASELINE');
+                statusEl.innerText = status.replace('_', ' ');
+                statusEl.className = `performance-status teko-font ${status === 'ABOVE_BASELINE' ? 'status-above' : 'status-below'}`;
+
+                document.getElementById('kd-val').innerText = report.kd || report.kda || '--';
+                document.getElementById('meta-kd-val').innerText = report.meta_kd || '1.15';
+                document.getElementById('fb-val').innerText = report.first_bloods !== undefined ? report.first_bloods : '--';
+                
                 document.getElementById('adr-val').innerText = report.adr || report.acs || report.weapon || '--';
                 document.getElementById('rank-val').innerText = report.estimated_rank || report.rank || (report.killer_agent ? `VIA ${report.killer_agent}` : 'ESTIMANDO...');
                 document.getElementById('focus-val').innerText = report.focus_point || (report.adr < 130 ? 'Volume de Dano' : 'Não identificado');
@@ -329,11 +351,31 @@
                         const comment = r.comment || r.conselho || (typeof r === 'string' ? r : 'Sem dados detalhados para este segmento.');
                         const impacto = r.impacto || (r.kills > 0 ? 'Positivo' : (r.died ? 'Negativo' : 'Neutro'));
                         
+                        // Render tactical events badges
+                        let eventsBadges = '';
+                        if (r.tactical_events && Array.isArray(r.tactical_events)) {
+                            r.tactical_events.forEach(ev => {
+                                let badgeClass = '';
+                                let label = ev.replace('_', ' ');
+                                if (ev === 'FIRST_BLOOD') badgeClass = 'badge-fb';
+                                if (ev === 'TACTICAL_PLANT') badgeClass = 'badge-plant';
+                                if (ev === 'TACTICAL_DEFUSE') badgeClass = 'badge-defuse';
+                                eventsBadges += `<span class="badge bg-dark border border-opacity-25 ms-2 ${badgeClass}">${label}</span>`;
+                            });
+                        }
+
                         roundsHtml += `
                             <div class="analysis-box" style="${impacto === 'Positivo' ? 'border-left-color: #00ff41;' : (impacto === 'Negativo' ? 'border-left-color: #ff4655;' : 'border-left-color: #888;')}">
-                                <span class="round-number">[ROUND ${roundNum}]</span>
-                                <span>${comment}</span>
-                                ${r.kills ? `<span class="badge bg-dark border border-success border-opacity-25 ms-2">${r.kills}K</span>` : ''}
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <span class="round-number">[ROUND ${roundNum}]</span>
+                                        <span>${comment}</span>
+                                    </div>
+                                    <div class="text-end">
+                                        ${r.kills ? `<span class="badge bg-dark border border-success border-opacity-25 ms-1">${r.kills}K</span>` : ''}
+                                        ${eventsBadges}
+                                    </div>
+                                </div>
                             </div>`;
                     });
                 } else {
