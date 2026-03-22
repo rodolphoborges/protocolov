@@ -256,10 +256,24 @@ async function analyzeMatch(matchId, playerTag) {
             const tPerc = (Math.abs(t)).toFixed(1);
             if (t > 5) {
                 alertas.unshift(`📈 ALERTA DE EVOLUÇÃO: Tendência de performance positiva identificada (+${tPerc}). Seu nível técnico está em ascensão constante.`);
-            } else if (t < -5) {
-                alertas.unshift(`📉 ALERTA DE QUEDA: Tendência de performance negativa identificada (-${tPerc}). Seu nível técnico está oscilando para baixo. Reavalie sua postura tática antes da próxima partida.`);
             }
         }
+
+        // 6. Estimativa de Rank e Categoria (Heurística vStats)
+        let estimatedRank = "PLATINA";
+        if (performanceIndex >= 90) estimatedRank = "RADIANTE";
+        else if (performanceIndex >= 80) estimatedRank = "IMORTAL";
+        else if (performanceIndex >= 70) estimatedRank = "ASCENDENTE";
+        else if (performanceIndex >= 60) estimatedRank = "DIAMANTE";
+        else if (performanceIndex >= 50) estimatedRank = "PLATINA";
+        else if (performanceIndex >= 40) estimatedRank = "OURO";
+        else if (performanceIndex >= 30) estimatedRank = "PRATA";
+        else estimatedRank = "BRONZE";
+
+        let metaCategory = "VSTATS // TACTICAL";
+        if (adr > 165) metaCategory = "ASSAULT // VSTATS";
+        else if (firstBloods >= 2) metaCategory = "ENTRY // VSTATS";
+        else if (performanceIndex > 70) metaCategory = "ELITE // VSTATS";
 
         return {
             status: 'completed',
@@ -276,6 +290,9 @@ async function analyzeMatch(matchId, playerTag) {
                 first_deaths: firstDeaths,
                 conselho_kaio: alertas.length > 0 ? `${alertas.join(' ')} ${conselho}` : `✅ Protocolo V Cumprido. ${conselho}`,
                 holt: holtResult,
+                estimated_rank: estimatedRank,
+                meta_category: metaCategory,
+                total_rounds: roundsPlayed,
                 rounds: roundAnalyses,
                 doctrine_violations: alertas,
                 focus_point: (() => {
