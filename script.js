@@ -412,9 +412,8 @@ function renderOperations(operations, append = false, completedMap = {}) {
             
             const [kills, deaths, assists] = m.kda.split('/');
             
-            const hasAnalysis = completedMap[op.id] && completedMap[op.id].has(m.riotId);
             const intelBtn = hasAnalysis 
-                ? `<a href="analise.html?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" target="_blank" onclick="event.stopPropagation()" class="intel-mini-link" title="Análise de Missão Disponível"></a>` 
+                ? `<a href="analise.html?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" onclick="event.stopPropagation()" class="intel-mini-link" title="Análise de Missão Disponível"></a>` 
                 : '';
 
             squadHTML += `
