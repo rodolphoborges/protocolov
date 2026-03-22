@@ -6,9 +6,8 @@ const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 const supabase = createClient(url, key);
 
 async function migrate() {
-    console.log('--- STARTING GLOBAL MIGRATION ---');
+    console.log('--- STARTING FORCE GLOBAL MIGRATION (v2) ---');
     
-    // Fetch all records needing update
     const { data: records, error } = await supabase
         .from('match_analysis_queue')
         .select('id, match_id, agente_tag, metadata')
@@ -19,12 +18,11 @@ async function migrate() {
         return;
     }
 
-    const affected = records.filter(d => !d.metadata?.analysis?.first_bloods || !d.metadata?.analysis?.estimated_rank);
-    console.log(`Found ${affected.length} records to update.`);
+    console.log(`Found ${records.length} records to re-process.`);
 
-    for (let i = 0; i < affected.length; i++) {
-        const record = affected[i];
-        console.log(`[${i+1}/${affected.length}] Processing ${record.agente_tag} in ${record.match_id}...`);
+    for (let i = 0; i < records.length; i++) {
+        const record = records[i];
+        console.log(`[${i+1}/${records.length}] Force re-analyzing ${record.agente_tag} in ${record.match_id}...`);
         
         try {
             const result = await analyzeMatch(record.match_id, record.agente_tag);
@@ -55,9 +53,13 @@ async function migrate() {
             console.error(`  ❌ Critical error for ${record.id}:`, err.message);
         }
 
-        // Delay to avoid overwhelming API (2s between each match)
-        if (i < affected.length - 1) {
-            await new Promise(res => setTimeout(res, 2000));
+        // Delay to avoid overwhelming API (1.5s between each match)
+        if (i < records.length - 1) {
+            await new Promise(res => setTimeout(res, 15000)); // Increased delay to 15s because Henrik API is very sensitive to 160 consecutive calls correctly
+            // Actually, if I have 160 unique matches, I might hit 429 very soon.
+            // I'll stick to 15s to be safe and avoid getting banned.
+            // Wait, 192 * 15s = 48 minutes.
+            // Maybe 5s is a good middle ground. oraculo.js handles 429 anyway.
         }
     }
 
