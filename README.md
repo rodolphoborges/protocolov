@@ -4,60 +4,63 @@
 ![Stack](https://img.shields.io/badge/Stack-Node.js_|_Vanilla_JS_|_Supabase-informational?style=for-the-badge&color=0f1923)
 ![API](https://img.shields.io/badge/API-HenrikDev-blue?style=for-the-badge)
 
-O **Protocolo V** não é apenas uma lista de jogadores; é um ecossistema completo de rastreamento, gamificação e recrutamento focado em jogadores de Valorant que buscam evolução tática e desejam escapar da toxicidade da *Solo Queue*. 
+O **Protocolo V** não é apenas uma lista de jogadores; é um ecossistema completo de rastreamento, gamificação e consultoria tática com IA, focado em jogadores de Valorant que buscam evolução tática e desejam escapar da toxicidade das filas ranqueadas (*Solo Queue*). 
 
-O sistema monitora automaticamente o desempenho dos agentes, recompensa o jogo em equipe (Sinergia) e gerencia vagas limitadas em esquadrões de elite, operando com uma estética **Brutalista Geométrica** inspirada na interface e na Lore oficial do Valorant.
+O sistema monitora automaticamente o desempenho dos agentes, recompensa o jogo em equipe (Sinergia), executa varreduras de partidas e gerencia vagas em esquadrões de elite. Tudo isso operando com uma estética visual **Brutalista Geométrica** fortemente inspirada na interface e na história (Lore) oficial do Valorant.
+
+---
+
+## 🤖 Contexto para LLMs e Agentes de IA (Arquitetura)
+*Se você é uma Inteligência Artificial auxiliando na manutenção deste repositório, utilize este resumo para entender o ecossistema rapidamente:*
+
+O Protocolo V opera através de serviços desacoplados centrados no **Supabase**:
+1. **Frontend (`script.js`, `style.css`, `index.html`)**: HTML/Vanilla JS com CSS Bruto (`clip-path`, painéis angulares). Escuta o Supabase via *polling* ou *Realtime* para exibir resultados na interface "Organic CMD".
+2. **K.A.I.O. Bot (`telegram-bot.js`)**: O comunicador oficial no Telegram do grupo. Comandos como `/analisar` **não** fazem o processamento pesado; eles injetam *jobs* (tarefas) diretamente na tabela `match_analysis_queue` do Supabase para o jogador requisitante e seus aliados detectados.
+3. **Oráculo V (Microsserviço Analítico)**: Um componente invisível (Worker) que escuta a tabela `match_analysis_queue`. Ele consome a API externa (HenrikDev), estrutura os dados em JSON e usa modelos de linguagem para devolver um relatório tático da partida para o banco de dados.
+4. **Sincronizador (`update-data.js`)**: Script autômato acionado via *Cron* (GitHub Actions) focado em *Single Request Truth*, navegando nos limites de taxa (rate limits) da API para manter dados passivos do painel atualizados (KDA, Headshot, Agente).
 
 ---
 
 ## 🚀 Funcionalidades Principais
 
 * 📝 **Alistamento Automatizado:** Interface web em que novos codinomes se inscrevem via Riot ID, escolhendo a sua função principal.
-* 🤖 **Terminal de Inteligência (K.A.I.O. Bot):** Um bot integrado que permite a vinculação de contas (`/vincular`), trocas de esquadrão (`/unidade`), consulta de atributos de agentes (`/perfil`) e **Convocação de Reforços** interativa pelo comando (`/convocar`). O bot agora opera sob o sistema K.A.I.O., com uma interface direta e simplificada.
-* 🚨 **Dashboard de Central de Inteligência:** Novo painel superior atualizado a cada 5 minutos via Supabase que extrai dados mortos para calcular:
-  * **[INTEL] Melhor Mapa:** Qual o mapa onde os esquadrões do grupo acumulam o maior número de vitórias.
-  * **[DESTAQUE DA SEMANA] MVP Tático:** O melhor KDA da comunidade nos últimos combates.
-  * **[ALERTA TÁTICO] Sinal Perdido:** Detecta e exibe em um radar vermelho piscante os "Lobos Solitários" que jogam partidas Competitive sem a equipe.
-* 📊 **Motor de Sincronização Furtiva (GitHub Actions):** O worker automatizado (`update-data.js`) possui um algoritmo adaptativo de *Single Request Truth*. Navega pelo *rate limit* da API HenrikDev e retém requests até que resfriem, extraindo dados vitais (KDA, HS%, Agent Info) dos últimos combates sem bloquear o servidor.
-* 🐺 **Estatísticas Criptografadas por Codinome:** O Player Card de cada Agente lista nativamente a sua **Trilha de Especialidade (Personagem Mais Jogado)** e a **Taxa Média de Headshot (HS%)** a partir do histórico registrado.
+* 📱 **Terminal de Inteligência (K.A.I.O. Bot):** Bot integrado no Telegram focado na praticidade dos jogadores com os seguintes comandos:
+  * `/vincular`: Conecta o perfil do banco com o Telegram.
+  * `/unidade` e `/perfil`: Troca de esquadrão ou exibe placar de status.
+  * `/convocar`: Dispara um alerta de formação de lobby para o grupo.
+  * `/analisar`: Mapeia de forma autônoma quem jogou a última partida ("AUTO") e envia os dados para enfileiramento tático no centro de inteligência.
+* 👁️ **Oráculo V (IA Tática):** Toda partida finalizada pode ser esmiuçada pelo Oráculo. Ele identifica erros fundamentais, sugere reposicionamentos pautados no tipo de Agente e critica a progressão da economia do jogador do Protocolo.
+* 🚨 **Dashboard de Central de Inteligência:** Painel superior atualizado constantemente via Supabase:
+  * **[INTEL] Melhor Mapa:** Sinaliza qual o mapa onde os esquadrões possuem a maior taxa de vitória histórica.
+  * **[DESTAQUE DA SEMANA] MVP Tático:** Exibe o melhor KDA recente.
+  * **[ALERTA TÁTICO] Sinal Perdido:** Detecta "Lobos Solitários" e exibe num radar crítico quem arriscou no modo Competitivo sem a escolta do esquadrão.
 
 ---
 
 ## 🎖️ Hierarquia e Imersão Tática
 
-O design adota uma perspetiva interativa onde as tabelas de classificação e interfaces são personalizadas com recursos e media oficiais da API do Valorant. Cada Esquadrão possui um **Comandante Oficial** cujo porte e estética dão a atmosfera do painel:
+O design da plataforma adota uma perspectiva interativa, onde as tabelas de classificação são envelopadas em mídia oficial da Riot Games. Cada Esquadrão possui um **Comandante Oficial** cujo porte e estética guiam a atmosfera do painel:
 
-* 💠 **UNIDADE ALPHA (Elite):** Vagas restritas a líderes arquitetos sob o comando da **Comandante Venenosa**. O painel é dominado por ciano escuro. Especialistas em controle tático.
-* 🔥 **UNIDADE ÔMEGA (Elite):** Controle de fogo de artilharia pesada guiado pelo **Comandante Cachorro Velho**. Texturas vermelhas delimitam a sua interface angular.
-* ⚙️ **DEPÓSITO DE TORRETAS:** A reserva técnica do Protocolo. Onde codinomes auxiliam a elite enquanto forjam seu mérito para a linha de frente.
-* 🤖 **SISTEMA K.A.I.O.:** Toda a comunicação via rádio (Telegram) é gerida pelo sistema central. Como uma inteligência focada na eficiência, fornece instruções claras, exemplos de uso e monitoramento em tempo real do status do grupo.
+* 💠 **UNIDADE ALPHA (Elite):** Vagas restritas a líderes frios e calculistas, sob o comando da **Comandante Venenosa**. O painel é dominado por tons de ciano escuro. Especialistas em controle tático do mapa.
+* 🔥 **UNIDADE ÔMEGA (Elite):** Controle de fogo e artilharia bruta guiados pelo **Comandante Cachorro Velho**. Texturas textuais vermelhas delimitam sua interface angular e agressiva.
+* ⚙️ **DEPÓSITO DE TORRETAS:** A reserva técnica do Protocolo. Onde codinomes auxiliam a elite enquanto forjam o seu nome nas trincheiras para uma futura ascensão ao esquadrão principal.
+* 🤖 **SISTEMA K.A.I.O.:** A Inteligência Artificial de comunicação. Com uma personalidade focada na neutralidade operacional, o bot gerencia todas as credenciais fornecendo instruções claras e objetivas de campo.
 
 ---
 
-## 📈 Sistema de Merito & Sinergia (SN)
+## 📈 Sistema de Mérito & Sinergia (SN)
 
-O recrutamento para as linhas da frente nunca é vitalício. As vagas de elite (1 por Função em cada Unit) devem ser constantemente conquistadas pelas linhas de estatísticas gamificadas:
+As vagas de elite (1 por Função em cada Unidade) devem ser constantemente mantidas através do desempenho real, não sendo posições vitalícias.
 
 ### 1. Synergy Score (Pontos de Sinergia)
-Pontos acumulados **exclusivamente ao jogar Ranqueadas (Competitivo) com outros membros do grupo**.
+Pontos acumulados **exclusivamente ao jogar o modo Competitivo com outros membros verificados do grupo**.
 * **Duos:** +1 Ponto
 * **Trios:** +2 Pontos
 * **Squad Fechado (4 ou 5 codinomes):** +5 Pontos
-* *Modificador Tático:* **Vencer = DOBRO DE PONTOS**. 
+* *Modificador Tático:* **Uma vitória DEDOBRA a pontuação ganha na partida**. 
 
 ### 2. Sala de Aquecimento (Mata-Mata)
-A rotina monitoriza também perfis de Treino no modo Mata-Mata. O abate (Kill) é puro mérito métrico onde o Top 3 atribui prêmios massivos de avanço de ranking semanal, incentivando a entrada a frio no combate.
-
----
-
-## 🛠️ Arquitetura (Tech Stack)
-
-Uma operação limpa alimentada por workflows modernos sem dependência num servidor Node local ativo de 24 horas para visualização de dados:
-
-* **Frontend Brutalista:** HTML5 + Vanilla JS + CSS3 nativo (`clip-path`, animações de interface `blink`, Integração Media Oficial da Riot via Valorant-API). A comunicação backend do FrontEnd ocorre de forma assíncrona via CDN pelo **Supabase Client**.
-* **Backends Autômatos:** Scripts em Node.js assíncronos que usam **GitHub Actions (`update.yml`, `reset-dm.yml`)** em infraestruturas CI/CD com Agendamento Cron para varreduras a cada 30min invisíveis aos jogadores.
-* **Database Relay:** **Supabase (PostgreSQL)** contendo históricos dinâmicos de operações e cruzamento complexo de relações ativas.
-* **Integrações de Vigilância:** API Externa oficial [Valorant-API (Media)](https://valorant-api.com) e API estatística bruta via [HenrikDev API](https://github.com/Henrik-3/unofficial-valorant-api).
+A rotina também monitora os perfis no modo Mata-Mata (Deathmatch). Estar no Top 3 do Mata-Mata concede mérito na progressão semanal, reforçando o hábito inquebrável de entrar aquecido nos combates principais.
 
 ---
 
@@ -65,53 +68,47 @@ Uma operação limpa alimentada por workflows modernos sem dependência num serv
 
 ### Pré-requisitos
 * Node.js v18 LTS+
-* Cluster de Database [Supabase](https://supabase.com/)
-* Bot API Token originado em `@BotFather` do Telegram.
-* API Key aprovada da infraestrutura HenrikDev.
+* Banco de dados [Supabase](https://supabase.com/) configurado com as tabelas `players` e `match_analysis_queue`.
+* Bot API Token originado no `@BotFather` (Telegram).
+* API Key aprovada da infraestrutura [HenrikDev](https://docs.henrikdev.xyz/).
 
-### 1. Clonar Registros
+### 1. Inicializar Terminal
 ```bash
 git clone https://github.com/seu-usuario/protocolov.git
 cd protocolov
 npm install
 ```
 
-### 2. Encriptação Ambiental (.env)
+### 2. Contenção Multivariável (.env)
 ```env
 SUPABASE_URL=https://[YOUR_INSTANCE].supabase.co
 SUPABASE_SERVICE_KEY=[PRIVATE_ADMIN_R/W_KEY]
 HENRIK_API_KEY=[API_KEY]
 TELEGRAM_BOT_TOKEN=[BOT_TOKEN]
 TELEGRAM_CHAT_ID=[TELEGRAM_GROUP_ID]
-ADMIN_TELEGRAM_ID=[O_SEU_ID_TELEGRAM_AQUI]
-WEBHOOK_URL=[OPCIONAL_URL_DO_RENDER]
-PORT=3000
+ADMIN_TELEGRAM_ID=[SEU_ID_TELEGRAM]
 ```
-*(As credenciais frontend `anon_key` do supabase podem ser visualizadas com segurança em `script.js` para operações Read-Only de visitantes).*
+*(As chaves públicas `anon_key` do Supabase para visitantes podem residir visivelmente em `script.js` e `config.js` estritos a políticas RLS de Read-Only).*
 
-### 3. Ordens de Ligação
-Para ligar a inteligência conversacional do Bot de Telegram localmente:
+### 3. Ordem de Ignição Local
+Para rodar a interface de inteligência do bot e observar as rotinas do projeto:
 ```bash
-npm start
+node telegram-bot.js
 ```
-
-### 4. Persistência (Render Free Tier)
-O bot possui uma rota de vitalidade para evitar o "sono" de 15 minutos do Render. 
-Configure um monitor (ex: UptimeRobot) para o seguinte endpoint:
-`https://seu-app.onrender.com/vanguard-health`
+*Em ambientes de produção (Render, Heroku, VPS etc.), assegure-se de provisionar monitoramento ou Webhooks.*
 
 ---
 
-## 📜 Manifesto de Sobrevivência
+## 📜 Manifesto de Sobrevivência (Regras de Conduta)
 
-1. **Tolerância Zero:** Racismo, assédio verbal ou preconceito geram banimento do banco de dados na raiz do MAC e chaves associadas. O respeito precede a arma.
-2. **Rádio Limpo:** Silêncio operacional. Perdeu o combate? Abateu zero inimigos? Indique o dano causado, reporte o posicionamento tático e **muta o microfone**. Desabafos bloqueiam passos no radar.
-3. **Reset Psicológico:** O Tilt (desespero emocional ou fúria num jogo em desvantagem) quebra toda a premissa deste grupo. Reset na ronda, ajuste a economia e responda na bala na partida seguinte.
-4. **Comandante de Campo:** Os líderes tomam a iniciativa no Lobby. Se tens mais Sinergia e as credenciais, cabe a ti recrutar esquadrões e pedir "/convocar".
+1. **Tolerância Zero:** Racismo, assédio verbal ou preconceito configuram banimento sem alerta do banco de dados na raiz do MAC, sem apelação. O respeito ao próximo precede a mira do fuzil.
+2. **Rádio Limpo:** Silêncio operacional absoluto. Perdeu o combate? Abateu zero inimigos? Indique o dano causado, reporte a posição tática inimiga e **mute o microfone imediatamente**. Desabafos longos poluem os passos do radar da equipe viva.
+3. **Reset Psicológico:** O Tilt (desespero ou fúria num jogo em desvantagem) quebra toda a premissa de coesão deste grupo. Respire na tela de compra, ajuste a economia coletiva e responda na bala no próximo round em silêncio mortal.
+4. **Comandante de Campo:** Os líderes tomam as rédeas do Lobby de forma inquestionável. Se você tem mais Sinergia e deseja o avanço do esquadrão, utilize a chamada `/convocar` sem medo.
 
 ---
 *Morte à Solo Queue. Viva a tática e o jogo em uníssono.*
 ---
 
 ### ⚖️ Aviso Legal (Legal Jibber Jabber)
-O Protocolo V é um projeto feito por fãs. Ele não é endossado pela Riot Games e não reflete as visões ou opiniões da Riot Games ou de qualquer pessoa oficialmente envolvida na produção ou gerenciamento do VALORANT. VALORANT e Riot Games são marcas comerciais ou marcas registradas da Riot Games, Inc.
+*O Protocolo V é um projeto de código aberto construído por entusiastas de Valorant. Ele não é endossado pela Riot Games e não reflete as opiniões ou diretrizes da Riot Games ou de qualquer entidade envolvida oficialmente na produção de VALORANT. VALORANT e Riot Games representam marcas comerciais devidamente registradas de responsabilidade da Riot Games, Inc.*
