@@ -20,8 +20,11 @@ html, body {
 
 h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-transform: uppercase; line-height: 0.9; margin: 0; }
 
-.organic-mode { background-color: #050505 !important; color: #00ff41 !important; font-family: 'Courier New', Courier, monospace !important; }
-.organic-mode #organic-container { position: relative; z-index: 10; padding: 40px; }
+.organic-mode { background-color: #050505 !important; color: #00ff41 !important; font-family: 'Courier New', Courier, monospace !important; overflow-x: hidden; }
+.organic-mode > :not(#organic-container):not(script):not(link):not(style) {
+    display: none !important;
+}
+.organic-mode #organic-container { position: relative; z-index: 10; padding: 40px; min-height: 100vh; }
 .organic-mode::before {
     content: " ";
     display: block;
