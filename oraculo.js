@@ -168,7 +168,7 @@ async function analyzeMatch(matchId, playerTag) {
                     if (adr > 165 && firstBloods >= 3) return "DUELISTA NATO (ENTRY)";
                     if (adr > 165) return "DANO BRUTO (AMASSANDO)";
                     if (firstBloods >= 3) return "PRESSÃO INICIAL (ENTRY)";
-                    if (parseFloat(kd) > 1.6 && adr < 135) return "KDA PLAYER (BAITEIRO?)";
+                    if (parseFloat(kd) > 1.6 && adr < 135) return "KDA PLAYER (BAITADOR?)";
                     if (parseFloat(kd) < 0.85 && (match.rounds.filter(r => r.player_stats.find(ps => ps.player_display_name.toLowerCase() === playerTag.toLowerCase())?.was_killed).length / roundsPlayed) > 0.8) return "FALTA DE TRADE / ISOLADO";
                     if (parseFloat(kd) >= 1.0) return "JOGANDO O FINO";
                     return "ABAIXO DO IMPACTO ESPERADO";
