@@ -414,7 +414,7 @@ function renderOperations(operations, append = false, completedMap = {}) {
             
             const hasAnalysis = completedMap[op.id] && completedMap[op.id].has(m.riotId);
             const intelBtn = hasAnalysis 
-                ? `<a href="analise.html?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" target="_blank" onclick="event.stopPropagation()" class="text-info text-decoration-none ms-2" style="font-size: 0.75rem; font-family: 'Teko', sans-serif; opacity: 0.8; letter-spacing: 1px;" title="Ver Relatório">[INTEL]</a>` 
+                ? `<a href="analise.html?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" target="_blank" onclick="event.stopPropagation()" class="intel-mini-link" title="Análise de Missão Disponível"></a>` 
                 : '';
 
             squadHTML += `

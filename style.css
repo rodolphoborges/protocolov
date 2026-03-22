@@ -380,3 +380,47 @@ h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-tran
     text-transform: uppercase;
 }
 
+/* Minimalist Intel Link */
+.intel-mini-link {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #00ff41;
+    border-radius: 50%;
+    margin-left: 10px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 0.3;
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+    vertical-align: middle;
+    text-decoration: none !important;
+}
+
+.intel-mini-link:hover {
+    opacity: 1;
+    transform: scale(1.5);
+    box-shadow: 0 0 15px #00ff41;
+}
+
+.intel-mini-link::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 1px solid #00ff41;
+    opacity: 0;
+}
+
+.intel-mini-link:hover::before {
+    animation: intel-pulse 1.5s infinite;
+}
+
+@keyframes intel-pulse {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+    100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; }
+}
+
