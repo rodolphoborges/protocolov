@@ -212,16 +212,67 @@ async function analyzeMatch(matchId, playerTag) {
                 tacticalEvents.push('TACTICAL_DEFUSE');
             }
 
-            // Descrição tática simplificada
+            // 5. Gerar Comentário Variado (Protocolo V Doctrine)
+            const phrases = {
+                fb: [
+                    "Iniciativa de combate. Obteve o First Blood.",
+                    "Abertura agressiva. Garantiu a primeira vantagem numérica do round.",
+                    "Entry de alto impacto. Oponente neutralizado no primeiro contato.",
+                    "Domínio inicial. Você abriu o round com uma eliminação limpa."
+                ],
+                fd: [
+                    "Primeira baixa do round. Sua eliminação abriu brecha tática para o inimigo.",
+                    "Vulnerabilidade inicial explorada. Oponente obteve o First Blood sobre você.",
+                    "Neutralizado precocemente. Reavaliar postura ofensiva ou agressividade.",
+                    "Entrada punida. O inimigo antecipou seu movimento inicial."
+                ],
+                multi: [
+                    `Eliminou ${playerKillsInRound} oponentes. Volume de fogo excepcional.`,
+                    `Limpa de setor efetuada. ${playerKillsInRound} baixas confirmadas.`,
+                    `Multi-kill detectado. Domínio total da área com ${playerKillsInRound} eliminações.`,
+                    `Presença intimidadora. Neutralizou ${playerKillsInRound} alvos neste setor.`
+                ],
+                kills: [
+                    "Eliminação confirmada. Oponente neutralizado.",
+                    "Troca de tiro favorável. Garantiu uma baixa para o time.",
+                    "Impacto pontual no round. Um alvo neutralizado.",
+                    "Combate eficaz. Você venceu o duelo direto."
+                ],
+                died: [
+                    "Agente neutralizado. Reavaliar cobertura operacional.",
+                    "Baixa sofrida em combate. Trade-kill não foi possível.",
+                    "Neutralização confirmada. Posicionamento foi comprometido.",
+                    "Fim de linha neste round. Oponente levou a melhor no combate."
+                ],
+                neutral: [
+                    "Posicionamento defensivo/suporte. Sem contato direto confirmado.",
+                    "Foco em utilitários e suporte tático. Preservou a vida.",
+                    "Movimentação estratégica. Round de baixo contato direto.",
+                    "Protocolo de sobrevivência. Evitou confrontos desnecessários."
+                ]
+            };
+
+            const getRandom = (arr) => arr[Math.floor((matchId.charCodeAt(0) + index) % arr.length)];
+            
             let comment = "";
+            let hsCount = stats?.headshots || 0;
+
             if (playerFirstBlood) {
-                comment = `Iniciativa de combate. Obteve o First Blood.`;
-            } else if (playerKillsInRound > 0) {
-                comment = `Eliminou ${playerKillsInRound} oponente(s). Volume de fogo eficaz.`;
+                comment = getRandom(phrases.fb);
+            } else if (isFirstDeathThisRound) {
+                comment = getRandom(phrases.fd);
+            } else if (playerKillsInRound > 1) {
+                comment = getRandom(phrases.multi);
+            } else if (playerKillsInRound === 1) {
+                comment = getRandom(phrases.kills);
             } else if (playerDiedInRound) {
-                comment = `Agente neutralizado. Reavaliar cobertura operacional.`;
+                comment = getRandom(phrases.died);
             } else {
-                comment = `Posicionamento defensivo/suporte. Sem contato direto confirmado.`;
+                comment = getRandom(phrases.neutral);
+            }
+
+            if (hsCount > 0 && playerKillsInRound > 0) {
+                comment += ` (${hsCount} HS confirmados).`;
             }
 
             roundAnalyses.push({
