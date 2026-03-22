@@ -12,31 +12,31 @@ window.ProtocolConfig = {
     },
     // Configurações do Oráculo V (Microserviço de Análise)
     oraculo: {
-        url: 'INSIRA_URL_DO_ORACULO_AQUI_SE_POSSUIR',
-        anonKey: 'INSIRA_ANON_KEY_DO_ORACULO_AQUI_SE_POSSUIR'
+        url: 'https://jneuumdktavwzdwvcuhf.supabase.co',
+        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuZXV1bWRrdGF2d3pkd3ZjdWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODAyMzEsImV4cCI6MjA4OTU1NjIzMX0.aZDhgRqlvvmiGi_Zw5Q0_xFSDX-9VTYXBmAYCOfdahc'
     },
-    
+
     // Configurações do Painel de Operações
     ui: {
         opsPerPage: 5, // Número de operações a carregar por vez
-        
+
         // Configuração Dinâmica dos Esquadrões de Elite
         squads: {
-            'ALPHA': { 
-                title: 'UNIDADE ALPHA', 
-                desc: 'Comandante Venenosa. Precisão tática e controle absoluto de campo.', 
+            'ALPHA': {
+                title: 'UNIDADE ALPHA',
+                desc: 'Comandante Venenosa. Precisão tática e controle absoluto de campo.',
                 commanderImg: 'https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/fullportrait.png',
                 commanderBg: 'rgba(0, 255, 157, 0.03)',
                 theme: 'alpha-theme',
-                roles: { 'Controlador': null, 'Duelista': null, 'Iniciador': null, 'Sentinela': null, 'Flex': null } 
+                roles: { 'Controlador': null, 'Duelista': null, 'Iniciador': null, 'Sentinela': null, 'Flex': null }
             },
-            'OMEGA': { 
-                title: 'UNIDADE ÔMEGA', 
-                desc: 'Comandante Cachorro Velho. Força de assalto e suporte pesado.', 
+            'OMEGA': {
+                title: 'UNIDADE ÔMEGA',
+                desc: 'Comandante Cachorro Velho. Força de assalto e suporte pesado.',
                 commanderImg: 'https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/fullportrait.png',
                 commanderBg: 'rgba(255, 70, 85, 0.03)',
                 theme: 'omega-theme',
-                roles: { 'Controlador': null, 'Duelista': null, 'Iniciador': null, 'Sentinela': null, 'Flex': null } 
+                roles: { 'Controlador': null, 'Duelista': null, 'Iniciador': null, 'Sentinela': null, 'Flex': null }
             }
         }
     }
