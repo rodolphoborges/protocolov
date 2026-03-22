@@ -436,15 +436,19 @@ async function run() {
                         const playerFound = finalPlayersData.find(p => p.riot_id === member.riotId);
                         if (playerFound && playerFound.telegram_id) {
                             if (oraculoExt) {
+                                // Normalização básica: Trim e Lower para evitar inconsistências
+                                const normalizedTag = member.riotId.trim();
+                                
                                 try {
-                                    await oraculoExt.from('match_analysis_queue').insert([{
+                                    // Usamos upsert para evitar duplicidade caso o script rode múltiplas vezes
+                                    await oraculoExt.from('match_analysis_queue').upsert([{
                                         match_id: op.id,
-                                        agente_tag: member.riotId,
+                                        agente_tag: normalizedTag,
                                         chat_id: playerFound.telegram_id,
                                         status: 'pending'
-                                    }]);
+                                    }], { onConflict: 'match_id,agente_tag' });
                                 } catch (e) {
-                                    console.error(`   ⚠️ Erro ao enfileirar análise para ${member.riotId}:`, e.message);
+                                    console.error(`   ⚠️ Erro ao enfileirar análise para ${normalizedTag}:`, e.message);
                                 }
                             } else {
                                 console.log(`   ⚠️ Analisador Oráculo V offline (Faltam chaves de ambiente). Ignorando fila para ${member.riotId}`);

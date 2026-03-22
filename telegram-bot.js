@@ -346,14 +346,18 @@ bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 
         if (!oraculoExt) return bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: O módulo de conexão com o Oráculo V está offline. Configure ORACULO_SUPABASE_URL no ambiente.", { parse_mode: 'Markdown' });
 
+        // Normalização: Remover espaços e garantir formato UUID limpo
+        const cleanMatchId = matchId.trim().toLowerCase();
+
         // Envia o job como 'AUTO' para que o Oráculo V analise todos os agentes do Protocolo V presentes na partida
-        const { error } = await oraculoExt.from('match_analysis_queue').insert([{ 
-            match_id: matchId, 
+        // Usamos upsert para evitar duplicidade na fila
+        const { error } = await oraculoExt.from('match_analysis_queue').upsert([{ 
+            match_id: cleanMatchId, 
             agente_tag: 'AUTO', 
             chat_id: chatId, 
             status: 'pending',
             metadata: { requester: user[0].riot_id }
-        }]);
+        }], { onConflict: 'match_id,agente_tag' });
         
         if (error) throw error;
         bot.sendMessage(chatId, `📦 *[K.A.I.O.: ORDEM RECEBIDA]*\n\nA partida \`${matchId}\` foi enviada ao Oráculo V para varredura completa. Todos os agentes do Protocolo V presentes nela serão analisados simultaneamente.`, { parse_mode: 'Markdown' });

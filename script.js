@@ -531,13 +531,7 @@ async function checkOrganicMode() {
     console.log("🦾 [PROTOCOLO V] MODO ORGANIC CMD ATIVADO");
     document.body.classList.add('organic-mode');
     
-    // Ocultar elementos padrão
-    const toHide = ['nav', 'header', 'section', 'footer', '.val-bg-text-massive'];
-    toHide.forEach(selector => {
-        document.querySelectorAll(selector).forEach(el => { if (el) el.style.display = 'none'; });
-    });
-
-    // Criar container de análise
+    // Criar container de análise (o CSS .organic-mode agora cuida de esconder o resto)
     const container = document.createElement('div');
     container.id = 'organic-container';
     container.className = 'container py-5';
@@ -586,9 +580,22 @@ async function checkOrganicMode() {
 
 function renderOrganicReport(r, meta) {
     // No Oráculo-V v3.0, o relatório fica em metadata.analysis
-    const reportData = r || (meta && meta.analysis) || meta || {};
+    const reportData = (meta && meta.analysis) || r || meta || {};
     const container = document.getElementById('organic-container');
     
+    // Mapeamento dinâmico para lidar com versões diferentes do Oráculo-V
+    const perfIndex = reportData.performance_index || reportData.perf || '--';
+    const kd = reportData.kd || reportData.kda || (reportData.is_player_killer ? 'WIN' : (reportData.is_player_victim ? 'LOSS' : '--'));
+    const adr = reportData.adr || reportData.acs || reportData.weapon || '--';
+    const rank = reportData.estimated_rank || reportData.rank || (reportData.killer_agent ? `VIA ${reportData.killer_agent}` : 'ANALISANDO');
+    
+    // Texto do conselho ou dados de combate
+    let conselho = reportData.conselho_kaio || reportData.advice;
+    if (!conselho && reportData.killer_agent) {
+        conselho = `LOG DE COMBATE: Agente foi eliminado por ${reportData.killer_agent} usando ${reportData.weapon || 'armamento desconhecido'} aos ${reportData.time || '--'}.`;
+    }
+    conselho = conselho || 'Análise concluída pelo Oráculo V. Operação registrada com sucesso no banco de dados.';
+
     container.innerHTML = `
         <div class="container py-5">
             <div class="terminal-screen terminal-text">
@@ -607,22 +614,22 @@ function renderOrganicReport(r, meta) {
                     <div class="col-md-4">
                         <div class="terminal-alert text-center">
                             <div class="stat-label-term">Índice de Performance</div>
-                            <div class="performance-value">${reportData.performance_index || reportData.perf || '--'}</div>
+                            <div class="performance-value">${perfIndex}</div>
                             <div class="small opacity-50 mt-2">CÁLCULO HEURÍSTICO K.A.I.O.</div>
                         </div>
 
                         <div class="mt-4">
                             <div class="stat-row">
                                 <span class="stat-label-term">K/D</span>
-                                <span class="text-white fw-bold">${reportData.kd || '--'}</span>
+                                <span class="text-white fw-bold">${kd}</span>
                             </div>
                             <div class="stat-row">
-                                <span class="stat-label-term">ADR</span>
-                                <span class="text-white fw-bold">${reportData.adr || reportData.acs || '--'}</span>
+                                <span class="stat-label-term">ADR (OU WEAPON)</span>
+                                <span class="text-white fw-bold">${adr}</span>
                             </div>
                             <div class="stat-row">
                                 <span class="stat-label-term">Rank Estimado</span>
-                                <span class="text-info fw-bold">${reportData.estimated_rank || reportData.rank || 'ANALISANDO'}</span>
+                                <span class="text-info fw-bold">${rank}</span>
                             </div>
                         </div>
                     </div>
@@ -631,7 +638,7 @@ function renderOrganicReport(r, meta) {
                         <div class="mb-4">
                             <div class="text-info fw-bold mb-2 font-monospace">_ ANÁLISE TÁTICA E COMENTÁRIOS:</div>
                             <div class="p-3 bg-dark border border-success border-opacity-25 shadow-sm">
-                                "${escapeHtml(reportData.conselho_kaio || reportData.advice || 'Análise concluída pelo Oráculo V. Operação registrada com sucesso no banco de dados.')}"
+                                "${escapeHtml(conselho)}"
                                 <span class="terminal-cursor"></span>
                             </div>
                         </div>
