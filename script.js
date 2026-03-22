@@ -192,6 +192,21 @@ async function fetchOperations(append = false) {
         if (error) throw error;
 
         if (data && data.length > 0) {
+            const matchIds = data.map(op => op.id);
+            const { data: analysesData } = await supabaseClient
+                .from('match_analysis_queue')
+                .select('match_id, player_tag')
+                .in('match_id', matchIds)
+                .eq('status', 'completed');
+            
+            const completedMap = {};
+            if (analysesData) {
+                analysesData.forEach(a => {
+                    if (!completedMap[a.match_id]) completedMap[a.match_id] = new Set();
+                    completedMap[a.match_id].add(a.player_tag);
+                });
+            }
+
             const formattedOps = data.map(op => {
                 const sortedSquad = op.operation_squads.map(sq => ({
                     riotId: sq.riot_id, agent: sq.agent, agentImg: sq.agent_img, kda: sq.kda, hs: sq.hs_percent
@@ -210,7 +225,7 @@ async function fetchOperations(append = false) {
                 };
             });
             
-            renderOperations(formattedOps, append);
+            renderOperations(formattedOps, append, completedMap);
             opsOffset += data.length;
 
             const loadMoreContainer = document.getElementById('load-more-container');
@@ -343,7 +358,7 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
         ${wrapperEnd}`;
 }
 
-function renderOperations(operations, append = false) {
+function renderOperations(operations, append = false, completedMap = {}) {
     const section = document.getElementById('operations-section');
     const container = document.getElementById('operations-container');
     
@@ -383,18 +398,31 @@ function renderOperations(operations, append = false) {
             const borderClass = isLast ? '' : 'border-bottom border-secondary border-opacity-25';
             
             const [kills, deaths, assists] = m.kda.split('/');
-            const kdaFormatted = `<span class="text-white">${kills}</span><span class="text-secondary mx-1">/</span><span class="text-danger">${deaths}</span><span class="text-secondary mx-1">/</span><span class="text-white">${assists}</span>`;
+            
+            const hasAnalysis = completedMap[op.id] && completedMap[op.id].has(m.riotId);
+            const intelBtn = hasAnalysis 
+                ? `<a href="?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" target="_blank" class="badge bg-danger rounded-0 text-decoration-none mt-1" style="font-size: 0.65rem; background-color: rgba(255, 70, 85, 0.2) !important; border: 1px solid var(--val-red); padding: 3px 6px;" title="Ver Relatório do Oráculo V">[👁️ INTEL TÁTICA]</a>` 
+                : '';
 
             squadHTML += `
-                <div class="d-flex align-items-center justify-content-between py-2 ${borderClass}">
-                    <div class="d-flex align-items-center gap-3">
-                        <img src="${safeUrl(m.agentImg, '')}" class="rounded-0 border border-secondary" style="width: 32px; height: 32px; object-fit: cover;" onerror="this.onerror=null; this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png';">
-                        <span class="fw-bold text-light text-truncate text-uppercase" style="max-width: 120px; font-size: 0.95rem; letter-spacing: 1px;">${escapeHtml(m.riotId.split('#')[0])}</span>
-                    </div>
-                    
-                    <div class="d-flex align-items-center gap-4 font-monospace text-nowrap" style="font-size: 0.9rem;">
-                        <div style="width: 80px;" class="text-center bg-dark rounded-0 px-2 py-1 border border-secondary border-opacity-25" aria-label="KDA: ${kills} abates, ${deaths} mortes, ${assists} assistências">${kdaFormatted}</div>
-                        <div style="width: 60px;" class="text-end" style="color: #adb5bd;" aria-label="Porcentagem de Headshots: ${m.hs}%"><span class="text-light">${m.hs}%</span> <span style="font-size:0.65rem" aria-hidden="true">HS</span></div>
+                <div class="d-flex flex-column py-2 ${borderClass}">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="${safeUrl(m.agentImg, '')}" class="rounded-0 border border-secondary" style="width: 32px; height: 32px; object-fit: cover;" onerror="this.onerror=null; this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png';">
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-light text-truncate text-uppercase" style="max-width: 120px; font-size: 0.95rem; letter-spacing: 1px;">${escapeHtml(m.riotId.split('#')[0])}</span>
+                                ${intelBtn}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-center gap-4 font-monospace text-nowrap" style="font-size: 0.9rem;">
+                            <div class="text-start bg-dark rounded-0 px-2 py-1 border border-secondary border-opacity-25" aria-label="KDA: ${kills} abates, ${deaths} mortes, ${assists} assistências">
+                                <span class="text-secondary small me-1">K</span><span class="text-white fw-bold me-2">${kills}</span>
+                                <span class="text-secondary small me-1">D</span><span class="text-danger fw-bold me-2">${deaths}</span>
+                                <span class="text-secondary small me-1">A</span><span class="text-info fw-bold">${assists}</span>
+                            </div>
+                            <div style="width: 60px;" class="text-end" style="color: #adb5bd;" aria-label="Porcentagem de Headshots: ${m.hs}%"><span class="text-light">${m.hs}%</span> <span style="font-size:0.65rem" aria-hidden="true">HS</span></div>
+                        </div>
                     </div>
                 </div>
             `;
