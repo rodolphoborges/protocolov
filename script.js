@@ -20,6 +20,11 @@ const urlParams = new URLSearchParams(window.location.search);
 const organicPlayer = urlParams.get('player');
 const organicMatchId = urlParams.get('matchId');
 
+if (organicPlayer && organicMatchId) {
+    console.log("🦾 [PROTOCOLO V] REDIRECIONANDO PARA MODO OTIMIZADO (analise.html)");
+    window.location.href = `analise.html?player=${encodeURIComponent(organicPlayer)}&matchId=${organicMatchId}`;
+}
+
 async function fetchMapData() {
     try {
         const res = await fetch('https://valorant-api.com/v1/maps');
@@ -407,9 +412,8 @@ function renderOperations(operations, append = false, completedMap = {}) {
             
             const [kills, deaths, assists] = m.kda.split('/');
             
-            const hasAnalysis = completedMap[op.id] && completedMap[op.id].has(m.riotId);
             const intelBtn = hasAnalysis 
-                ? `<a href="?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" target="_blank" onclick="event.stopPropagation()" class="text-info text-decoration-none ms-2" style="font-size: 0.75rem; font-family: 'Teko', sans-serif; opacity: 0.8; letter-spacing: 1px;" title="Ver Relatório">[INTEL]</a>` 
+                ? `<a href="analise.html?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" target="_blank" onclick="event.stopPropagation()" class="text-info text-decoration-none ms-2" style="font-size: 0.75rem; font-family: 'Teko', sans-serif; opacity: 0.8; letter-spacing: 1px;" title="Ver Relatório">[INTEL]</a>` 
                 : '';
 
             squadHTML += `
@@ -525,152 +529,10 @@ function renderSquads() {
     container.innerHTML = fullHTML;
 }
 
-async function checkOrganicMode() {
-    if (!organicPlayer || !organicMatchId) return;
-
-    console.log("🦾 [PROTOCOLO V] MODO ORGANIC CMD ATIVADO");
-    document.body.classList.add('organic-mode');
-    
-    // Criar container de análise (o CSS .organic-mode agora cuida de esconder o resto)
-    const container = document.createElement('div');
-    container.id = 'organic-container';
-    container.className = 'container py-5';
-    container.innerHTML = `
-        <div class="terminal-loader text-center py-5" style="margin-top: 10vh;">
-            <div class="terminal-text fs-2 mb-4">
-                <span class="text-info">>>></span> ACEDENDO AO BANCO DE DADOS...
-            </div>
-            <div class="terminal-alert d-inline-block px-5">
-                <div class="spinner-border text-success mb-3" role="status"></div>
-                <div class="text-success font-monospace blink-terminal">SINCRONIZANDO COM ORÁCULO-V [READY]</div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(container);
-
-    try {
-        if (!window.oraculoClient) throw new Error("Módulo Oráculo V não configurado.");
-
-        const { data, error } = await window.oraculoClient
-            .from('match_analysis_queue')
-            .select('*')
-            .eq('match_id', organicMatchId)
-            .eq('agente_tag', organicPlayer)
-            .order('created_at', { ascending: false })
-            .limit(1);
-
-        if (error) throw error;
-        if (!data || data.length === 0 || data[0].status !== 'completed') {
-            container.innerHTML = `
-                <div class="alert alert-dark border-danger rounded-0 text-center py-5">
-                    <h2 class="teko-font text-danger">RELATÓRIO PENDENTE</h2>
-                    <p class="font-monospace text-muted">A análise ainda está na fila de processamento do Oráculo V.</p>
-                    <button class="btn-val mt-3" onclick="window.location.reload()">RECARREGAR</button>
-                    <button class="btn btn-outline-secondary mt-3 ms-2 rounded-0" onclick="window.location.href='index.html'">VOLTAR</button>
-                </div>
-            `;
-            return;
-        }
-
-        renderOrganicReport(data[0].report, data[0].metadata);
-    } catch (err) {
-        container.innerHTML = `<div class="alert alert-danger">Erro ao carregar intel: ${err.message}</div><button class="btn-val mt-3" onclick="window.location.href='index.html'">VOLTAR</button>`;
-    }
-}
-
-function renderOrganicReport(r, meta) {
-    // No Oráculo-V v3.0, o relatório fica em metadata.analysis
-    const reportData = (meta && meta.analysis) || r || meta || {};
-    const container = document.getElementById('organic-container');
-    
-    // Mapeamento dinâmico para lidar com versões diferentes do Oráculo-V
-    const perfIndex = reportData.performance_index || reportData.perf || '--';
-    const kd = reportData.kd || reportData.kda || (reportData.is_player_killer ? 'WIN' : (reportData.is_player_victim ? 'LOSS' : '--'));
-    const adr = reportData.adr || reportData.acs || reportData.weapon || '--';
-    const rank = reportData.estimated_rank || reportData.rank || (reportData.killer_agent ? `VIA ${reportData.killer_agent}` : 'ANALISANDO');
-    
-    // Texto do conselho ou dados de combate
-    let conselho = reportData.conselho_kaio || reportData.advice;
-    if (!conselho && reportData.killer_agent) {
-        conselho = `LOG DE COMBATE: Agente foi eliminado por ${reportData.killer_agent} usando ${reportData.weapon || 'armamento desconhecido'} aos ${reportData.time || '--'}.`;
-    }
-    conselho = conselho || 'Análise concluída pelo Oráculo V. Operação registrada com sucesso no banco de dados.';
-
-    container.innerHTML = `
-        <div class="container py-5">
-            <div class="terminal-screen terminal-text">
-                <div class="terminal-header d-flex justify-content-between align-items-end">
-                    <div>
-                        <div class="text-info fw-bold mb-1">>>> SISTEMA ORÁCULO V // RELATÓRIO DE MISSÃO</div>
-                        <h1 class="text-white m-0" style="font-family: 'Teko', sans-serif;">AGENTE: ${escapeHtml(reportData.agente_tag || reportData.player || organicPlayer || 'DESCONHECIDO')}</h1>
-                    </div>
-                    <div class="text-end opacity-50 small">
-                        ID: ${escapeHtml(reportData.match_id || organicMatchId || '---')}<br>
-                        DATA: ${new Date().toLocaleString()}
-                    </div>
-                </div>
-
-                <div class="row g-5">
-                    <div class="col-md-4">
-                        <div class="terminal-alert text-center">
-                            <div class="stat-label-term">Índice de Performance</div>
-                            <div class="performance-value">${perfIndex}</div>
-                            <div class="small opacity-50 mt-2">CÁLCULO HEURÍSTICO K.A.I.O.</div>
-                        </div>
-
-                        <div class="mt-4">
-                            <div class="stat-row">
-                                <span class="stat-label-term">K/D</span>
-                                <span class="text-white fw-bold">${kd}</span>
-                            </div>
-                            <div class="stat-row">
-                                <span class="stat-label-term">ADR (OU WEAPON)</span>
-                                <span class="text-white fw-bold">${adr}</span>
-                            </div>
-                            <div class="stat-row">
-                                <span class="stat-label-term">Rank Estimado</span>
-                                <span class="text-info fw-bold">${rank}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-8 border-start border-success border-opacity-25">
-                        <div class="mb-4">
-                            <div class="text-info fw-bold mb-2 font-monospace">_ ANÁLISE TÁTICA E COMENTÁRIOS:</div>
-                            <div class="p-3 bg-dark border border-success border-opacity-25 shadow-sm">
-                                "${escapeHtml(conselho)}"
-                                <span class="terminal-cursor"></span>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="p-3 border border-success border-opacity-10 h-100">
-                                    <div class="stat-label-term small mb-1">Ponto de Foco</div>
-                                    <div class="text-white small">${escapeHtml(reportData.focus_point || 'Não identificado pela IA')}</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-3 border border-success border-opacity-10 h-100">
-                                    <div class="stat-label-term small mb-1">Sinergia</div>
-                                    <div class="text-white small">${escapeHtml(reportData.synergy_comment || 'Cooperação operacional padrão')}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-5 pt-4 border-top border-success border-opacity-25 text-center">
-                    <button onclick="window.close()" class="btn btn-outline-success btn-sm rounded-0 px-4">SAIR DO TERMINAL</button>
-                    <div class="mt-3 opacity-25" style="font-size: 0.65rem;">PROTOCOLO V // DIVISÃO DE INTELIGÊNCIA // MODO ORGÂNICO ATIVO</div>
-                </div>
-            </div>
-        </div>
-    `;
-}
+// checkOrganicMode e renderOrganicReport foram movidos para analise.html como parte da otimização de performance.
 
 document.addEventListener('DOMContentLoaded', async () => {
-    checkOrganicMode();
+    // checkOrganicMode foi removido e a lógica de redirecionamento movida para o topo.
     await fetchMapData();
     fetchCachedData();
     setInterval(fetchCachedData, 300000); // Mantém a atualização a cada 5 minutos
