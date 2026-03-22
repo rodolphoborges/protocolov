@@ -409,7 +409,7 @@ function renderOperations(operations, append = false, completedMap = {}) {
             
             const hasAnalysis = completedMap[op.id] && completedMap[op.id].has(m.riotId);
             const intelBtn = hasAnalysis 
-                ? `<a href="?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" target="_blank" onclick="event.stopPropagation()" class="badge bg-danger rounded-0 text-decoration-none mt-1" style="font-size: 0.65rem; background-color: rgba(255, 70, 85, 0.2) !important; border: 1px solid var(--val-red); padding: 3px 6px;" title="Ver Relatório do Oráculo V">[👁️ INTEL TÁTICA]</a>` 
+                ? `<a href="?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" target="_blank" onclick="event.stopPropagation()" class="text-info text-decoration-none ms-2" style="font-size: 0.75rem; font-family: 'Teko', sans-serif; opacity: 0.8; letter-spacing: 1px;" title="Ver Relatório">[INTEL]</a>` 
                 : '';
 
             squadHTML += `
@@ -417,7 +417,7 @@ function renderOperations(operations, append = false, completedMap = {}) {
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-3">
                             <img src="${safeUrl(m.agentImg, '')}" class="rounded-0 border border-secondary" style="width: 32px; height: 32px; object-fit: cover;" onerror="this.onerror=null; this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png';">
-                            <div class="d-flex flex-column">
+                            <div class="d-flex flex-row align-items-center">
                                 <span class="fw-bold text-light text-truncate text-uppercase" style="max-width: 120px; font-size: 0.95rem; letter-spacing: 1px;">${escapeHtml(m.riotId.split('#')[0])}</span>
                                 ${intelBtn}
                             </div>
@@ -542,9 +542,14 @@ async function checkOrganicMode() {
     container.id = 'organic-container';
     container.className = 'container py-5';
     container.innerHTML = `
-        <div class="terminal-loader text-center py-5">
-            <div class="spinner-border text-danger" role="status"></div>
-            <div class="mt-3 font-monospace text-uppercase text-danger blink-terminal">Acedendo ao Oráculo-V...</div>
+        <div class="terminal-loader text-center py-5" style="margin-top: 10vh;">
+            <div class="terminal-text fs-2 mb-4">
+                <span class="text-info">>>></span> ACEDENDO AO BANCO DE DADOS...
+            </div>
+            <div class="terminal-alert d-inline-block px-5">
+                <div class="spinner-border text-success mb-3" role="status"></div>
+                <div class="text-success font-monospace blink-terminal">SINCRONIZANDO COM ORÁCULO-V [READY]</div>
+            </div>
         </div>
     `;
     document.body.appendChild(container);
@@ -583,64 +588,74 @@ function renderOrganicReport(r, meta) {
     // No Oráculo-V v3.0, o relatório fica em metadata.analysis
     const reportData = r || (meta && meta.analysis) || meta || {};
     const container = document.getElementById('organic-container');
-    const emojiPerf = reportData.estimated_rank ? '🏅' : ((reportData.performance_index || reportData.perf) >= 70 ? '🟢' : ((reportData.performance_index || reportData.perf) >= 50 ? '🟡' : '🔴'));
-    
-    document.body.style.backgroundColor = '#0f1923';
     
     container.innerHTML = `
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary pb-3">
+        <div class="container py-5">
+            <div class="terminal-screen terminal-text">
+                <div class="terminal-header d-flex justify-content-between align-items-end">
                     <div>
-                        <div class="text-danger fw-bold text-uppercase small" style="letter-spacing: 2px;">ORÁCULO-V // TACTICAL ANALYSIS</div>
-                        <h1 class="teko-font text-white fs-1 mb-0">${escapeHtml(reportData.player || organicPlayer)}</h1>
+                        <div class="text-info fw-bold mb-1">>>> SISTEMA ORÁCULO V // RELATÓRIO DE MISSÃO</div>
+                        <h1 class="text-white m-0" style="font-family: 'Teko', sans-serif;">AGENTE: ${escapeHtml(reportData.agente_tag || reportData.player || organicPlayer || 'DESCONHECIDO')}</h1>
                     </div>
-                    <div class="text-end">
-                        <div class="text-muted small font-monospace">MATCH: ${organicMatchId}</div>
-                    </div>
-                </div>
-
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="p-4 border border-secondary h-100 d-flex flex-column justify-content-center text-center" style="background: rgba(255, 70, 85, 0.05);">
-                            <div class="text-muted small text-uppercase fw-bold mb-2">Desempenho Geral</div>
-                            <div class="teko-font text-white" style="font-size: 5rem; line-height: 1;">${reportData.performance_index || reportData.perf || reportData.kd || 'N/A'}</div>
-                            <div class="fs-4">${reportData.estimated_rank || emojiPerf}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-8">
-                        <div class="p-4 border border-secondary h-100" style="background: rgba(15, 25, 35, 0.8);">
-                            <div class="text-info small text-uppercase fw-bold mb-3 border-bottom border-info border-opacity-25 pb-2">🧠 Conselho Tático (K.A.I.O.)</div>
-                            <p class="fs-4 text-light teko-font" style="letter-spacing: 0.5px; line-height: 1.2;">
-                                "${escapeHtml(reportData.conselho_kaio || 'Análise concluída pelo Oráculo V. Operação registrada com sucesso no banco de dados.')}"
-                            </p>
-                        </div>
+                    <div class="text-end opacity-50 small">
+                        ID: ${escapeHtml(reportData.match_id || organicMatchId || '---')}<br>
+                        DATA: ${new Date().toLocaleString()}
                     </div>
                 </div>
 
-                <div class="row g-4 mt-1">
+                <div class="row g-5">
                     <div class="col-md-4">
-                        <div class="p-3 border border-secondary text-center">
-                            <div class="text-muted small text-uppercase font-monospace">ADR Real / ACS</div>
-                            <div class="fs-2 text-white teko-font">${reportData.adr || reportData.acs || '--'}</div>
+                        <div class="terminal-alert text-center">
+                            <div class="stat-label-term">Índice de Performance</div>
+                            <div class="performance-value">${reportData.performance_index || reportData.perf || '--'}</div>
+                            <div class="small opacity-50 mt-2">CÁLCULO HEURÍSTICO K.A.I.O.</div>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="stat-row">
+                                <span class="stat-label-term">K/D</span>
+                                <span class="text-white fw-bold">${reportData.kd || '--'}</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label-term">ADR</span>
+                                <span class="text-white fw-bold">${reportData.adr || reportData.acs || '--'}</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label-term">Rank Estimado</span>
+                                <span class="text-info fw-bold">${reportData.estimated_rank || reportData.rank || 'ANALISANDO'}</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="p-3 border border-secondary text-center">
-                            <div class="text-muted small text-uppercase font-monospace">Rank / Meta</div>
-                            <div class="fs-2 text-white teko-font">${reportData.target_kd || reportData.meta_category || reportData.rank || 'N/A'}</div>
+
+                    <div class="col-md-8 border-start border-success border-opacity-25">
+                        <div class="mb-4">
+                            <div class="text-info fw-bold mb-2 font-monospace">_ ANÁLISE TÁTICA E COMENTÁRIOS:</div>
+                            <div class="p-3 bg-dark border border-success border-opacity-25 shadow-sm">
+                                "${escapeHtml(reportData.conselho_kaio || reportData.advice || 'Análise concluída pelo Oráculo V. Operação registrada com sucesso no banco de dados.')}"
+                                <span class="terminal-cursor"></span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 border border-secondary text-center">
-                            <div class="text-muted small text-uppercase font-monospace">K/D Ratio</div>
-                            <div class="fs-2 text-white teko-font">${reportData.kd || '--'}</div>
+
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="p-3 border border-success border-opacity-10 h-100">
+                                    <div class="stat-label-term small mb-1">Ponto de Foco</div>
+                                    <div class="text-white small">${escapeHtml(reportData.focus_point || 'Não identificado pela IA')}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 border border-success border-opacity-10 h-100">
+                                    <div class="stat-label-term small mb-1">Sinergia</div>
+                                    <div class="text-white small">${escapeHtml(reportData.synergy_comment || 'Cooperação operacional padrão')}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-5 pt-4 border-top border-secondary text-center">
-                    <button class="btn-val" onclick="window.location.href='index.html'">VOLTAR AO TERMINAL PRINCIPAL</button>
+                <div class="mt-5 pt-4 border-top border-success border-opacity-25 text-center">
+                    <button onclick="window.close()" class="btn btn-outline-success btn-sm rounded-0 px-4">SAIR DO TERMINAL</button>
+                    <div class="mt-3 opacity-25" style="font-size: 0.65rem;">PROTOCOLO V // DIVISÃO DE INTELIGÊNCIA // MODO ORGÂNICO ATIVO</div>
                 </div>
             </div>
         </div>

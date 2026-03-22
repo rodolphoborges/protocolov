@@ -20,7 +20,39 @@ html, body {
 
 h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-transform: uppercase; line-height: 0.9; margin: 0; }
 
-.organic-mode { background-color: var(--val-dark) !important; color: var(--val-light) !important; }
+.organic-mode { background-color: #050505 !important; color: #00ff41 !important; font-family: 'Courier New', Courier, monospace !important; }
+.organic-mode #organic-container { position: relative; z-index: 10; padding: 40px; }
+.organic-mode::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 9999;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+}
+.organic-mode::after {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: rgba(18, 16, 16, 0.1);
+    opacity: 0;
+    z-index: 9999;
+    pointer-events: none;
+    animation: flicker 0.15s infinite;
+}
+@keyframes flicker {
+    0% { opacity: 0.27861; } 5% { opacity: 0.34769; } 10% { opacity: 0.23604; } 15% { opacity: 0.90626; } 20% { opacity: 0.18128; } 25% { opacity: 0.83891; } 30% { opacity: 0.65583; } 35% { opacity: 0.67807; } 40% { opacity: 0.26559; } 45% { opacity: 0.84693; } 50% { opacity: 0.96019; } 55% { opacity: 0.08594; } 60% { opacity: 0.20313; } 65% { opacity: 0.71988; } 70% { opacity: 0.53455; } 75% { opacity: 0.37288; } 80% { opacity: 0.71428; } 85% { opacity: 0.70419; } 90% { opacity: 0.7003; } 95% { opacity: 0.36108; } 100% { opacity: 0.24387; }
+}
+
 .terminal-loader { font-family: 'Teko', sans-serif; letter-spacing: 2px; }
 
 /* =========================================
@@ -278,39 +310,70 @@ h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-tran
 }
 
 /* =========================================
-   ESTILOS ORGÂNICOS (Relatório Oráculo V)
+   RETRO TERMINAL (Oráculo V Lore)
 ========================================= */
-.organic-mode #organic-container {
-    animation: terminal-entry 0.8s cubic-bezier(0.2, 0, 0, 1);
+.terminal-screen {
+    background: #050505;
+    border: 20px solid #222;
+    border-radius: 20px;
+    box-shadow: inset 0 0 100px rgba(0, 255, 65, 0.2), 0 0 20px rgba(0,0,0,0.5);
+    margin-top: 20px;
+    min-height: 80vh;
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
 }
 
-@keyframes terminal-entry {
-    from { opacity: 0; filter: blur(10px) brightness(2); transform: scale(1.05); }
-    to { opacity: 1; filter: blur(0) brightness(1); transform: scale(1); }
+.terminal-header {
+    border-bottom: 2px solid #00ff41;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
 }
 
-.organic-mode .border-secondary {
-    border-color: rgba(255, 255, 255, 0.1) !important;
+.terminal-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
 }
 
-.organic-mode .teko-font {
-    letter-spacing: 1px;
+.terminal-alert {
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid #00ff41;
+    padding: 15px;
+    margin: 20px 0;
 }
 
-.organic-mode .bg-dark {
-    background-color: #0c1218 !important;
+.terminal-cursor {
+    display: inline-block;
+    width: 10px;
+    height: 1.2rem;
+    background: #00ff41;
+    margin-left: 5px;
+    animation: blink-cursor 1s step-end infinite;
+    vertical-align: middle;
 }
 
-.organic-mode .text-info {
-    color: #4df0ff !important;
+@keyframes blink-cursor {
+    50% { opacity: 0; }
 }
 
-/* Fix para a missão row de análise */
-.mission-row {
-    cursor: pointer !important;
-    text-decoration: none !important;
+.performance-value {
+    font-size: 4rem;
+    font-weight: bold;
+    color: #00ff41;
 }
-.mission-row:hover {
-    filter: brightness(1.2);
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed rgba(0, 255, 65, 0.3);
+    padding: 5px 0;
+}
+
+.stat-label-term {
+    color: #00ff41;
+    opacity: 0.7;
+    text-transform: uppercase;
 }
 
