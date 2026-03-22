@@ -484,6 +484,26 @@ bot.onText(/^\/meu_id(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
 });
 
 // --- COMANDOS SECRETOS DE ADMINISTRAÇÃO ---
+bot.onText(/^\/reciclar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
+    if (msg.from.id !== ADMIN_ID) return; 
+
+    const chatId = msg.chat.id;
+    const matchId = match[1] ? match[1].trim() : null;
+    if (!matchId) return bot.sendMessage(chatId, "🤖 *[K.A.I.O.]*: Informe o Match ID para reciclagem de dados.", { parse_mode: 'Markdown' });
+
+    try {
+        const { error } = await oraculoExt.from('match_analysis_queue').update({ 
+            status: 'pending',
+            error_message: null
+        }).eq('match_id', matchId);
+
+        if (error) throw error;
+        bot.sendMessage(chatId, `♻️ *[K.A.I.O.]*: Partida \`${matchId}\` reinserida na fila do Oráculo V para reprocessamento v3.0.`, { parse_mode: 'Markdown' });
+    } catch(err) {
+        bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: Falha ao resetar análise.", { parse_mode: 'Markdown' });
+    }
+});
+
 bot.onText(/^\/expurgar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     if (msg.from.id !== ADMIN_ID) return; 
 
@@ -571,4 +591,83 @@ if (process.env.WEBHOOK_URL) {
 }
 
 const modoStr = process.env.WEBHOOK_URL ? 'WEBHOOK ONLINE' : 'POLLING ATIVO';
-app.listen(process.env.PORT || 3000, () => console.log(`🌐 Terminal Avançado: ${modoStr} e camuflado.`));
+app.listen(process.env.PORT || 3000, () => {
+    console.log(`🌐 Terminal Avançado: ${modoStr} e camuflado.`);
+    
+    // Inicializa o Worker do Oráculo V se estivermos no ambiente correto
+    if (process.env.HENRIK_API_KEY) {
+        console.log("🧠 [ORÁCULO-V] Protocolo de Análise Ativo. Aguardando jobs...");
+        startQueueWorker();
+    } else {
+        console.log("⚠️ [ORÁCULO-V] HENRIK_API_KEY ausente. Worker em standby.");
+    }
+});
+
+// --- WORKER DE FILA DE ANÁLISE (Oráculo-V v3.0) ---
+const { analyzeMatch } = require('./oraculo');
+
+async function startQueueWorker() {
+    // Loop infinito para processar a fila
+    while (true) {
+        try {
+            // Busca o próximo job pendente
+            const { data: job, error } = await oraculoExt
+                .from('match_analysis_queue')
+                .select('*')
+                .eq('status', 'pending')
+                .order('created_at', { ascending: true })
+                .limit(1);
+
+            if (error) {
+                console.error("❌ [ORÁCULO-V] Erro ao consultar fila:", error.message);
+                await new Promise(r => setTimeout(r, 10000));
+                continue;
+            }
+
+            if (job && job.length > 0) {
+                const currentJob = job[0];
+                const targetTag = currentJob.agente_tag === 'AUTO' ? (currentJob.metadata?.requester || 'm4sna#chama') : currentJob.agente_tag;
+
+                console.log(`🔍 [ORÁCULO-V] Analisando partida ${currentJob.match_id} para ${targetTag}...`);
+
+                // Executa a análise profunda v3.0
+                const result = await analyzeMatch(currentJob.match_id, targetTag);
+
+                if (result.status === 'completed') {
+                    // Salva o relatório no campo metadata para máxima compatibilidade (já que a coluna report pode não existir)
+                    const updatedMeta = { 
+                        ...(currentJob.metadata || {}), 
+                        analysis: result.report 
+                    };
+
+                    await oraculoExt.from('match_analysis_queue').update({ 
+                        status: 'completed', 
+                        metadata: updatedMeta,
+                        processed_at: new Date().toISOString()
+                    }).eq('id', currentJob.id);
+
+                    console.log(`✅ [ORÁCULO-V] Partida ${currentJob.id} processada com sucesso.`);
+                    
+                    if (currentJob.chat_id) {
+                        const msg = `🚨 *[ORÁCULO-V: ANÁLISE CONCLUÍDA]*\n\nAgente: *${targetTag.split('#')[0]}*\nMissão: \`${currentJob.match_id}\`\nPerformance: *${result.report.performance_index}/100*\n\n[ACESSAR RELATÓRIO COMPLETO](https://protocolov.com/analise.html?player=${encodeURIComponent(targetTag)}&matchId=${currentJob.match_id})`;
+                        bot.sendMessage(currentJob.chat_id, msg, { parse_mode: 'Markdown' });
+                    }
+                } else {
+                    console.error(`❌ [ORÁCULO-V] Falha no JOB ${currentJob.id}:`, result.error);
+                    await oraculoExt.from('match_analysis_queue').update({ 
+                        status: 'failed', 
+                        error_message: result.error 
+                    }).eq('id', currentJob.id);
+                }
+            }
+
+            // Aguarda antes da próxima verificação (5 segundos se processou, 30 se estava vazio)
+            const waitTime = (job && job.length > 0) ? 5000 : 30000;
+            await new Promise(r => setTimeout(r, waitTime));
+
+        } catch (err) {
+            console.error("🔥 [ORÁCULO-V] Erro crítico no worker:", err.message);
+            await new Promise(r => setTimeout(r, 60000));
+        }
+    }
+}
