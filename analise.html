@@ -365,7 +365,7 @@
 
             <!-- Site Link -->
             <div class="mt-5 pt-4 border-top border-success border-opacity-25 text-center">
-                <a href="index.html" class="btn-val-terminal">FECHAR TERMINAL</a>
+                <a href="javascript:void(0)" onclick="closeTerminal()" class="btn-val-terminal">FECHAR TERMINAL</a>
                 <div class="mt-3 opacity-25 font-monospace" style="font-size: 0.6rem; letter-spacing: 2px;">
                     PROTOCOLO V // DIVISÃO DE INTELIGÊNCIA // MODO OTIMIZADO ATIVO
                 </div>
@@ -377,6 +377,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script>
+        function closeTerminal() {
+            // Se houver histórico no navegador, volta (preserva scroll)
+            if (window.history.length > 1) {
+                window.history.back();
+            } 
+            // Se foi aberto em uma nova aba/janela, tenta fechar
+            else if (window.opener) {
+                window.close();
+            } 
+            // Fallback para a página inicial
+            else {
+                window.location.href = 'index.html';
+            }
+        }
+
         async function runAnalysis() {
             const params = new URLSearchParams(window.location.search);
             const player = params.get('player');
