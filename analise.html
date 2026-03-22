@@ -464,7 +464,7 @@
 
                 document.getElementById('kd-val').innerText = (parseFloat(report.kd) || 0).toFixed(2);
                 document.getElementById('meta-kd-val').innerText = (parseFloat(report.target_kd || report.meta_kd) || 1.15).toFixed(2);
-                document.getElementById('fb-val').innerText = report.first_bloods !== undefined ? report.first_bloods : '--';
+                document.getElementById('fb-val').innerText = (report.first_bloods !== undefined && report.first_bloods !== null) ? report.first_bloods : '--';
                 
                 document.getElementById('adr-val').innerText = Math.round(parseFloat(report.adr) || 135);
                 document.getElementById('rank-val').innerText = report.estimated_rank || report.rank || (report.killer_agent ? `VIA ${report.killer_agent}` : 'ESTIMANDO...');
