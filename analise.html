@@ -298,19 +298,22 @@
                 }
 
                 // Data mapping (support for multiple report structures)
-                const report = data.metadata?.analysis || data.report || data.metadata || {};
+                // Data mapping (support for multiple report structures)
+                // New format: data.report
+                // Legacy format: data.metadata.analysis
+                const report = data.report || data.metadata?.analysis || data.metadata || {};
                 
                 // Populate metadata
                 document.getElementById('agent-display').innerText = `AGENTE: ${player.split('#')[0].toUpperCase()}`;
                 document.getElementById('op-id').innerText = matchId;
                 document.getElementById('timestamp').innerText = new Date(data.created_at).toLocaleString('pt-BR');
 
-                // Populate stats
+                // Populate stats (with multi-source fallback)
                 document.getElementById('perf-val').innerText = report.performance_index || report.perf || '--';
                 document.getElementById('kd-val').innerText = report.kd || report.kda || (report.is_player_killer ? 'WIN' : (report.is_player_victim ? 'LOSS' : '--'));
                 document.getElementById('adr-val').innerText = report.adr || report.acs || report.weapon || '--';
                 document.getElementById('rank-val').innerText = report.estimated_rank || report.rank || (report.killer_agent ? `VIA ${report.killer_agent}` : 'ESTIMANDO...');
-                document.getElementById('focus-val').innerText = report.focus_point || 'Não identificado';
+                document.getElementById('focus-val').innerText = report.focus_point || (report.adr < 130 ? 'Volume de Dano' : 'Não identificado');
                 document.getElementById('synergy-val').innerText = report.synergy_comment || 'Cooperação operacional padrão';
 
                 // THE FIX: Populate multiple rounds/events
@@ -324,14 +327,17 @@
                     roundsList.forEach((r, idx) => {
                         const roundNum = r.round || (idx + 1);
                         const comment = r.comment || r.conselho || (typeof r === 'string' ? r : 'Sem dados detalhados para este segmento.');
+                        const impacto = r.impacto || (r.kills > 0 ? 'Positivo' : (r.died ? 'Negativo' : 'Neutro'));
+                        
                         roundsHtml += `
-                            <div class="analysis-box">
-                                <span class="round-number">[EVENTO ${roundNum}]</span>
+                            <div class="analysis-box" style="${impacto === 'Positivo' ? 'border-left-color: #00ff41;' : (impacto === 'Negativo' ? 'border-left-color: #ff4655;' : 'border-left-color: #888;')}">
+                                <span class="round-number">[ROUND ${roundNum}]</span>
                                 <span>${comment}</span>
+                                ${r.kills ? `<span class="badge bg-dark border border-success border-opacity-25 ms-2">${r.kills}K</span>` : ''}
                             </div>`;
                     });
                 } else {
-                    // Fallback to single comment structure
+                    // Fallback to single comment structure (Legacy Logic)
                     let singleComment = report.conselho_kaio || report.advice;
                     if (!singleComment && report.killer_agent) {
                         singleComment = `LOG DE COMBATE: Agente foi eliminado por ${report.killer_agent} usando ${report.weapon || 'armamento desconhecido'} aos ${report.time || '--'}.`;
@@ -340,7 +346,8 @@
                     
                     roundsHtml = `
                         <div class="analysis-box">
-                            "${singleComment}"
+                            <span class="round-number">[EVENTO ÚNICO]</span>
+                            <span>"${singleComment}"</span>
                             <span class="terminal-cursor"></span>
                         </div>`;
                 }
