@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oráculo V | Relatório de Missão</title>
+    <link rel="icon" type="image/png" href="https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/24/smallicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #050505 !important;
+            color: #00ff41 !important;
+            font-family: 'Courier New', Courier, monospace !important;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Scanline and Flicker Effects (from style.css organic-mode) */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 9999;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .terminal-container {
+            max-width: 900px;
+            margin: 40px auto;
+            position: relative;
+            z-index: 10;
+            padding: 20px;
+        }
+
+        .terminal-screen {
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.15);
+            padding: 30px;
+            position: relative;
+        }
+
+        .terminal-header {
+            border-bottom: 2px solid #00ff41;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+        }
+
+        .teko-font {
+            font-family: 'Teko', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .text-info { color: #00ff41 !important; }
+        .text-success { color: #00ff41 !important; }
+
+        .stat-label-term {
+            color: #00ff41;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            font-weight: 800;
+            opacity: 0.7;
+        }
+
+        .performance-value {
+            font-size: 5rem;
+            font-family: 'Teko', sans-serif;
+            line-height: 1;
+            color: #fff;
+            text-shadow: 0 0 10px #00ff41;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed rgba(0, 255, 65, 0.3);
+            padding: 8px 0;
+            font-size: 0.9rem;
+        }
+
+        .analysis-box {
+            background-color: rgba(0, 40, 0, 0.2);
+            border-left: 4px solid #00ff41;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            position: relative;
+        }
+
+        .terminal-cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.2rem;
+            background-color: #00ff41;
+            animation: blink-cursor 1s step-end infinite;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+
+        @keyframes blink-cursor {
+            50% { opacity: 0; }
+        }
+
+        .round-number {
+            color: #eab308;
+            font-weight: 800;
+            font-size: 0.8rem;
+            margin-right: 10px;
+            font-family: 'Teko', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .btn-val-terminal {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: transparent;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            font-family: 'Teko', sans-serif;
+            font-size: 1.2rem;
+            padding: 5px 30px;
+            text-decoration: none;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-val-terminal:hover {
+            background-color: #00ff41;
+            color: #000;
+            box-shadow: 0 0 15px #00ff41;
+        }
+
+        .blink-terminal {
+            animation: blinker 1s step-end infinite;
+        }
+
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+
+        .custom-loader .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.3em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="terminal-container">
+        <!-- Loader Section -->
+        <div id="loader" class="text-center py-5" style="margin-top: 20vh;">
+            <div class="custom-loader mb-4">
+                <div class="spinner-border text-success" role="status"></div>
+            </div>
+            <div class="teko-font fs-2 text-success blink-terminal">
+                >>> SINCRONIZANDO COM O ORÁCULO V...
+            </div>
+            <div class="text-success small font-monospace mt-2 opacity-50">
+                LIMPANDO RÁDIO E ACEDENDO AO BANCO DE DADOS DA VANGUARD
+            </div>
+        </div>
+
+        <!-- Content Section (Hidden by default) -->
+        <div id="content" class="terminal-screen" style="display: none;">
+            <div class="terminal-header d-flex flex-column flex-md-row justify-content-between align-items-md-end">
+                <div>
+                    <div class="text-info fw-bold mb-1 teko-font" style="letter-spacing: 2px;">>>> SISTEMA ORÁCULO V // RELATÓRIO DE MISSÃO</div>
+                    <h1 class="text-white m-0 teko-font" style="font-size: 3.5rem;" id="agent-display">AGENTE: ---</h1>
+                </div>
+                <div class="text-md-end opacity-50 small font-monospace mt-3 mt-md-0" style="font-size: 0.7rem; line-height: 1.4;">
+                    ID OPERAÇÃO: <span id="op-id">---</span><br>
+                    CARIMBO TEMPORAL: <span id="timestamp">---</span>
+                </div>
+            </div>
+
+            <div class="row g-5">
+                <!-- Data Sidebar -->
+                <div class="col-md-4">
+                    <div class="p-4 border border-success border-opacity-25 text-center mb-4">
+                        <div class="stat-label-term">Índice de Performance</div>
+                        <div class="performance-value" id="perf-val">--</div>
+                        <div class="small opacity-50 mt-2 teko-font" style="letter-spacing: 1px;">CÁLCULO HEURÍSTICO K.A.I.O.</div>
+                    </div>
+
+                    <div class="stat-row">
+                        <span class="stat-label-term">K/D</span>
+                        <span class="text-white fw-bold" id="kd-val">--</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label-term">ADR / ARMA</span>
+                        <span class="text-white fw-bold" id="adr-val">--</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label-term">RANK ESTIMADO</span>
+                        <span class="text-info fw-bold" id="rank-val">--</span>
+                    </div>
+                </div>
+
+                <!-- Analysis Main -->
+                <div class="col-md-8 border-start border-success border-opacity-25 ps-md-4">
+                    <div class="mb-4">
+                        <div class="text-info fw-bold mb-3 teko-font" style="letter-spacing: 1px;">_ ANÁLISE TÁTICA E EVENTOS DE COMBATE:</div>
+                        <div id="rounds-container">
+                            <!-- Rounds will be populated here -->
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="p-3 border border-success border-opacity-10 h-100">
+                                <div class="stat-label-term small mb-1">Ponto de Foco</div>
+                                <div class="text-white small" id="focus-val">--</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 border border-success border-opacity-10 h-100">
+                                <div class="stat-label-term small mb-1">Sinergia</div>
+                                <div class="text-white small" id="synergy-val">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site Link -->
+            <div class="mt-5 pt-4 border-top border-success border-opacity-25 text-center">
+                <a href="index.html" class="btn-val-terminal">FECHAR TERMINAL</a>
+                <div class="mt-3 opacity-25 font-monospace" style="font-size: 0.6rem; letter-spacing: 2px;">
+                    PROTOCOLO V // DIVISÃO DE INTELIGÊNCIA // MODO OTIMIZADO ATIVO
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script>
+        async function runAnalysis() {
+            const params = new URLSearchParams(window.location.search);
+            const player = params.get('player');
+            const matchId = params.get('matchId');
+
+            if (!player || !matchId) {
+                document.getElementById('loader').innerHTML = `
+                    <div class="alert alert-dark border-danger rounded-0 text-center py-4">
+                        <h2 class="teko-font text-danger">ERRO DE PARÂMETROS</h2>
+                        <p class="font-monospace text-muted">ID do Agente ou da Partida não detetados no radar.</p>
+                        <a href="index.html" class="btn-val-terminal mt-3">VOLTAR AO QG</a>
+                    </div>`;
+                return;
+            }
+
+            try {
+                // Initialize clients using ProtocolConfig
+                const oUrl = window.ProtocolConfig.oraculo ? window.ProtocolConfig.oraculo.url : '';
+                const oKey = window.ProtocolConfig.oraculo ? window.ProtocolConfig.oraculo.anonKey : '';
+                
+                if (!oUrl || !oKey || oUrl.includes('INSIRA_URL')) {
+                    throw new Error("Módulo Oráculo V não configurado corretamente no config.js");
+                }
+
+                const oraculo = window.supabase.createClient(oUrl, oKey);
+
+                // Fetch data
+                const { data, error } = await oraculo
+                    .from('match_analysis_queue')
+                    .select('*')
+                    .eq('match_id', matchId)
+                    .eq('agente_tag', player)
+                    .single();
+
+                if (error) throw error;
+                if (!data || data.status !== 'completed') {
+                    document.getElementById('loader').innerHTML = `
+                        <div class="alert alert-dark border-warning rounded-0 text-center py-4">
+                            <h2 class="teko-font text-warning">RELATÓRIO PENDENTE</h2>
+                            <p class="font-monospace text-muted">A análise tática solicitada ainda está na fila de processamento.</p>
+                            <button onclick="window.location.reload()" class="btn-val-terminal mt-3">RECARREGAR</button>
+                            <a href="index.html" class="btn-val-terminal mt-3 ms-2">VOLTAR AO QG</a>
+                        </div>`;
+                    return;
+                }
+
+                // Data mapping (support for multiple report structures)
+                const report = data.metadata?.analysis || data.report || data.metadata || {};
+                
+                // Populate metadata
+                document.getElementById('agent-display').innerText = `AGENTE: ${player.split('#')[0].toUpperCase()}`;
+                document.getElementById('op-id').innerText = matchId;
+                document.getElementById('timestamp').innerText = new Date(data.created_at).toLocaleString('pt-BR');
+
+                // Populate stats
+                document.getElementById('perf-val').innerText = report.performance_index || report.perf || '--';
+                document.getElementById('kd-val').innerText = report.kd || report.kda || (report.is_player_killer ? 'WIN' : (report.is_player_victim ? 'LOSS' : '--'));
+                document.getElementById('adr-val').innerText = report.adr || report.acs || report.weapon || '--';
+                document.getElementById('rank-val').innerText = report.estimated_rank || report.rank || (report.killer_agent ? `VIA ${report.killer_agent}` : 'ESTIMANDO...');
+                document.getElementById('focus-val').innerText = report.focus_point || 'Não identificado';
+                document.getElementById('synergy-val').innerText = report.synergy_comment || 'Cooperação operacional padrão';
+
+                // THE FIX: Populate multiple rounds/events
+                const roundsContainer = document.getElementById('rounds-container');
+                let roundsHtml = '';
+
+                // Possible round containers in different Oráculo V versions
+                const roundsList = report.rounds || report.events || (Array.isArray(report.analysis) ? report.analysis : null);
+
+                if (roundsList && Array.isArray(roundsList) && roundsList.length > 0) {
+                    roundsList.forEach((r, idx) => {
+                        const roundNum = r.round || (idx + 1);
+                        const comment = r.comment || r.conselho || (typeof r === 'string' ? r : 'Sem dados detalhados para este segmento.');
+                        roundsHtml += `
+                            <div class="analysis-box">
+                                <span class="round-number">[EVENTO ${roundNum}]</span>
+                                <span>${comment}</span>
+                            </div>`;
+                    });
+                } else {
+                    // Fallback to single comment structure
+                    let singleComment = report.conselho_kaio || report.advice;
+                    if (!singleComment && report.killer_agent) {
+                        singleComment = `LOG DE COMBATE: Agente foi eliminado por ${report.killer_agent} usando ${report.weapon || 'armamento desconhecido'} aos ${report.time || '--'}.`;
+                    }
+                    if (!singleComment) singleComment = "Análise concluída pelo Oráculo V. Operação registrada com sucesso no banco de dados.";
+                    
+                    roundsHtml = `
+                        <div class="analysis-box">
+                            "${singleComment}"
+                            <span class="terminal-cursor"></span>
+                        </div>`;
+                }
+
+                roundsContainer.innerHTML = roundsHtml;
+
+                // Show Content
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+
+            } catch (err) {
+                console.error("🔥 ERRO DE SISTEMA:", err);
+                document.getElementById('loader').innerHTML = `
+                    <div class="alert alert-dark border-danger rounded-0 text-center py-4">
+                        <h2 class="teko-font text-danger">ERRO CRÍTICO</h2>
+                        <p class="font-monospace text-muted">${err.message}</p>
+                        <a href="index.html" class="btn-val-terminal mt-3">VOLTAR AO QG</a>
+                    </div>`;
+            }
+        }
+
+        window.onload = runAnalysis;
+    </script>
+</body>
+</html>
