@@ -98,6 +98,37 @@
             margin-bottom: 15px;
             font-size: 1rem;
             position: relative;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .analysis-box.collapsible {
+            cursor: pointer;
+        }
+        .analysis-box.collapsible:hover {
+            background-color: rgba(0, 255, 65, 0.05);
+        }
+
+        .round-content {
+            display: block;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .analysis-box.collapsed .round-content {
+            display: none;
+        }
+
+        .toggle-icon {
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+            display: inline-block;
+            margin-left: 10px;
+            color: #00ff41;
+            opacity: 0.5;
+        }
+
+        .analysis-box.collapsed .toggle-icon {
+            transform: rotate(-90deg);
         }
 
         .terminal-cursor {
@@ -416,6 +447,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script>
+        function toggleRound(element) {
+            element.classList.toggle('collapsed');
+        }
+
         function closeTerminal() {
             // Se houver histórico no navegador, volta (preserva scroll)
             if (window.history.length > 1) {
@@ -612,11 +647,12 @@
                         }
 
                         roundsHtml += `
-                            <div class="analysis-box" style="${impacto === 'Positivo' ? 'border-left-color: #00ff41;' : (impacto === 'Negativo' ? 'border-left-color: #ff4655;' : 'border-left-color: #888;')}">
+                            <div class="analysis-box collapsible collapsed" onclick="toggleRound(this)" style="${impacto === 'Positivo' ? 'border-left-color: #00ff41;' : (impacto === 'Negativo' ? 'border-left-color: #ff4655;' : 'border-left-color: #888;')}">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
+                                    <div class="d-flex align-items-center">
                                         <span class="round-number">[ROUND ${roundNum}]</span>
                                         <span class="text-white opacity-50 small teko-font" style="letter-spacing:1px;">INTEL TÁTICO</span>
+                                        <span class="toggle-icon">▼</span>
                                     </div>
                                     <div class="text-end">
                                         ${r.kills ? `<span class="badge bg-dark border border-success border-opacity-25 ms-1">${r.kills}K</span>` : ''}
