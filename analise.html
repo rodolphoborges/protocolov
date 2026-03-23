@@ -50,6 +50,7 @@
             box-shadow: 0 0 20px rgba(0, 255, 65, 0.15);
             padding: 30px;
             position: relative;
+            min-height: calc(100vh - 160px);
         }
 
         .terminal-header {
@@ -311,7 +312,7 @@
                     </div>
                     <a href="javascript:void(0)" onclick="closeTerminal()" class="btn-val-terminal mt-2 px-4 py-2" style="font-size: 1.2rem;">FECHAR TERMINAL</a>
                 </div>
-                <div class="text-md-end flex-grow-1 opacity-50 small font-monospace mt-3 mt-md-0" style="font-size: 0.7rem; line-height: 1.4;">
+                <div class="text-md-end opacity-50 small font-monospace mt-3 mt-md-0" style="font-size: 0.7rem; line-height: 1.4;">
                     ID OPERAÇÃO: <span id="op-id">---</span><br>
                     CARIMBO TEMPORAL: <span id="timestamp">---</span>
                 </div>
