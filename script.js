@@ -134,7 +134,7 @@ async function fetchCachedData() {
         const banner = document.getElementById('lobby-banner');
         if (calls && calls.length > 0 && banner) {
             const call = calls[0];
-            document.getElementById('lobby-commander-text').innerText = `${escapeHtml(call.commander)} ESTÁ A FORMAR ESQUADRÃO`;
+            document.getElementById('lobby-commander-text').innerText = `${escapeHtml(call.commander).toUpperCase()} MOBILIZANDO ESQUADRÃO`;
             
             const codeEl = document.getElementById('lobby-code-text');
             
