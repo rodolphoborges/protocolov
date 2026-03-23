@@ -30,7 +30,7 @@ function injectNavigation() {
     
     // Add spacer to prevent content overlap
     const spacer = document.createElement('div');
-    spacer.style.height = '80px';
+    spacer.className = 'header-spacer';
     document.body.insertBefore(spacer, document.body.firstChild.nextSibling);
 
     updateActiveLinks();

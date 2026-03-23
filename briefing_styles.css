@@ -51,3 +51,34 @@
     .decrypting {
         animation: decrypt 0.8s ease-in-out;
     }
+    @media (max-width: 768px) {
+        .sidebar-review {
+            position: relative;
+            top: 0;
+            border-right: none;
+            border-bottom: 1px solid rgba(71, 162, 255, 0.2);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            gap: 20px;
+            width: 100%;
+            scrollbar-width: none;
+        }
+        .sidebar-review::-webkit-scrollbar { display: none; }
+        
+        .nav-link-kayo {
+            display: inline-block;
+            padding: 5px 10px;
+            font-size: 0.9rem;
+        }
+        .nav-link-kayo:hover, .nav-link-kayo.active {
+            padding-left: 0;
+            border-bottom: 2px solid var(--val-blue);
+        }
+
+        .command-palette {
+            padding: 15px;
+        }
+    }
