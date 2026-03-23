@@ -465,7 +465,8 @@
                     .from('match_analysis_queue')
                     .select('*')
                     .eq('match_id', matchId)
-                    .eq('agente_tag', player)
+                    .ilike('agente_tag', player)
+                    .limit(1)
                     .single();
 
                 if (error) throw error;

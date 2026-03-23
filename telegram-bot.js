@@ -661,6 +661,7 @@ async function startQueueWorker() {
 
                     await oraculoExt.from('match_analysis_queue').update({ 
                         status: 'completed', 
+                        agente_tag: targetTag,
                         metadata: updatedMeta,
                         processed_at: new Date().toISOString()
                     }).eq('id', currentJob.id);
