@@ -349,6 +349,32 @@ bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
         // Normalização: Remover espaços e garantir formato UUID limpo
         const cleanMatchId = matchId.trim().toLowerCase();
 
+        // 🤖 NOVO: Verifica se a partida já foi processada para retornar imediato
+        const { data: results } = await oraculoExt.from('match_analysis_queue')
+            .select('*')
+            .eq('match_id', cleanMatchId)
+            .eq('status', 'completed')
+            .order('created_at', { ascending: false });
+
+        if (results && results.length > 0) {
+            // Filtrar apenas jobs individuais (não o AUTO que é dispatcher)
+            const agentResults = results.filter(r => r.agente_tag !== 'AUTO' && r.metadata?.analysis);
+            
+            if (agentResults.length > 0) {
+                let msg = `📊 *[ORÁCULO-V: REGISTROS RECUPERADOS]*\n\nEssa missão já foi processada anteriormente. Resultados detectados:\n`;
+                for (const r of agentResults) {
+                    const analysis = r.metadata.analysis;
+                    const adr = typeof analysis.adr === 'number' ? Math.round(analysis.adr) : analysis.adr;
+                    const kd = typeof analysis.kd === 'number' ? analysis.kd.toFixed(2) : (analysis.target_kd ?? analysis.kd);
+                    const fb = analysis.first_bloods ?? analysis.first_kills ?? 0;
+                    
+                    msg += `\n👤 *${r.agente_tag.split('#')[0].toUpperCase()}* (${analysis.performance_index}/100)\n   ADR: ${adr} | K/D: ${kd} | FB: ${fb}\n`;
+                }
+                msg += `\n[ACESSAR RELATÓRIO COMPLETO](https://protocolov.com/analise.html?matchId=${cleanMatchId})`;
+                return bot.sendMessage(chatId, msg, { parse_mode: 'Markdown' });
+            }
+        }
+
         // Envia o job como 'AUTO' para que o Oráculo V analise todos os agentes do Protocolo V presentes na partida
         // Usamos upsert para evitar duplicidade na fila
         const { error } = await oraculoExt.from('match_analysis_queue').upsert([{ 
