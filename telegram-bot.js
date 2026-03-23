@@ -368,9 +368,9 @@ bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
                     const kd = typeof analysis.kd === 'number' ? analysis.kd.toFixed(2) : (analysis.target_kd ?? analysis.kd);
                     const fb = analysis.first_bloods ?? analysis.first_kills ?? 0;
                     
-                    msg += `\n👤 *${r.agente_tag.split('#')[0].toUpperCase()}* (${analysis.performance_index}/100)\n   ADR: ${adr} | K/D: ${kd} | FB: ${fb}\n`;
+                    msg += `\n👤 *${r.agente_tag.split('#')[0].toUpperCase()}* (${analysis.performance_index}/100)\n   ADR: ${adr} | K/D: ${kd} | FB: ${fb}\n   [VER RELATÓRIO](https://protocolov.com/analise.html?player=${encodeURIComponent(r.agente_tag)}&matchId=${cleanMatchId})\n`;
                 }
-                msg += `\n[ACESSAR RELATÓRIO COMPLETO](https://protocolov.com/analise.html?matchId=${cleanMatchId})`;
+                msg += `\n🔗 _Use os links individuais acima para ver os detalhes de cada agente._`;
                 return bot.sendMessage(chatId, msg, { parse_mode: 'Markdown' });
             }
         }
