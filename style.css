@@ -432,10 +432,6 @@ h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-tran
         font-size: 0.9rem !important;
         padding: 5px !important;
     }
-    .logo-container {
-        justify-content: center !important;
-        width: 100% !important;
-    }
     .logo-text {
         font-size: 1.6rem !important;
         text-align: center !important;
