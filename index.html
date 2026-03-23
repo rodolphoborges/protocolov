@@ -124,12 +124,28 @@
             </div>
 
             <!-- Coluna 3: SoloQ / Streaks -->
-            <div class="col-lg-4">
-                <div class="p-4 border border-secondary text-light h-100" style="background-color: #0f1923; border-top: 3px solid var(--val-gray) !important;">
-                    <div class="text-uppercase fw-bold mb-3" style="color: var(--val-gray); font-size: 0.8rem; letter-spacing: 2px;">[AVISO] ESTADO OPERACIONAL</div>
-                    <div id="leader-streaks" class="leader-list">
-                        <div class="text-center py-4"><span class="spinner-border spinner-border-sm text-secondary"></span></div>
-                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Linha Extra: Mapas, MVP e Alertas -->
+        <div class="row g-4 mt-2">
+            <div class="col-md-4">
+                <div class="p-4 border border-secondary text-light h-100" style="background-color: #0f1923;">
+                    <div class="text-uppercase fw-bold mb-2" style="color: var(--val-blue); font-size: 0.7rem; letter-spacing: 1px;">_ DOMINÂNCIA DE MAPAS</div>
+                    <div id="intel-map-data" class="small text-muted font-monospace">A carregar satélite...</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 border border-secondary text-light h-100" style="background-color: #0f1923;">
+                    <div class="text-uppercase fw-bold mb-2" style="color: var(--val-red); font-size: 0.7rem; letter-spacing: 1px;">_ OPERADOR DE ELITE (MVP)</div>
+                    <div id="intel-mvp-data" class="small text-muted font-monospace">A identificar alvo...</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 border border-secondary text-light h-100" style="background-color: #0f1923;">
+                    <div class="text-uppercase fw-bold mb-2" style="color: var(--val-gray); font-size: 0.7rem; letter-spacing: 1px;">_ ALERTAS TÁTICOS</div>
+                    <div id="intel-wolves-data" class="small text-muted font-monospace">Rádio limpo...</div>
                 </div>
             </div>
         </div>
@@ -223,6 +239,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="insights.js"></script>
     <script src="nav.js"></script>
     <script src="script.js"></script>
 </body>
