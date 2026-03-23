@@ -704,3 +704,95 @@ h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-tran
     100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; }
 }
 
+
+/* =========================================
+   LOBBY BANNER (Summoning Notice)
+========================================= */
+#lobby-banner {
+    display: none;
+    background-color: var(--val-red);
+    color: var(--val-light);
+    padding: 8px 0;
+    font-family: 'Teko', sans-serif;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 1100;
+    border-bottom: 2px solid rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(255, 70, 85, 0.4);
+    overflow: hidden;
+}
+
+#lobby-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 10px, transparent 10px, transparent 20px);
+    pointer-events: none;
+}
+
+#lobby-banner .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
+}
+
+.lobby-alert-tag {
+    background: #000;
+    color: var(--val-red);
+    padding: 2px 8px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    font-size: 1rem;
+    animation: blinker-alt 1s step-end infinite;
+}
+
+#lobby-commander-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.lobby-code-box {
+    background: rgba(0,0,0,0.3);
+    padding: 4px 12px;
+    border: 1px dashed rgba(255,255,255,0.4);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lobby-code-label {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.7);
+}
+
+#lobby-code-text {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #fff;
+}
+
+#lobby-timer {
+    font-size: 1.1rem;
+    color: #000;
+    font-weight: 800;
+}
+
+@media (max-width: 768px) {
+    #lobby-banner .container {
+        flex-direction: column;
+        gap: 5px;
+        text-align: center;
+    }
+    .lobby-alert-tag { font-size: 0.8rem; }
+    #lobby-commander-text { font-size: 1rem; }
+    #lobby-code-text { font-size: 1.1rem; }
+}
