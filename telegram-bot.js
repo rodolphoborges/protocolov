@@ -647,40 +647,104 @@ async function startQueueWorker() {
 
             if (job && job.length > 0) {
                 const currentJob = job[0];
-                const targetTag = currentJob.agente_tag === 'AUTO' ? (currentJob.metadata?.requester || 'm4sna#chama') : currentJob.agente_tag;
+                
+                if (currentJob.agente_tag === 'AUTO') {
+                    console.log(`🤖 [ORÁCULO-V] AUTO-SCAN: Iniciando varredura na partida ${currentJob.match_id}...`);
+                    try {
+                        // 1. Buscar dados da partida (V4)
+                        const res = await fetch(`https://api.henrikdev.xyz/valorant/v4/match/br/${currentJob.match_id}`, {
+                            headers: { 'Authorization': henrikApiKey }
+                        });
+                        
+                        if (res.status !== 200) throw new Error(`Erro API Henrik: ${res.status}`);
+                        const matchData = await res.json();
+                        const playersInMatch = matchData.data.players;
 
-                console.log(`🔍 [ORÁCULO-V] Analisando partida ${currentJob.match_id} para ${targetTag}...`);
+                        // 2. Buscar todos os agentes registrados no Protocolo V
+                        const { data: dbPlayers } = await supabase.from('players').select('riot_id');
+                        const pVAgentsByRiotId = new Set(dbPlayers.map(p => p.riot_id.toLowerCase().trim()));
 
-                // Executa a análise profunda v3.0
-                const result = await analyzeMatch(currentJob.match_id, targetTag);
+                        // 3. Identificar quem da partida é do Protocolo V
+                        const targets = playersInMatch.filter(p => {
+                            const fullId = `${p.name}#${p.tag}`.toLowerCase().trim();
+                            return pVAgentsByRiotId.has(fullId);
+                        });
 
-                if (result.status === 'completed') {
-                    // Salva o relatório no campo metadata para máxima compatibilidade (já que a coluna report pode não existir)
-                    const updatedMeta = { 
-                        ...(currentJob.metadata || {}), 
-                        analysis: result.report 
-                    };
+                        console.log(`📡 [ORÁCULO-V] Varredura concluída. ${targets.length} agentes encontrados.`);
 
-                    await oraculoExt.from('match_analysis_queue').update({ 
-                        status: 'completed', 
-                        agente_tag: targetTag,
-                        metadata: updatedMeta,
-                        processed_at: new Date().toISOString()
-                    }).eq('id', currentJob.id);
+                        if (targets.length > 0) {
+                            // 4. Criar jobs individuais para cada agente encontrado
+                            const newJobs = targets.map(t => ({
+                                match_id: currentJob.match_id,
+                                agente_tag: `${t.name}#${t.tag}`,
+                                status: 'pending',
+                                metadata: { 
+                                    ...(currentJob.metadata || {}),
+                                    auto_scan: true,
+                                    requester: currentJob.metadata?.requester || 'AUTO'
+                                }
+                            }));
 
-                    console.log(`✅ [ORÁCULO-V] Partida ${currentJob.id} processada com sucesso.`);
-                    
-                    const chatIdToNotify = currentJob.chat_id || currentJob.metadata?.chat_id;
-                    if (chatIdToNotify) {
-                        const msg = `🚨 *[ORÁCULO-V: ANÁLISE CONCLUÍDA]*\n\nAgente: *${targetTag.split('#')[0]}*\nMissão: \`${currentJob.match_id}\`\nPerformance: *${result.report.performance_index}/100*\n\n[ACESSAR RELATÓRIO COMPLETO](https://protocolov.com/analise.html?player=${encodeURIComponent(targetTag)}&matchId=${currentJob.match_id})`;
-                        bot.sendMessage(chatIdToNotify, msg, { parse_mode: 'Markdown' });
+                            await oraculoExt.from('match_analysis_queue').upsert(newJobs, { onConflict: 'match_id,agente_tag' });
+                            
+                            await oraculoExt.from('match_analysis_queue').update({ 
+                                status: 'completed', 
+                                processed_at: new Date().toISOString(),
+                                error_message: `Varredura concluída: ${targets.length} agentes identificados e enfileirados.`
+                            }).eq('id', currentJob.id);
+                        } else {
+                            await oraculoExt.from('match_analysis_queue').update({ 
+                                status: 'completed', 
+                                processed_at: new Date().toISOString(),
+                                error_message: "Varredura concluída: Nenhum agente do Protocolo V detectado nesta partida."
+                            }).eq('id', currentJob.id);
+                            
+                            const chatIdToNotify = currentJob.chat_id || currentJob.metadata?.chat_id;
+                            if (chatIdToNotify) {
+                                bot.sendMessage(chatIdToNotify, "🤖 *[K.A.I.O.]*: Varredura concluída. Nenhum agente do Protocolo V foi detectado nos logs desta missão.", { parse_mode: 'Markdown' });
+                            }
+                        }
+                    } catch (scanErr) {
+                        console.error("❌ [ORÁCULO-V] Erro no AUTO-SCAN:", scanErr.message);
+                        await oraculoExt.from('match_analysis_queue').update({ 
+                            status: 'failed', 
+                            error_message: `Falha na varredura: ${scanErr.message}` 
+                        }).eq('id', currentJob.id);
                     }
                 } else {
-                    console.error(`❌ [ORÁCULO-V] Falha no JOB ${currentJob.id}:`, result.error);
-                    await oraculoExt.from('match_analysis_queue').update({ 
-                        status: 'failed', 
-                        error_message: result.error 
-                    }).eq('id', currentJob.id);
+                    // --- LÓGICA DE ANÁLISE INDIVIDUAL (Existente) ---
+                    const targetTag = currentJob.agente_tag;
+                    console.log(`🔍 [ORÁCULO-V] Analisando partida ${currentJob.match_id} para ${targetTag}...`);
+
+                    const result = await analyzeMatch(currentJob.match_id, targetTag);
+
+                    if (result.status === 'completed') {
+                        const updatedMeta = { 
+                            ...(currentJob.metadata || {}), 
+                            analysis: result.report 
+                        };
+
+                        await oraculoExt.from('match_analysis_queue').update({ 
+                            status: 'completed', 
+                            agente_tag: targetTag,
+                            metadata: updatedMeta,
+                            processed_at: new Date().toISOString()
+                        }).eq('id', currentJob.id);
+
+                        console.log(`✅ [ORÁCULO-V] Partida ${currentJob.id} processada com sucesso.`);
+                        
+                        const chatIdToNotify = currentJob.chat_id || currentJob.metadata?.chat_id;
+                        if (chatIdToNotify) {
+                            const msg = `🚨 *[ORÁCULO-V: ANÁLISE CONCLUÍDA]*\n\nAgente: *${targetTag.split('#')[0]}*\nMissão: \`${currentJob.match_id}\`\nPerformance: *${result.report.performance_index}/100*\n\n[ACESSAR RELATÓRIO COMPLETO](https://protocolov.com/analise.html?player=${encodeURIComponent(targetTag)}&matchId=${currentJob.match_id})`;
+                            bot.sendMessage(chatIdToNotify, msg, { parse_mode: 'Markdown' });
+                        }
+                    } else {
+                        console.error(`❌ [ORÁCULO-V] Falha no JOB ${currentJob.id}:`, result.error);
+                        await oraculoExt.from('match_analysis_queue').update({ 
+                            status: 'failed', 
+                            error_message: result.error 
+                        }).eq('id', currentJob.id);
+                    }
                 }
             }
 
