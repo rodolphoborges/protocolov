@@ -16,6 +16,40 @@
     .header-spacer { height: 120px; } /* Larger for stacked mobile header */
 }
 
+.mission-row {
+    background-color: #0f1923;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+.mission-bg-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.12;
+    filter: grayscale(100%) brightness(0.4);
+    pointer-events: none;
+    mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 100%);
+    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 100%);
+}
+
+.mission-row > * {
+    position: relative;
+    z-index: 1;
+}
+
+.mission-row:hover {
+    background-color: #1a252e;
+    border-color: rgba(255, 70, 85, 0.3);
+    transform: translateX(5px);
+}
 .leader-row {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     padding-bottom: 8px;
