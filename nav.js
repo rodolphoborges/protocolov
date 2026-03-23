@@ -91,6 +91,17 @@ function injectNavigation() {
             </div>
             <div class="header-glow"></div>
         </header>
+        <div id="lobby-banner">
+            <div class="container">
+                <div class="lobby-alert-tag">DISPOSITIVO LFG ATIVO</div>
+                <div id="lobby-commander-text">AGENTE -- ESTÁ A FORMAR ESQUADRÃO</div>
+                <div class="lobby-code-box">
+                    <span class="lobby-code-label">CÓDIGO:</span>
+                    <span id="lobby-code-text">--</span>
+                </div>
+                <div id="lobby-timer">(--:--)</div>
+            </div>
+        </div>
     `;
 
     // Inject as the first child of body
