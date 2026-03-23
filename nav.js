@@ -1,0 +1,66 @@
+/**
+ * Protocolo V - Global Navigation System
+ * Injects a unified header and navigation into all dashboard pages.
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+    injectNavigation();
+    initGlobalAnimations();
+});
+
+function injectNavigation() {
+    const navHTML = `
+        <header class="global-header">
+            <div class="header-content">
+                <div class="logo-container" onclick="window.location.href='index.html'">
+                    <span class="logo-text">PROTOCOLO <span class="highlight">V</span></span>
+                </div>
+                <nav class="main-nav">
+                    <a href="index.html" class="nav-link ${isActive('index.html')}">DASHBOARD</a>
+                    <a href="treino.html" class="nav-link ${isActive('treino.html')}">SALA DE TREINO</a>
+                    <a href="briefing.html" class="nav-link ${isActive('briefing.html')}">BRIEFING</a>
+                </nav>
+            </div>
+            <div class="header-glow"></div>
+        </header>
+    `;
+
+    // Inject as the first child of body
+    document.body.insertAdjacentHTML('afterbegin', navHTML);
+    
+    // Add spacer to prevent content overlap
+    const spacer = document.createElement('div');
+    spacer.style.height = '80px';
+    document.body.insertBefore(spacer, document.body.firstChild.nextSibling);
+
+    updateActiveLinks();
+}
+
+function isActive(page) {
+    const current = window.location.pathname.split('/').pop() || 'index.html';
+    return current === page ? 'active' : '';
+}
+
+function updateActiveLinks() {
+    const links = document.querySelectorAll('.nav-link');
+    links.forEach(link => {
+        if (isActive(link.getAttribute('href'))) {
+            link.classList.add('active');
+        }
+    });
+}
+
+function initGlobalAnimations() {
+    // Reveal animation for main content
+    const containers = document.querySelectorAll('.container, .container-fluid, .main-content');
+    containers.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.6s cubic-bezier(0.23, 1, 0.32, 1)';
+        
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 100 + (index * 100));
+    });
+}

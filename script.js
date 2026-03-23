@@ -538,8 +538,79 @@ document.addEventListener('DOMContentLoaded', async () => {
     fetchCachedData();
     setInterval(fetchCachedData, 300000); // Mantém a atualização a cada 5 minutos
     
-    fetchIntelData();
-    setInterval(fetchIntelData, 300000); // Atualiza métricas complexas a cada 5 mins
+    // Inicia a Camada de Inteligência
+    if (window.IntelligenceLayer && window.oraculoClient) {
+        const intel = new IntelligenceLayer(window.oraculoClient);
+        const renderInsights = (insights) => {
+            if (!insights) return;
+            
+            // Render Synergy
+            const synergyContainer = document.getElementById('leader-synergy');
+            if (synergyContainer) {
+                synergyContainer.innerHTML = insights.synergy.slice(0, 5).map((p, i) => `
+                    <div class="d-flex align-items-center justify-content-between mb-3 leader-row">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted fw-bold" style="width: 20px;">0${i+1}</span>
+                            <span class="text-white fw-bold text-uppercase" style="font-size: 0.9rem;">${p.tag.split('#')[0]}</span>
+                        </div>
+                        <div class="leader-score text-info">${p.score} <span class="small opacity-50">PTS</span></div>
+                    </div>
+                `).join('') || '<div class="text-muted small">A aguardar dados de grupo...</div>';
+            }
+
+            // Render KDA
+            const kdaContainer = document.getElementById('leader-kda');
+            if (kdaContainer) {
+                kdaContainer.innerHTML = insights.kda.slice(0, 5).map((p, i) => `
+                    <div class="d-flex align-items-center justify-content-between mb-3 leader-row">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted fw-bold" style="width: 20px;">0${i+1}</span>
+                            <span class="text-white fw-bold text-uppercase" style="font-size: 0.9rem;">${p.tag.split('#')[0]}</span>
+                        </div>
+                        <div class="leader-score text-danger">${p.score} <span class="small opacity-50">KDA</span></div>
+                    </div>
+                `).join('') || '<div class="text-muted small">A aguardar missões de elite...</div>';
+            }
+
+            // Render Streaks/Status
+            const streaksContainer = document.getElementById('leader-streaks');
+            if (streaksContainer) {
+                const streakList = Object.entries(insights.streaks);
+                streaksContainer.innerHTML = streakList.length > 0 ? streakList.slice(0, 5).map(([tag, type]) => `
+                    <div class="d-flex align-items-center justify-content-between mb-3 leader-row">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="${type === 'WIN_STREAK' ? 'text-success' : 'text-danger'} fw-bold" style="font-size: 0.9rem;">${type === 'WIN_STREAK' ? '🔥' : '❄️'}</span>
+                            <span class="text-white fw-bold text-uppercase" style="font-size: 0.9rem;">${tag.split('#')[0]}</span>
+                        </div>
+                        <div class="leader-score ${type === 'WIN_STREAK' ? 'text-success' : 'text-danger'}" style="font-size: 0.7rem;">${type.replace('_', ' ')}</div>
+                    </div>
+                `).join('') : `<div class="p-3 text-center border border-secondary border-opacity-10" style="background: rgba(255,255,255,0.02);">
+                    <span class="text-success blink-terminal fw-bold" style="font-size: 0.8rem;">ESTADO OPERACIONAL: NOMINAL</span>
+                </div>`;
+            }
+
+            const syncInfo = document.getElementById('intel-sync-info');
+            if (syncInfo) {
+                syncInfo.innerText = `SINC: ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+            }
+        };
+
+        // Carrega do cache ou busca novo
+        const cached = IntelligenceLayer.getFromCache();
+        if (cached) {
+            renderInsights(cached);
+        }
+        
+        // Sempre busca novo para manter atualizado (background refresh)
+        intel.refresh().then(insights => {
+            renderInsights(insights);
+        });
+
+        setInterval(async () => {
+            const fresh = await intel.refresh();
+            renderInsights(fresh);
+        }, 600000); // 10 mins
+    }
     
     const observerOptions = { root: null, rootMargin: '0px', threshold: 0.02 };
     const observer = new IntersectionObserver((entries, observer) => {

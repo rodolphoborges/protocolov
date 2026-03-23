@@ -22,29 +22,7 @@
 
     <div class="val-bg-text-massive">PROTOCOLO V</div>
 
-    <nav class="p-4 position-relative z-1 border-bottom border-dark border-opacity-10">
-        <div class="container d-flex justify-content-between align-items-center">
-            <span class="fs-3 fw-bold text-dark" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;">
-                <span class="text-accent">///</span> PROTOCOLO V
-            </span>
-            <a href="treino.html" class="btn-val" style="font-size: 1.2rem; padding: 5px 20px; background-color: var(--val-dark);">SALA DE TREINO</a>
-        </div>
-        <div id="lobby-banner" class="container mt-4 fade-in-section is-visible" style="display: none;">
-        <div class="p-3 shadow-lg d-flex justify-content-between align-items-center" style="background-color: var(--val-red); color: var(--val-light); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);">
-            <div class="d-flex align-items-center gap-3">
-                <span class="blink-terminal text-light fs-3">🚨</span>
-                <div>
-                    <div class="fw-bold text-uppercase" style="font-size: 0.8rem; letter-spacing: 2px; color: #fff; opacity: 0.9;">Sinalizador Orbital Ativo <span id="lobby-timer" class="text-warning ms-1 fw-bold fs-6"></span></div>
-                    <div class="fs-5 fw-bold" id="lobby-commander-text" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;">COMANDANTE REQUISITOU REFORÇOS</div>
-                </div>
-            </div>
-            <div class="text-end ps-3 border-start border-light border-opacity-25">
-                <div class="fw-bold text-uppercase" style="font-size: 0.8rem; letter-spacing: 2px;">CÓDIGO (COPIE)</div>
-                <div class="fs-2 fw-bold user-select-all" id="lobby-code-text" style="font-family: 'Teko', sans-serif; line-height: 1; cursor: pointer;" title="Clique duas vezes para selecionar">XXXXXX</div>
-            </div>
-        </div>
-        </div>
-    </nav>
+    <script src="nav.js"></script>
 
     <header class="container content-wrapper fade-in-section is-visible">
         <div class="row pt-5 pb-4">
@@ -113,49 +91,44 @@
         </div>
     </section>
 
-    <!-- INTEL DASHBOARD -->
+    <!-- GLOBAL LEADERS & INSIGHTS -->
     <section class="container mt-2 mb-5 fade-in-section" id="intel-dashboard-section">
         <div class="d-flex align-items-center justify-content-between mb-3">
             <div class="d-flex align-items-center">
                 <div class="decor-square"></div>
-                <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px;">Vanguarda / Operações</span>
+                <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px;">Vanguarda / Inteligência</span>
             </div>
             <span id="intel-sync-info" class="font-monospace text-muted small fw-bold" style="letter-spacing: 1px;">SINC: --:--</span>
         </div>
-        <h2 class="val-section-header mb-4">Central de Comando</h2>
+        <h2 class="val-section-header mb-4">Painel de Operações Globais</h2>
         
-        <div class="row g-3">
-            <!-- Estatísticas Rápidas -->
+        <div class="row g-4">
+            <!-- Coluna 1: Karma/Sinergia -->
             <div class="col-lg-4">
-                <div class="d-flex flex-column gap-3 h-100">
-                    <!-- Mapa -->
-                    <div class="p-3 border border-secondary text-light flex-fill" style="background-color: #0f1923; border-left: 2px solid var(--val-red) !important;">
-                        <div class="text-uppercase fw-bold mb-1" style="color: #64748b; font-size: 0.7rem; letter-spacing: 1px;">[INTEL] MAPA DOMINANTE</div>
-                        <div id="intel-map-data" class="text-muted fw-bold" style="font-size: 0.9rem;">
-                            <span class="spinner-border spinner-border-sm text-danger" role="status"></span>
-                        </div>
-                    </div>
-                    <!-- MVP -->
-                    <div class="p-3 border border-secondary text-light flex-fill" style="background-color: #0f1923; border-left: 2px solid #eab308 !important;">
-                        <div class="text-uppercase fw-bold mb-1" style="color: #64748b; font-size: 0.7rem; letter-spacing: 1px;">[ELITE] AGENTE EM DESTAQUE</div>
-                        <div id="intel-mvp-data" class="text-muted fw-bold" style="font-size: 0.9rem;">
-                            <span class="spinner-border spinner-border-sm text-warning" role="status"></span>
-                        </div>
+                <div class="p-4 border border-secondary text-light h-100" style="background-color: #0f1923; border-top: 3px solid var(--val-blue) !important;">
+                    <div class="text-uppercase fw-bold mb-3" style="color: var(--val-blue); font-size: 0.8rem; letter-spacing: 2px;">[ELO] SINERGIA & KARMA</div>
+                    <div id="leader-synergy" class="leader-list">
+                        <div class="text-center py-4"><span class="spinner-border spinner-border-sm text-info"></span></div>
                     </div>
                 </div>
             </div>
             
-            <!-- Alertas Táticos Detalhados -->
-            <div class="col-lg-8">
-                <div class="p-3 border border-secondary text-light h-100" style="background-color: #0f1923; border-left: 2px solid var(--val-blue) !important;">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div>
-                            <div class="text-uppercase fw-bold" style="color: #64748b; font-size: 0.7rem; letter-spacing: 1px;">[VIGILÂNCIA] AGENTES DESALINHADOS</div>
-                            <div class="fs-4 fw-bold text-info" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;">DESVIOS DE PROTOCOLO</div>
-                        </div>
+            <!-- Coluna 2: Performance (KDA) -->
+            <div class="col-lg-4">
+                <div class="p-4 border border-secondary text-light h-100" style="background-color: #0f1923; border-top: 3px solid var(--val-red) !important;">
+                    <div class="text-uppercase fw-bold mb-3" style="color: var(--val-red); font-size: 0.8rem; letter-spacing: 2px;">[ELITE] KDA / PARTIDA</div>
+                    <div id="leader-kda" class="leader-list">
+                        <div class="text-center py-4"><span class="spinner-border spinner-border-sm text-danger"></span></div>
                     </div>
-                    <div id="intel-wolves-data" class="custom-scroll" style="max-height: 160px; overflow-y: auto;">
-                        <span class="spinner-border spinner-border-sm text-info" role="status"></span>
+                </div>
+            </div>
+
+            <!-- Coluna 3: SoloQ / Streaks -->
+            <div class="col-lg-4">
+                <div class="p-4 border border-secondary text-light h-100" style="background-color: #0f1923; border-top: 3px solid var(--val-gray) !important;">
+                    <div class="text-uppercase fw-bold mb-3" style="color: var(--val-gray); font-size: 0.8rem; letter-spacing: 2px;">[AVISO] ESTADO OPERACIONAL</div>
+                    <div id="leader-streaks" class="leader-list">
+                        <div class="text-center py-4"><span class="spinner-border spinner-border-sm text-secondary"></span></div>
                     </div>
                 </div>
             </div>
@@ -250,6 +223,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="nav.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

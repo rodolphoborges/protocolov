@@ -14,10 +14,10 @@ O sistema monitora automaticamente o desempenho dos agentes, recompensa o jogo e
 *Se você é uma Inteligência Artificial auxiliando na manutenção deste repositório, utilize este resumo para entender o ecossistema rapidamente:*
 
 O Protocolo V opera através de serviços desacoplados centrados no **Supabase**:
-1. **Frontend (`script.js`, `style.css`, `index.html`)**: HTML/Vanilla JS com CSS Bruto (`clip-path`, painéis angulares). Escuta o Supabase via *polling* ou *Realtime* para exibir resultados na interface "Organic CMD".
-2. **K.A.I.O. Bot (`telegram-bot.js`)**: O comunicador oficial no Telegram do grupo. Comandos como `/analisar` **não** fazem o processamento pesado; eles injetam *jobs* (tarefas) diretamente na tabela `match_analysis_queue` do Supabase para o jogador requisitante e seus aliados detectados.
-3. **Oráculo V (Microsserviço Analítico)**: Um componente invisível (Worker) que escuta a tabela `match_analysis_queue`. Ele consome a API externa (HenrikDev), estrutura os dados em JSON e usa modelos de linguagem para devolver um relatório tático da partida para o banco de dados.
-4. **Sincronizador (`update-data.js`)**: Script autômato acionado via *Cron* (GitHub Actions) focado em *Single Request Truth*, navegando nos limites de taxa (rate limits) da API para manter dados passivos do painel atualizados (KDA, Headshot, Agente).
+1. **Frontend Core (`nav.js`, `style.css`)**: Injeta a navegação unificada e o design system (glassmorphism, teko-font) de forma global.
+2. **Camada de Inteligência (`insights.js`)**: Mecanismo de agregação no lado do cliente que processa o histórico de partidas para gerar rankings de Sinergia, KDA e sequências (Streaks) em tempo real.
+3. **Módulo Oráculo V (`oraculo.js`, `analise.html`)**: Motor analítico que transforma dados brutos em conselhos táticos e eventos narrativos (ex: First Bloods, multi-kills).
+4. **Sincronizador (`update-data.js`)**: Automação via GitHub Actions para atualização de metadados estáticos dos jogadores.
 
 ---
 
@@ -30,10 +30,10 @@ O Protocolo V opera através de serviços desacoplados centrados no **Supabase**
   * `/convocar`: Dispara um alerta de formação de lobby para o grupo.
   * `/analisar`: Mapeia de forma autônoma quem jogou a última partida ("AUTO") e envia os dados para enfileiramento tático no centro de inteligência.
 * 👁️ **Oráculo V (IA Tática):** Toda partida finalizada pode ser esmiuçada pelo Oráculo. Ele identifica erros fundamentais, sugere reposicionamentos pautados no tipo de Agente e critica a progressão da economia do jogador do Protocolo.
-* 🚨 **Dashboard de Central de Inteligência:** Painel superior atualizado constantemente via Supabase:
-  * **[INTEL] Melhor Mapa:** Sinaliza qual o mapa onde os esquadrões possuem a maior taxa de vitória histórica.
-  * **[DESTAQUE DA SEMANA] MVP Tático:** Exibe o melhor KDA recente.
-  * **[ALERTA TÁTICO] Sinal Perdido:** Detecta "Lobos Solitários" e exibe num radar crítico quem arriscou no modo Competitivo sem a escolta do esquadrão.
+* 🚨 **Painel de Operações Globais (Dashboard):** Visão unificada com insights orientados a dados:
+  * **[ELO] Sinergia & Karma:** Ranking de quem mais joga em grupo (SN).
+  * **[ELITE] KDA / Partida:** Ranking de performance individual pura.
+  * **[AVISO] Estado Operacional:** Detecção automática de *Loss Streaks* ou *Win Streaks*.
 
 ---
 

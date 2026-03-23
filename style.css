@@ -5,6 +5,118 @@
     --val-gray: #768079;
     --val-blue: #47a2ff;
     --val-info: #0dcaf0;
+    --header-height: 70px;
+    --glass-bg: rgba(15, 25, 35, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.leader-row {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 8px;
+    transition: var(--transition-smooth);
+}
+.leader-row:hover {
+    background: rgba(255, 255, 255, 0.02);
+    padding-left: 5px;
+}
+.leader-score {
+    font-family: 'Teko', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+}
+
+/* =========================================
+   GLOBAL HEADER & NAVIGATION
+   ========================================= */
+.global-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--header-height);
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    transition: var(--transition-smooth);
+}
+
+.header-content {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-container {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.logo-text {
+    font-family: 'Teko', sans-serif;
+    font-size: 2rem;
+    color: var(--val-light);
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+.logo-text .highlight {
+    color: var(--val-red);
+}
+
+.main-nav {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-link {
+    font-family: 'Teko', sans-serif;
+    font-size: 1.2rem;
+    color: var(--val-gray);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    padding: 5px 0;
+    transition: var(--transition-smooth);
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--val-light);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--val-red);
+    transition: var(--transition-smooth);
+}
+
+.nav-link:hover::after, .nav-link.active::after {
+    width: 100%;
+}
+
+.header-glow {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--val-red), transparent);
+    opacity: 0.3;
 }
 
 html, body {
