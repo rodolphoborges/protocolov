@@ -433,8 +433,11 @@ h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-tran
         padding: 5px !important;
     }
     .logo-text {
-        font-size: 1.6rem !important;
+        font-size: 1.5rem !important;
         text-align: center !important;
+        white-space: nowrap !important;
+        display: block !important;
+        width: 100% !important;
     }
 
     /* Global Overflow Fix */
