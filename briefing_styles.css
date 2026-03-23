@@ -79,6 +79,19 @@
         }
 
         .command-palette {
-            padding: 15px;
+            padding: 15px !important;
+            margin-bottom: 20px !important;
+        }
+        .command-palette .row {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+        .command-palette .col-md-6 {
+            width: 100% !important;
+        }
+        .cmd-box {
+            padding: 12px 15px !important;
+            font-size: 0.9rem !important;
         }
     }
