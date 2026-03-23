@@ -37,7 +37,7 @@ async function analyzeMatch(matchId, playerTag) {
     const region = 'br';
 
     try {
-        const url = `https://api.henrikdev.xyz/valorant/v2/match/${matchId}`;
+        const url = `https://api.henrikdev.xyz/valorant/v4/match/${region}/${matchId}`;
         const res = await smartFetch(url, headers);
         
         if (res.status !== 200) {
@@ -48,7 +48,7 @@ async function analyzeMatch(matchId, playerTag) {
         const match = matchData.data;
 
         // 1. Identificar o jogador
-        const player = match.players.all_players.find(p => 
+        const player = match.players.find(p => 
             p.name.toLowerCase() === name.toLowerCase() && 
             p.tag.toLowerCase() === tag.toLowerCase()
         );
@@ -58,12 +58,13 @@ async function analyzeMatch(matchId, playerTag) {
         }
 
         // 2. Extrair Métricas Básicas
-        const roundsPlayed = match.metadata.rounds_played;
-        const kills = player.stats.kills;
-        const deaths = Math.max(player.stats.deaths, 1);
-        const assists = player.stats.assists;
-        const adr = Math.round(player.damage_made / roundsPlayed);
-        const acs = Math.round(player.stats.score / roundsPlayed);
+        const roundsPlayed = (match.rounds || []).length || 1;
+        const stats = player.stats || {};
+        const kills = stats.kills || 0;
+        const deaths = Math.max(stats.deaths || 0, 1);
+        const assists = stats.assists || 0;
+        const adr = Math.round((stats.damage ? (stats.damage.dealt || 0) : 0) / roundsPlayed);
+        const acs = Math.round((stats.score || 0) / roundsPlayed);
         const kd = (kills / deaths).toFixed(2);
         
         // 3. Baselines e Status (Doutrina Oráculo-V)
@@ -144,13 +145,15 @@ async function analyzeMatch(matchId, playerTag) {
             let playerDiedInRound = false;
             let playerFirstBlood = false;
 
-            // Analisa o desempenho do player no round
-            const stats = round.player_stats.find(ps => 
-                ps.player_display_name.toLowerCase() === playerTag.toLowerCase()
+            // Localizar stats do player neste round (V4)
+            const statsInRound = (round.stats || []).find(s => 
+                (s.player && s.player.puuid === player.puuid) ||
+                (s.player && s.player.name.toLowerCase() === name.toLowerCase() && s.player.tag.toLowerCase() === tag.toLowerCase())
             );
-            if (stats) {
-                playerKillsInRound = Array.isArray(stats.kills) ? stats.kills.length : (parseInt(stats.kills) || 0);
-                if (stats.was_killed) playerDiedInRound = true;
+            if (statsInRound) {
+                playerKillsInRound = statsInRound.stats ? (statsInRound.stats.kills || 0) : 0;
+                // No V4, verificamos se o player está no array de kills como vítima deste round
+                playerDiedInRound = (match.kills || []).some(k => k.round === index && k.victim.puuid === player.puuid);
             }
 
             // Checar First Blood (Primeira eliminação do round) - ORDENADO POR TEMPO
@@ -350,12 +353,12 @@ async function analyzeMatch(matchId, playerTag) {
                     if (adr > 165) return "DANO BRUTO (AMASSANDO)";
                     if (firstBloods >= 3) return "PRESSÃO INICIAL (ENTRY)";
                     if (parseFloat(kd) > 1.6 && adr < 135) return "KDA PLAYER (BAITADOR?)";
-                    if (parseFloat(kd) < 0.85 && (match.rounds.filter(r => r.player_stats.find(ps => ps.player_display_name.toLowerCase() === playerTag.toLowerCase())?.was_killed).length / roundsPlayed) > 0.8) return "FALTA DE TRADE / ISOLADO";
+                    if (parseFloat(kd) < 0.85 && (match.rounds.filter((r, rIdx) => (match.kills || []).some(k => k.round === rIdx && k.victim.puuid === player.puuid)).length / roundsPlayed) > 0.8) return "FALTA DE TRADE / ISOLADO";
                     if (parseFloat(kd) >= 1.0) return "JOGANDO O FINO";
                     return "ABAIXO DO IMPACTO ESPERADO";
                 })(),
                 synergy_comment: (() => {
-                    const deathRatio = match.rounds.filter(r => r.player_stats.find(ps => ps.player_display_name.toLowerCase() === playerTag.toLowerCase())?.was_killed).length / roundsPlayed;
+                    const deathRatio = match.rounds.filter((r, rIdx) => (match.kills || []).some(k => k.round === rIdx && k.victim.puuid === player.puuid)).length / roundsPlayed;
                     if (parseFloat(kd) < 0.85 && deathRatio > 0.8) return "JOGANDO NO ESCURO (SEM TRADE)";
                     if (parseFloat(kd) > 1.2 && firstBloods >= 2) return "DOMÍNIO DE MAPA / LIDERANÇA";
                     return "COOPERAÇÃO OPERACIONAL";

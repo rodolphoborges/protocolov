@@ -215,8 +215,10 @@ async function fetchOperations(append = false) {
             const completedMap = {};
             if (analysesData && analysesData.length > 0) {
                 analysesData.forEach(a => {
-                    if (!completedMap[a.match_id]) completedMap[a.match_id] = new Set();
-                    completedMap[a.match_id].add(a.agente_tag);
+                    const matchId = a.match_id;
+                    const tag = (a.agente_tag || "").toLowerCase();
+                    if (!completedMap[matchId]) completedMap[matchId] = new Set();
+                    completedMap[matchId].add(tag);
                 });
             }
 
@@ -412,7 +414,8 @@ function renderOperations(operations, append = false, completedMap = {}) {
             
             const [kills, deaths, assists] = m.kda.split('/');
             
-            const hasAnalysis = completedMap[op.id] && completedMap[op.id].has(m.riotId);
+            const normalizedRiotId = (m.riotId || "").toLowerCase();
+            const hasAnalysis = completedMap[op.id] && completedMap[op.id].has(normalizedRiotId);
             const intelBtn = hasAnalysis 
                 ? `<a href="analise.html?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" onclick="event.stopPropagation()" class="intel-mini-link" title="Análise de Missão Disponível"></a>` 
                 : '';
