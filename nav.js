@@ -14,45 +14,63 @@ function injectMobileStyles() {
     style.textContent = `
         @media (max-width: 768px) {
             .global-header { 
-                position: relative !important; 
-                height: auto !important; 
-                padding: 15px 0 !important; 
-                display: block !important;
+                position: fixed !important; 
+                height: 110px !important; 
+                padding: 10px 0 !important; 
+                display: flex !important;
+                flex-direction: column !important;
                 background: #0f1923 !important;
+                z-index: 2000 !important;
             }
             .header-content { 
                 flex-direction: column !important; 
                 align-items: center !important; 
-                gap: 15px !important; 
+                gap: 8px !important; 
                 display: flex !important; 
                 padding: 0 10px !important;
-            }
-            .main-nav { 
-                flex-direction: row !important; 
-                flex-wrap: wrap !important; 
-                justify-content: center !important; 
-                gap: 10px !important; 
-                display: flex !important; 
                 width: 100% !important;
             }
+            .logo-container { 
+                margin: 0 !important; 
+                width: 100% !important; 
+                display: flex !important; 
+                justify-content: center !important;
+            }
+            .logo-text { 
+                font-size: 1.5rem !important; 
+                white-space: nowrap !important; 
+                text-align: center !important;
+            }
+            .main-nav { 
+                display: flex !important;
+                flex-direction: row !important; 
+                justify-content: center !important; 
+                gap: 5px !important; 
+                width: 100% !important;
+                padding: 0 5px !important;
+            }
             .nav-link { 
-                font-size: 0.85rem !important; 
-                padding: 8px 12px !important;
+                font-size: 0.75rem !important; 
+                padding: 6px 8px !important;
                 border: 1px solid rgba(255,255,255,0.1) !important;
+                flex: 1 !important;
+                text-align: center !important;
+                white-space: nowrap !important;
+                letter-spacing: 0px !important;
             }
             .nav-link.active {
                 background: rgba(255, 70, 85, 0.1) !important;
                 border-color: var(--val-red) !important;
+                color: #fff !important;
             }
-            .logo-container { margin: 0 !important; }
             .val-bg-text-massive { display: none !important; }
-            .header-spacer { height: 20px !important; }
+            .header-spacer { height: 120px !important; }
             
-            /* Kill horizontal scroll globally */
-            body, html { overflow-x: hidden !important; width: 100vw !important; position: relative !important; }
-            * { box-sizing: border-box !important; max-width: 100% !important; }
-            .container { padding-left: 15px !important; padding-right: 15px !important; width: 100% !important; max-width: 100% !important; }
-            .row { margin-left: 0 !important; margin-right: 0 !important; }
+            /* Global Scroll Lock */
+            body, html { overflow-x: hidden !important; width: 100vw !important; }
+            * { box-sizing: border-box !important; }
+            .container { width: 100% !important; max-width: 100% !important; padding: 0 15px !important; }
+            .row { margin: 0 !important; width: 100% !important; }
         }
     `;
     document.head.appendChild(style);
