@@ -282,47 +282,9 @@
         .trend-down { color: #ff4655; }
         .trend-stable { color: #eab308; }
 
-        /* Sticky Close Button */
-        .btn-close-terminal-fixed {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10001; /* Above bodies::before (z-index 9999) */
-            background: rgba(5, 5, 5, 0.9);
-            border: 2px solid #00ff41;
-            color: #00ff41;
-            font-family: 'Teko', sans-serif;
-            font-size: 1.4rem;
-            padding: 2px 20px;
-            text-decoration: none;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: normal;
-        }
-        .btn-close-terminal-fixed:hover {
-            background: #00ff41;
-            color: #050505;
-            box-shadow: 0 0 25px #00ff41;
-            transform: scale(1.05);
-        }
-        @media (max-width: 768px) {
-            .btn-close-terminal-fixed {
-                top: 10px;
-                right: 10px;
-                padding: 2px 15px;
-                font-size: 1.2rem;
-            }
-        }
     </style>
 </head>
 <body>
-    <a href="javascript:void(0)" onclick="closeTerminal()" class="btn-close-terminal-fixed">FECHAR TERMINAL</a>
 
     <div class="terminal-container">
 
@@ -341,10 +303,12 @@
 
         <!-- Content Section (Hidden by default) -->
         <div id="content" class="terminal-screen" style="display: none;">
-            <div class="terminal-header d-flex flex-column flex-md-row justify-content-between align-items-md-end">
-                <div>
-                    <div class="text-info fw-bold mb-1 teko-font" style="letter-spacing: 2px;">>>> SISTEMA ORÁCULO V // RELATÓRIO DE MISSÃO</div>
-                    <h1 class="text-white m-0 teko-font" style="font-size: 3.5rem;" id="agent-display">AGENTE: ---</h1>
+                <div class="d-flex justify-content-between align-items-start w-100">
+                    <div>
+                        <div class="text-info fw-bold mb-1 teko-font" style="letter-spacing: 2px;">>>> SISTEMA ORÁCULO V // RELATÓRIO DE MISSÃO</div>
+                        <h1 class="text-white m-0 teko-font" style="font-size: 3.5rem;" id="agent-display">AGENTE: ---</h1>
+                    </div>
+                    <a href="javascript:void(0)" onclick="closeTerminal()" class="text-danger teko-font text-decoration-none opacity-75 hover-opacity-100" style="font-size: 1.2rem; letter-spacing: 2px;">[ FECHAR TERMINAL ]</a>
                 </div>
                 <div class="text-md-end opacity-50 small font-monospace mt-3 mt-md-0" style="font-size: 0.7rem; line-height: 1.4;">
                     ID OPERAÇÃO: <span id="op-id">---</span><br>
