@@ -148,19 +148,14 @@ async function analyzeMatch(matchId, playerTag) {
             const stats = round.player_stats.find(ps => 
                 ps.player_display_name.toLowerCase() === playerTag.toLowerCase()
             );
-
             if (stats) {
-                playerKillsInRound = stats.kills; // Henrik v3 returns Number here in some versions, or array in others. Oraculo.js previously used .length
-                // Correction: stats.kills is usually a Number in this context, or an array if it's the full match data.
-                // Let's check line 82: playerKillsInRound = stats.kills.length; 
-                // So it's an array.
-                playerKillsInRound = stats.kills.length;
+                playerKillsInRound = Array.isArray(stats.kills) ? stats.kills.length : (parseInt(stats.kills) || 0);
                 if (stats.was_killed) playerDiedInRound = true;
             }
 
-            // Checar First Blood (Primeira eliminação do round) - ORDERNADO POR TEMPO
-            // No Henrik v2, as kills ficam na raiz: match.kills
+            // Checar First Blood (Primeira eliminação do round) - ORDENADO POR TEMPO
             const roundKills = (match.kills || []).filter(k => k.round === index);
+            let isFirstDeathThisRound = false;
 
             if (roundKills.length > 0) {
                 // Ordenar kills por tempo para garantir que pegamos o FB real
@@ -174,24 +169,29 @@ async function analyzeMatch(matchId, playerTag) {
                 const killerName = firstKill.killer_display_name || "";
                 const victimName = firstKill.victim_display_name || "";
                 
-                // Identificação robusta do Killer
-                const isPlayerKiller = 
-                    killerName.toLowerCase() === playerTag.toLowerCase() ||
-                    killerName.toLowerCase() === name.toLowerCase() ||
-                    (player.puuid && firstKill.killer_puuid === player.puuid);
+                // Normalização para comparação robusta
+                const normalize = (str) => (str || "").toLowerCase().trim();
+                const targetName = normalize(name);
+                const targetTag = normalize(tag);
+                const targetFull = normalize(playerTag);
 
-                // Identificação robusta da Vítima (First Death)
-                const isPlayerVictim = 
-                    victimName.toLowerCase() === playerTag.toLowerCase() ||
-                    victimName.toLowerCase() === name.toLowerCase() ||
-                    (player.puuid && firstKill.victim_puuid === player.puuid);
+                const checkMatch = (dispName, puuid) => {
+                    if (player.puuid && puuid === player.puuid) return true;
+                    const normalizedDisp = normalize(dispName);
+                    return normalizedDisp === targetFull || 
+                           normalizedDisp === targetName || 
+                           normalizedDisp.split('#')[0] === targetName;
+                };
 
-                if (isPlayerKiller) {
+                // Identificação robusta do Killer (First Blood)
+                if (checkMatch(killerName, firstKill.killer_puuid)) {
                     playerFirstBlood = true;
                     firstBloods++;
                 }
 
-                if (isPlayerVictim) {
+                // Identificação robusta da Vítima (First Death)
+                if (checkMatch(victimName, firstKill.victim_puuid)) {
+                    isFirstDeathThisRound = true;
                     firstDeaths++;
                 }
             }
@@ -199,9 +199,6 @@ async function analyzeMatch(matchId, playerTag) {
             // Identificar Eventos Táticos (Símbolos)
             let tacticalEvents = [];
             if (playerFirstBlood) tacticalEvents.push('FIRST_BLOOD');
-            
-            // Checar se foi First Death neste round
-            const isFirstDeathThisRound = firstDeaths > roundAnalyses.filter(r => r.fd).length;
             if (isFirstDeathThisRound) tacticalEvents.push('FIRST_DEATH');
             
             // Checar Plant/Defuse (Simulando baseado no comentário ou se disponível no round)

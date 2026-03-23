@@ -491,6 +491,25 @@
                 document.getElementById('op-id').innerText = matchId;
                 document.getElementById('timestamp').innerText = new Date(data.created_at).toLocaleString('pt-BR');
 
+                // SELF-HEALING: Calculate FK/FD if missing or zero from root
+                let calculatedFK = 0;
+                let calculatedFD = 0;
+                const roundsForCalc = report.rounds || report.events || (Array.isArray(report.analysis) ? report.analysis : []);
+                
+                if (Array.isArray(roundsForCalc)) {
+                    roundsForCalc.forEach(r => {
+                        if (r.fb === true) calculatedFK++;
+                        if (r.fd === true) calculatedFD++;
+                        // Fallback: If flags are missing but tactical_events has it
+                        if (r.tactical_events && Array.isArray(r.tactical_events)) {
+                            const hasFBInEvents = r.tactical_events.some(ev => (typeof ev === 'string' ? ev : (ev.type || '')).includes('FIRST_BLOOD'));
+                            const hasFDInEvents = r.tactical_events.some(ev => (typeof ev === 'string' ? ev : (ev.type || '')).includes('FIRST_DEATH'));
+                            if (hasFBInEvents && r.fb !== false) r.fb = true; 
+                            if (hasFDInEvents && r.fd !== false) r.fd = true;
+                        }
+                    });
+                }
+
                 // Populate stats (with multi-source fallback)
                 document.getElementById('perf-val').innerText = report.performance_index || report.perf || '--';
                 
@@ -506,8 +525,12 @@
 
                 document.getElementById('kd-val').innerText = (parseFloat(report.kd) || 0).toFixed(2);
                 document.getElementById('meta-kd-val').innerText = (parseFloat(report.target_kd || report.meta_kd) || 1.15).toFixed(2);
-                document.getElementById('fb-val').innerText = (report.first_bloods !== undefined && report.first_bloods !== null) ? report.first_bloods : '--';
-                document.getElementById('fd-val').innerText = (report.first_deaths !== undefined && report.first_deaths !== null) ? report.first_deaths : '--';
+                
+                const fkTotal = Math.max(calculatedFK, (report.first_bloods ?? report.first_kills ?? 0));
+                const fdTotal = Math.max(calculatedFD, (report.first_deaths ?? 0));
+                
+                document.getElementById('fb-val').innerText = fkTotal || (report.first_kills !== undefined ? report.first_kills : '--');
+                document.getElementById('fd-val').innerText = fdTotal || (report.first_deaths !== undefined ? report.first_deaths : (fdTotal === 0 ? '0' : '--'));
                 
                 document.getElementById('adr-val').innerText = Math.round(parseFloat(report.adr) || 135);
                 document.getElementById('rank-val').innerText = report.estimated_rank || report.rank || (report.killer_agent ? `VIA ${report.killer_agent}` : 'ESTIMANDO...');
@@ -592,6 +615,12 @@
                         
                         // Render tactical events badges (Filter for relevant highlights)
                         let eventsBadges = '';
+                        const hasFB = r.fb || (r.tactical_events && r.tactical_events.some(ev => (typeof ev === 'string' ? ev : (ev.type || '')).includes('FIRST_BLOOD')));
+                        const hasFD = r.fd || (r.tactical_events && r.tactical_events.some(ev => (typeof ev === 'string' ? ev : (ev.type || '')).includes('FIRST_DEATH')));
+                        
+                        if (hasFB) eventsBadges += `<span class="badge bg-dark border border-opacity-25 ms-2 badge-fb">FIRST BLOOD</span>`;
+                        if (hasFD) eventsBadges += `<span class="badge bg-dark border border-opacity-25 ms-2 badge-fd">FIRST DEATH</span>`;
+
                         if (r.tactical_events && Array.isArray(r.tactical_events)) {
                             r.tactical_events.forEach(ev => {
                                 let badgeClass = '';
@@ -602,13 +631,14 @@
                                 // Skip generic or redundant types
                                 if (!type || ['kill', 'death', 'assist', 'round_start', 'round_end'].includes(type.toLowerCase())) return;
                                 
+                                // Skip if already added as FB/FD
+                                if (type.includes('FIRST_BLOOD') || type.includes('FIRST_DEATH')) return;
+                                
                                 let label = (typeof type === 'string') ? type.replace('_', ' ').toUpperCase() : 'EVENTO';
                                 
-                                if (type.includes('FIRST_BLOOD')) badgeClass = 'badge-fb';
-                                if (type.includes('FIRST_DEATH')) badgeClass = 'badge-fd';
                                 if (type.includes('PLANT')) badgeClass = 'badge-plant';
                                 if (type.includes('DEFUSE')) badgeClass = 'badge-defuse';
-                                if (type.includes('CLUTCH')) badgeClass = 'badge-fb'; // Reuse FB color for clutches
+                                if (type.includes('CLUTCH')) badgeClass = 'badge-fb';
                                 
                                 eventsBadges += `<span class="badge bg-dark border border-opacity-25 ms-2 ${badgeClass}">${label}</span>`;
                             });
