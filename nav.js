@@ -93,10 +93,10 @@ function injectNavigation() {
         </header>
         <div id="lobby-banner">
             <div class="container">
-                <div class="lobby-alert-tag">DISPOSITIVO LFG ATIVO</div>
-                <div id="lobby-commander-text">AGENTE -- ESTÁ A FORMAR ESQUADRÃO</div>
+                <div class="lobby-alert-tag">SINALIZADOR DE REFORÇOS: ATIVO</div>
+                <div id="lobby-commander-text">AGENTE -- MOBILIZANDO ESQUADRÃO</div>
                 <div class="lobby-code-box">
-                    <span class="lobby-code-label">CÓDIGO:</span>
+                    <span class="lobby-code-label">LOBBY:</span>
                     <span id="lobby-code-text">--</span>
                 </div>
                 <div id="lobby-timer">(--:--)</div>
