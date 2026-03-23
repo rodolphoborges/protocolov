@@ -60,6 +60,16 @@ function escapeMarkdown(text) {
     return text.toString().replace(/[_*`\[\]]/g, '\\$&');
 }
 
+// --- UI DESIGN SYSTEM (K.A.I.O. & ORÁCULO) ---
+const UI = {
+    kaio: (title) => `🤖 *[K.A.I.O. // ${title.toUpperCase()}]*`,
+    oraculo: (title) => `🧠 *[ORÁCULO-V // ${title.toUpperCase()}]*`,
+    alert: (title) => `🚨 *[ALERTA // ${title.toUpperCase()}]*`,
+    info: (text) => `> 📡 _${text}_`,
+    divider: "━━━━━━━━━━━━━━",
+    footer: () => `\n${UI.divider}\n_Protocolo V // HUB DE INTELIGÊNCIA_`
+};
+
 // --- LÓGICA DE BOTÕES (CALLBACK) ---
 bot.on('callback_query', async (query) => {
     const chatId = query.message.chat.id;
@@ -86,13 +96,13 @@ bot.on('callback_query', async (query) => {
 
         listAgents.push(`- ${joinerName}`);
         
-        let newMd = `🚨 *[K.A.I.O.: LFG ATIVO]*\n\n` +
-                    `> 📡 *Reforços solicitados:*\n` +
+        let newMd = UI.alert("LFG ATIVO") + `\n\n` +
+                    UI.info("Reforços solicitados:") + `\n` +
                     `Agentes no grupo: ${listAgents.length}/5\n` +
                     listAgents.map(a => escapeMarkdown(a)).join('\n');
         
         if (listAgents.length >= 5) {
-            bot.editMessageText(newMd + "\n\n✅ *[GRUPO FECHADO]* - Iniciando partida.", { chat_id: chatId, message_id: messageId, parse_mode: 'Markdown' });
+            bot.editMessageText(newMd + `\n\n✅ *[GRUPO FECHADO]*\nIniciando partida.`, { chat_id: chatId, message_id: messageId, parse_mode: 'Markdown' });
         } else {
             bot.editMessageText(newMd, { 
                 chat_id: chatId, message_id: messageId, parse_mode: 'Markdown',
@@ -139,14 +149,14 @@ bot.on('callback_query', async (query) => {
             
             let msgLore = '';
             if (unidadeAlvo === 'ALPHA') {
-                msgLore = `🤖 *[K.A.I.O.]*: Transferência para o esquadrão *ALPHA* concluída. Siga as ordens.`;
+                msgLore = UI.kaio("TRANSFERÊNCIA") + `\n\nDesignado para o esquadrão *ALPHA*. Siga as ordens.`;
             } else if (unidadeAlvo === 'OMEGA') {
-                msgLore = `🤖 *[K.A.I.O.]*: Transferência para o esquadrão *ÔMEGA* concluída. Prepare-se.`;
+                msgLore = UI.kaio("TRANSFERÊNCIA") + `\n\nDesignado para o esquadrão *ÔMEGA*. Prepare-se.`;
             } else {
-                msgLore = `🤖 *[K.A.I.O.]*: Você agora é *RESERVA* (Wingman). Aguarde convocação.`;
+                msgLore = UI.kaio("TRANSFERÊNCIA") + `\n\nVocê agora é *RESERVA* (Wingman). Aguarde convocação.`;
             }
 
-            bot.sendMessage(chatId, msgLore + avisoReserva, { parse_mode: 'Markdown' });
+            bot.sendMessage(chatId, msgLore + avisoReserva + UI.footer(), { parse_mode: 'Markdown' });
             bot.editMessageReplyMarkup({ inline_keyboard: [] }, { chat_id: chatId, message_id: messageId });
         } catch (err) {
             console.error("Erro ao processar transferência de unidade:", err);
@@ -186,26 +196,26 @@ bot.on('callback_query', async (query) => {
 // --- COMANDO /START ---
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    const startMsg = `🦾 **IDENTIDADE RECONHECIDA: SISTEMA K.A.I.O ONLINE**\n\n` +
-                   `Bem-vindo ao centro de comando do **Protocolo V**. Meus sensores estão prontos para gerenciar seu esquadrão e monitorar sua sinergia.\n\n` +
-                   `📡 **/vincular [Nick#Tag]** ➔ Conecta seu rádio ao sistema\n` +
-                   `🚨 **/convocar [Código]** ➔ Aciona reforços e avisa o QG\n` +
-                   `🔄 **/unidade** ➔ Solicita transferência de esquadrão\n` +
-                   `👤 **/perfil [Nick]** ➔ Acessa dossiê de um agente\n` +
-                   `🏆 **/ranking** ➔ Exibe a hierarquia de Sinergia\n\n` +
-                   `Use **/ajuda** para receber o manual de operações completo.\n\n` +
-                   `_O Protocolo V é fã-projeto. Não afiliado à Riot Games._`;
+    const startMsg = UI.kaio("SISTEMA ONLINE") + `\n\n` +
+                   `Bem-vindo ao centro de comando do *Protocolo V*. Meus sensores estão ativos para gerenciar seu esquadrão e monitorar sua sinergia.\n\n` +
+                   `📡 \`/vincular [Nick#Tag]\` ➔ Conectar rádio\n` +
+                   `🚨 \`/convocar [Código]\` ➔ Acionar reforços\n` +
+                   `🔄 \`/unidade\` ➔ Transferência de esquadrão\n` +
+                   `👤 \`/perfil [Nick]\` ➔ Dossiê de agente\n` +
+                   `🏆 \`/ranking\` ➔ Hierarquia de Sinergia\n\n` +
+                   UI.info("Use /ajuda para o manual completo.") +
+                   UI.footer();
     bot.sendMessage(chatId, startMsg, { parse_mode: 'Markdown' });
 });
 
-// --- COMANDO /VINCULAR (NOVO) ---
+// --- COMANDO /VINCULAR ---
 bot.onText(/^\/vincular(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
     const riotId = match[1] ? match[1].trim() : null;
 
     if (!riotId) {
-        return bot.sendMessage(chatId, "🤖 *[K.A.I.O.]*: Informe o seu Riot ID para vincular o rádio.\n\nExemplo: \`/vincular MeuNick#BR1\`", { parse_mode: 'Markdown' });
+        return bot.sendMessage(chatId, UI.kaio("VINCULAR RÁDIO") + "\n\n" + UI.info("Informe seu Riot ID. Ex: /vincular MeuNick#BR1"), { parse_mode: 'Markdown' });
     }
 
     try {
@@ -221,7 +231,7 @@ bot.onText(/^\/vincular(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
         }
 
         await supabase.from('players').update({ telegram_id: telegramId }).eq('riot_id', player.riot_id);
-        bot.sendMessage(chatId, `✅ *[K.A.I.O.]*: Rádio vinculado com sucesso ao codinome *${escapeMarkdown(player.riot_id)}*.`, { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, UI.kaio("SUCESSO") + `\n\nRádio vinculado com sucesso ao codinome *${escapeMarkdown(player.riot_id)}*.` + UI.footer(), { parse_mode: 'Markdown' });
 
     } catch (err) {
         bot.sendMessage(chatId, "🔥 *Falha nos servidores do Protocolo.* Tenta novamente.", { parse_mode: 'Markdown' });
@@ -245,14 +255,15 @@ bot.onText(/^\/unidade(?:@[\w_]+)?(?:\s+(\w+))?/, async (msg, match) => {
     const player = userRecord[0];
 
     if (!unidade) {
-        return bot.sendMessage(chatId, `🤖 *[K.A.I.O.]*: Codinome ${escapeMarkdown(player.riot_id.split('#')[0])}, para qual esquadrão deseja transferência?`, {
+        return bot.sendMessage(chatId, UI.kaio("SISTEMA DE TRANSFERÊNCIA") + `\n\n` +
+            `Codinome *${escapeMarkdown(player.riot_id.split('#')[0])}*, selecione o esquadrão de destino:` + UI.footer(), {
             parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: "Comandante VENENOSA (ALPHA)", callback_data: `uni_ALPHA_${player.riot_id}` }],
-                    [{ text: "Comandante CACHORRO VELHO (OMEGA)", callback_data: `uni_OMEGA_${player.riot_id}` }],
-                    [{ text: "DEPÓSITO DE TORRETAS", callback_data: `uni_WINGMAN_${player.riot_id}` }],
-                    [{ text: "❌ ABORTAR TRANSFERÊNCIA", callback_data: "uni_cancel" }]
+                    [{ text: "🐍 Comandante VENENOSA (ALPHA)", callback_data: `uni_ALPHA_${player.riot_id}` }],
+                    [{ text: "🐺 Comandante CACHORRO VELHO (OMEGA)", callback_data: `uni_OMEGA_${player.riot_id}` }],
+                    [{ text: "🛠️ DEPÓSITO DE TORRETAS (WINGMAN)", callback_data: `uni_WINGMAN_${player.riot_id}` }],
+                    [{ text: "❌ ABORTAR OPERAÇÃO", callback_data: "uni_cancel" }]
                 ]
             }
         });
@@ -274,7 +285,7 @@ bot.onText(/^\/unidade(?:@[\w_]+)?(?:\s+(\w+))?/, async (msg, match) => {
         }
 
         await supabase.from('players').update({ unit: unidade }).eq('riot_id', player.riot_id);
-        bot.sendMessage(chatId, `🔄 *[K.A.I.O.]*: Transferência de *${escapeMarkdown(player.riot_id)}* para o esquadrão *${unidade}* concluída.${aviso}`, { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, UI.kaio("TRANSFERÊNCIA CONCLUÍDA") + `\n\nO agente *${escapeMarkdown(player.riot_id)}* foi realocado para o esquadrão *${unidade}*.${aviso}` + UI.footer(), { parse_mode: 'Markdown' });
     } catch (error) { 
         bot.sendMessage(chatId, "🔥 *Arquiteto:* Falha na sincronização.", { parse_mode: 'Markdown' }); 
     }
@@ -287,14 +298,17 @@ bot.onText(/^\/ranking(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
         const { data, error } = await supabase.from('players').select('riot_id, synergy_score, unit').order('synergy_score', { ascending: false }).limit(10);
         if (error) throw error;
         
-        let rankMsg = `🏆 *[RELATÓRIO DE SINERGIA: TOP 10]*\n_> Extraindo banco de dados da Vanguard..._\n\n`;
+        let rankMsg = UI.kaio("TOP 10 SINERGIA") + `\n\n`;
         data.forEach((p, i) => {
-            rankMsg += `\`[ ${String(i + 1).padStart(2, '0')} ]\` 💠 *${escapeMarkdown(p.riot_id.split('#')[0])}* ➔ ${p.synergy_score || 0} pts _(${p.unit || 'Reserva'})_\n`;
+            const pos = String(i + 1).padStart(2, '0');
+            const pts = String(p.synergy_score || 0).padStart(4, ' ');
+            const nick = p.riot_id.split('#')[0].toUpperCase();
+            rankMsg += `\`[${pos}]\` *${escapeMarkdown(nick)}* \`➔ ${pts} pts\`\n`;
         });
-        rankMsg += `\n_Ganhe pontos de sinergia fechando esquadrões com os outros codinomes._`;
+        rankMsg += UI.footer();
         bot.sendMessage(chatId, rankMsg, { parse_mode: 'Markdown' });
     } catch (err) {
-        bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: Erro ao acessar banco de dados do Protocolo.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, UI.kaio("ERRO") + "\n\nFalha ao extrair ranking de sinergia.", { parse_mode: 'Markdown' });
     }
 });
 
@@ -310,23 +324,42 @@ bot.onText(/^\/perfil(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 
     try {
         const { data } = await supabase.from('players').select('*').ilike('riot_id', `%${argumento}%`).limit(1);
-        if (!data || data.length === 0) return bot.sendMessage(chatId, "🤖 *[K.A.I.O.]*: Nenhum codinome encontrado com esse nome.", { parse_mode: 'Markdown' });
+        if (!data || data.length === 0) return bot.sendMessage(chatId, UI.kaio("ERRO") + "\n\nNenhum codinome encontrado nos registros.", { parse_mode: 'Markdown' });
         
         const p = data[0];
-        const statusLobo = p.lone_wolf ? 'Sim 🐺 (Só joga solo)' : 'Não (Joga em equipe)';
+        
+        // Buscar última análise se o Oráculo estiver configurado
+        let perfIndex = "Sem registros";
+        if (oraculoExt) {
+            const { data: lastAnalysis } = await oraculoExt.from('match_analysis_queue')
+                .select('metadata')
+                .eq('agente_tag', p.riot_id)
+                .eq('status', 'completed')
+                .order('processed_at', { ascending: false })
+                .limit(1);
+            
+            if (lastAnalysis && lastAnalysis.length > 0 && lastAnalysis[0].metadata?.analysis?.performance_index) {
+                perfIndex = `${lastAnalysis[0].metadata.analysis.performance_index}/100`;
+            }
+        }
+
+        const statusLobo = p.lone_wolf ? 'Sim 🐺' : 'Não (Team Player)';
         const safeRank = p.current_rank && p.current_rank !== 'Processando...' ? p.current_rank : 'Pendente';
         
-        const msgPerfil = `📂 *[INFOS DO CODINOME]*\n` +
-                          `Riot ID: *${escapeMarkdown(p.riot_id)}*\n\n` +
-                          `🛡️ *Esquadrão:* ${p.unit || 'Reserva'}\n` +
-                          `⚔️ *Função:* ${p.role_raw || 'Não Definida'}\n` +
-                          `🎖️ *Elo Atual:* ${safeRank}\n\n` +
+        const msgPerfil = UI.kaio("DOSSIÊ DO AGENTE") + `\n\n` +
+                          `👤 *Codinome:* ${escapeMarkdown(p.riot_id)}\n` +
+                          `🛡️ *Esquadrão:* \`${p.unit || 'Reserva'}\`\n` +
+                          `⚔️ *Função:* \`${p.role_raw || 'Não Definida'}\`\n` +
+                          `🎖️ *Elo:* \`${safeRank}\`\n\n` +
+                          `📊 *Performance (Última):* \`${perfIndex}\`\n` +
                           `🤝 *Sinergia:* \`${p.synergy_score || 0} pts\`\n` +
                           `🎯 *Treino (DM):* \`${p.dm_score_total || p.dm_score || 0} pts\`\n` +
-                          `⚠️ *Lobo Solitário:* ${statusLobo}`;
+                          `⚠️ *Lobo Solitário:* ${statusLobo}` + 
+                          UI.footer();
+                          
         bot.sendMessage(chatId, msgPerfil, { parse_mode: 'Markdown' });
     } catch (err) {
-        bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: Erro ao buscar perfil. Tente novamente.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, UI.kaio("ERRO") + "\n\nFalha ao acessar banco de dados do Protocolo.", { parse_mode: 'Markdown' });
     }
 });
 
@@ -361,16 +394,18 @@ bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
             const agentResults = results.filter(r => r.agente_tag !== 'AUTO' && r.metadata?.analysis);
             
             if (agentResults.length > 0) {
-                let msg = `📊 *[ORÁCULO-V: REGISTROS RECUPERADOS]*\n\nEssa missão já foi processada anteriormente. Resultados detectados:\n`;
+                let msg = UI.oraculo("REGISTROS RECUPERADOS") + `\n\nMissão já processada anteriormente. Resultados detectados:\n`;
                 for (const r of agentResults) {
                     const analysis = r.metadata.analysis;
                     const adr = typeof analysis.adr === 'number' ? Math.round(analysis.adr) : analysis.adr;
                     const kd = typeof analysis.kd === 'number' ? analysis.kd.toFixed(2) : (analysis.target_kd ?? analysis.kd);
                     const fb = analysis.first_bloods ?? analysis.first_kills ?? 0;
                     
-                    msg += `\n👤 *${r.agente_tag.split('#')[0].toUpperCase()}* (${analysis.performance_index}/100)\n   ADR: ${adr} | K/D: ${kd} | FB: ${fb}\n   [VER RELATÓRIO](https://protocolov.com/analise.html?player=${encodeURIComponent(r.agente_tag)}&matchId=${cleanMatchId})\n`;
+                    msg += `\n👤 *${r.agente_tag.split('#')[0].toUpperCase()}* (${analysis.performance_index}/100)\n` +
+                           `   \`ADR: ${adr} | K/D: ${kd} | FB: ${fb}\`\n` +
+                           `   [VER RELATÓRIO](https://protocolov.com/analise.html?player=${encodeURIComponent(r.agente_tag)}&matchId=${cleanMatchId})\n`;
                 }
-                msg += `\n🔗 _Use os links individuais acima para ver os detalhes de cada agente._`;
+                msg += UI.footer();
                 return bot.sendMessage(chatId, msg, { parse_mode: 'Markdown' });
             }
         }
@@ -388,9 +423,9 @@ bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
         }], { onConflict: 'match_id,agente_tag' });
         
         if (error) throw error;
-        bot.sendMessage(chatId, `📦 *[K.A.I.O.: ORDEM RECEBIDA]*\n\nA partida \`${matchId}\` foi enviada ao Oráculo V para varredura completa. Todos os agentes do Protocolo V presentes nela serão analisados simultaneamente.`, { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, UI.kaio("ORDEM RECEBIDA") + `\n\nA missão \`${matchId}\` foi enviada ao Oráculo V para varredura completa.` + UI.footer(), { parse_mode: 'Markdown' });
     } catch (err) {
-        bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: Erro ao registrar pedido de análise na fila.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, UI.kaio("ERRO") + "\n\nFalha ao registrar pedido de análise na fila.", { parse_mode: 'Markdown' });
     }
 });
 
@@ -461,7 +496,10 @@ async function exec_convocar(chatId, commanderName, codigoRaw) {
         }]).select();
 
         const callId = insertedCall && insertedCall.length > 0 ? insertedCall[0].id : 'global';
-        const alertMsg = `🚨 *[K.A.I.O.: LFG ATIVO]*\n\nO agente *${escapeMarkdown(commanderName)}* está puxando fila e precisa de reforços.\n\nCódigo do Lobby: \`${codigoLobby}\`\n\nEsquadrão: 1/5\n- ${escapeMarkdown(commanderName)}`;
+        const alertMsg = UI.alert("LFG ATIVO") + 
+            `\n\nO agente *${escapeMarkdown(commanderName)}* está puxando fila e precisa de reforços.\n\n` +
+            `Código do Lobby: \`${codigoLobby}\`\n\n` +
+            `Esquadrão: 1/5\n- ${escapeMarkdown(commanderName)}`;
         
         bot.sendMessage(chatId, alertMsg, {
             parse_mode: 'Markdown',
@@ -470,31 +508,31 @@ async function exec_convocar(chatId, commanderName, codigoRaw) {
             }
         });
     } catch (err) {
-        bot.sendMessage(chatId, "⚠️ *[K.A.I.O.]*: Erro ao registrar sinalizador.", { parse_mode: 'Markdown' });
+        bot.sendMessage(chatId, UI.kaio("ERRO") + "\n\nFalha ao registrar sinalizador.", { parse_mode: 'Markdown' });
     }
 }
-
 
 // --- COMANDO /AJUDA ---
 bot.onText(/^\/ajuda(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `💻 **[K.A.I.O.: MANUAL DE OPERAÇÕES TÁTICAS]**\n\n` +
+    const mensagem = UI.kaio("MANUAL DE OPERAÇÕES") + `\n\n` +
         `Siga as diretrizes abaixo para garantir a eficiência da missão:\n\n` +
-        `📡 **/vincular [ID]** ➔ Use seu Riot ID (Ex: \`Venenosa#BR1\`) para que eu possa rastrear seus logs.\n\n` +
-        `🚨 **/convocar [Cód]** ➔ Envia um alerta de busca de grupo (LFG) para o site e para este rádio.\n\n` +
-        `🔄 **/unidade** ➔ Abre o painel de transferência entre ALPHA, OMEGA ou DEPÓSITO.\n\n` +
-        `👤 **/perfil [Nick]** ➔ Consulta elo, sinergia e status de um agente específico.\n\n` +
-        `📊 **/analisar [ID]** ➔ Aciona o Oráculo V para dissecar uma partida.\n\n` +
-        `🏆 **/ranking** ➔ Monitora os 10 agentes com maior atividade na semana.\n\n` +
-        `🌐 **/site** ➔ Acesso direto à nossa plataforma de inteligência.\n\n` +
-        `_Lembre-se: Sozinho você é um alvo. Em equipe, somos o protocolo._`;
+        `📡 \`/vincular [ID]\` ➔ Conectar seu rádio ao sistema.\n` +
+        `🚨 \`/convocar [Cód]\` ➔ Solicitar reforços (LFG).\n` +
+        `🔄 \`/unidade\` ➔ Transferência entre esquadrões.\n` +
+        `👤 \`/perfil [Nick]\` ➔ Dossiê completo do agente.\n` +
+        `📊 \`/analisar [ID]\` ➔ Acionar Oráculo V para análise.\n` +
+        `🏆 \`/ranking\` ➔ Ranking de Sinergia e atividade.\n` +
+        `🌐 \`/site\` ➔ Acesso direto à nossa plataforma.\n\n` +
+        UI.info("Lembre-se: Sozinho você é um alvo. Em equipe, somos o protocolo.") +
+        UI.footer();
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown' });
 });
 
 // --- COMANDO /SITE ---
 bot.onText(/^\/site(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
-    const mensagem = `🌐 *[K.A.I.O.]*: Acesse nossa intranet para relatórios detalhados e status da line-up:\n\n🔗 [ProtocoloV.com](https://protocolov.com)`;
+    const mensagem = UI.kaio("INTRANET") + `\n\nAcesse nossa plataforma para relatórios detalhados:\n\n🔗 [ProtocoloV.com](https://protocolov.com)`;
     bot.sendMessage(chatId, mensagem, { parse_mode: 'Markdown', disable_web_page_preview: true });
 });
 
@@ -503,11 +541,11 @@ bot.onText(/^\/meu_id(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
     const isAdmin = msg.from.id === ADMIN_ID;
     const rawVal = process.env.ADMIN_TELEGRAM_ID ? `"${process.env.ADMIN_TELEGRAM_ID}"` : 'undefined';
-    const response = `🆔 *[K.A.I.O.: STATUS]*\n\n` +
-                     `Seu ID de rádio: \`${msg.from.id}\`\n` +
-                     `Status Admin: ${isAdmin ? '✅ AUTORIZADO' : '❌ NEGADO'}\n` +
-                     `ID no Sistema (Processado): \`${ADMIN_ID}\`\n` +
-                     `Valor Bruto no .env: \`${rawVal}\``;
+    const response = UI.kaio("SISTEMA STATUS") + `\n\n` +
+                     `ID de rádio: \`${msg.from.id}\`\n` +
+                     `Admin: ${isAdmin ? '✅ AUTORIZADO' : '❌ NEGADO'}\n` +
+                     `Sincronização: \`${ADMIN_ID}\`\n` +
+                     `DEBUG: \`${rawVal}\`` + UI.footer();
     bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
 });
 
@@ -605,7 +643,10 @@ bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
         const ping = Date.now() - start;
         
         if (res.status === 200) {
-            bot.sendMessage(chatId, `🟢 *[K.A.I.O.: CONEXÃO ESTABELECIDA]*\n\nStatus: **OPERACIONAL**\nLatência: \`${ping}ms\`\n\nOs sistemas de rastreamento de Sinergia e os protocolos de atualização estão agora autorizados a operar com carga total.`, { parse_mode: 'Markdown' });
+            bot.sendMessage(chatId, UI.kaio("RADAR ONLINE") + `\n\n` +
+                `Status: *OPERACIONAL*\n` +
+                `Latência: \`${ping}ms\`\n\n` +
+                UI.info("Sistemas autorizados a operar com carga total.") + UI.footer(), { parse_mode: 'Markdown' });
         } else if (res.status === 401) {
             const maskedKey = henrikApiKey ? `${henrikApiKey.slice(0, 4)}***${henrikApiKey.slice(-4)}` : 'NÃO DETECTADA';
             bot.sendMessage(chatId, `🟡 *[K.A.I.O.]*: Erro de Autenticação (401).\n\nSua chave carregada: \`${maskedKey}\`\n\nCertifique-se de que a variável \`HENRIK_API_KEY\` no Render não contém espaços e é uma chave válida da HenrikDev.`, { parse_mode: 'Markdown' });
@@ -727,7 +768,7 @@ async function startQueueWorker() {
                             
                             const chatIdToNotify = currentJob.chat_id || currentJob.metadata?.chat_id;
                             if (chatIdToNotify) {
-                                bot.sendMessage(chatIdToNotify, "🤖 *[K.A.I.O.]*: Varredura concluída. Nenhum agente do Protocolo V foi detectado nos logs desta missão.", { parse_mode: 'Markdown' });
+                                bot.sendMessage(chatIdToNotify, UI.kaio("VARREDURA CONCLUÍDA") + "\n\nNenhum agente do Protocolo V foi detectado nos logs desta missão." + UI.footer(), { parse_mode: 'Markdown' });
                             }
                         }
                     } catch (scanErr) {
@@ -761,7 +802,11 @@ async function startQueueWorker() {
                         
                         const chatIdToNotify = currentJob.chat_id || currentJob.metadata?.chat_id;
                         if (chatIdToNotify) {
-                            const msg = `🚨 *[ORÁCULO-V: ANÁLISE CONCLUÍDA]*\n\nAgente: *${targetTag.split('#')[0]}*\nMissão: \`${currentJob.match_id}\`\nPerformance: *${result.report.performance_index}/100*\n\n[ACESSAR RELATÓRIO COMPLETO](https://protocolov.com/analise.html?player=${encodeURIComponent(targetTag)}&matchId=${currentJob.match_id})`;
+                            const msg = UI.oraculo("MISSÃO ANALISADA") + `\n\n` +
+                                `👤 *${targetTag.split('#')[0].toUpperCase()}*\n` +
+                                `📊 *Index:* \`${result.report.performance_index}/100\`\n\n` +
+                                `[ACESSAR RELATÓRIO COMPLETO](https://protocolov.com/analise.html?player=${encodeURIComponent(targetTag)}&matchId=${currentJob.match_id})` +
+                                UI.footer();
                             bot.sendMessage(chatIdToNotify, msg, { parse_mode: 'Markdown' });
                         }
                     } else {
