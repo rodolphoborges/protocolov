@@ -354,9 +354,11 @@ bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
         const { error } = await oraculoExt.from('match_analysis_queue').upsert([{ 
             match_id: cleanMatchId, 
             agente_tag: 'AUTO', 
-            chat_id: chatId, 
             status: 'pending',
-            metadata: { requester: user[0].riot_id }
+            metadata: { 
+                requester: user[0].riot_id,
+                chat_id: chatId
+            }
         }], { onConflict: 'match_id,agente_tag' });
         
         if (error) throw error;
@@ -668,9 +670,10 @@ async function startQueueWorker() {
 
                     console.log(`✅ [ORÁCULO-V] Partida ${currentJob.id} processada com sucesso.`);
                     
-                    if (currentJob.chat_id) {
+                    const chatIdToNotify = currentJob.chat_id || currentJob.metadata?.chat_id;
+                    if (chatIdToNotify) {
                         const msg = `🚨 *[ORÁCULO-V: ANÁLISE CONCLUÍDA]*\n\nAgente: *${targetTag.split('#')[0]}*\nMissão: \`${currentJob.match_id}\`\nPerformance: *${result.report.performance_index}/100*\n\n[ACESSAR RELATÓRIO COMPLETO](https://protocolov.com/analise.html?player=${encodeURIComponent(targetTag)}&matchId=${currentJob.match_id})`;
-                        bot.sendMessage(currentJob.chat_id, msg, { parse_mode: 'Markdown' });
+                        bot.sendMessage(chatIdToNotify, msg, { parse_mode: 'Markdown' });
                     }
                 } else {
                     console.error(`❌ [ORÁCULO-V] Falha no JOB ${currentJob.id}:`, result.error);
