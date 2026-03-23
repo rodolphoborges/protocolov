@@ -611,6 +611,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderInsights(fresh);
         }, 600000); // 10 mins
     }
+
+    // Inicializa a extração de Intel detalhada (Mapas, MVP, Alertas)
+    fetchIntelData();
     
     const observerOptions = { root: null, rootMargin: '0px', threshold: 0.02 };
     const observer = new IntersectionObserver((entries, observer) => {
