@@ -1,0 +1,53 @@
+
+    /* Smooth CSS Grid Expansion */
+    .expand-container {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.5s ease-out;
+        overflow: hidden;
+    }
+    .expand-container.expanded {
+        grid-template-rows: 1fr;
+    }
+    .expand-content {
+        min-height: 0;
+    }
+
+    /* Review Mode Sidebar */
+    .sidebar-review {
+        position: sticky;
+        top: 20px;
+        font-family: 'Teko', sans-serif;
+        text-transform: uppercase;
+        border-right: 1px solid rgba(71, 162, 255, 0.2);
+    }
+    .nav-link-kayo {
+        color: rgba(255,255,255,0.5);
+        display: block;
+        padding: 5px 0;
+        text-decoration: none;
+        letter-spacing: 1px;
+        transition: 0.2s;
+    }
+    .nav-link-kayo:hover, .nav-link-kayo.active {
+        color: var(--val-blue);
+        padding-left: 10px;
+    }
+
+    /* Command Palette Card */
+    .command-palette {
+        background: rgba(71, 162, 255, 0.05);
+        border: 1px solid rgba(71, 162, 255, 0.2);
+        padding: 20px;
+        margin-bottom: 40px;
+    }
+
+    /* Decryption Animation */
+    @keyframes decrypt {
+        0% { opacity: 0; filter: blur(10px); color: var(--val-blue); }
+        50% { opacity: 1; filter: blur(5px); }
+        100% { opacity: 1; filter: blur(0); }
+    }
+    .decrypting {
+        animation: decrypt 0.8s ease-in-out;
+    }
