@@ -583,7 +583,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <span class="leader-rank fw-bold" style="width: 20px;">0${i+1}</span>
                             <span class="text-white fw-bold text-uppercase" style="font-size: 0.9rem;">${p.tag.split('#')[0]}</span>
                         </div>
-                        <div class="leader-score text-info">${p.score} <span class="small opacity-50">PTS</span></div>
+                        <div class="leader-score text-info">${p.score} <span class="small opacity-50">PTS</span><br><span style="font-size: 0.55rem; opacity: 0.4; display: block; text-align: right;">ÚLTIMOS 7 DIAS</span></div>
                     </div>
                 `).join('') || '<div class="text-muted small">A aguardar dados de grupo...</div>';
             }
@@ -592,12 +592,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             const kdaContainer = document.getElementById('leader-kda');
             if (kdaContainer) {
                 kdaContainer.innerHTML = insights.kda.slice(0, 5).map((p, i) => `
-                    <div class="d-flex align-items-center justify-content-between mb-3 leader-row">
+                    <div class="d-flex align-items-center justify-content-between mb-3 leader-row" onclick="window.open('https://tracker.gg/valorant/match/${p.lastMatchId}', '_blank')" style="cursor: pointer;">
                         <div class="d-flex align-items-center gap-2">
                             <span class="leader-rank fw-bold" style="width: 20px;">0${i+1}</span>
                             <span class="text-white fw-bold text-uppercase" style="font-size: 0.9rem;">${p.tag.split('#')[0]}</span>
                         </div>
-                        <div class="leader-score text-danger">${p.score} <span class="small opacity-50">KDA</span></div>
+                        <div class="leader-score text-danger">${p.score} <span class="small opacity-50">KDA</span><br><span style="font-size: 0.55rem; opacity: 0.6; display: block; text-align: right; color: var(--val-light);">VER PARTIDA</span></div>
                     </div>
                 `).join('') || '<div class="text-muted small">A aguardar missões de elite...</div>';
             }
@@ -609,10 +609,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 streaksContainer.innerHTML = streakList.length > 0 ? streakList.slice(0, 5).map(([tag, type]) => `
                     <div class="d-flex align-items-center justify-content-between mb-3 leader-row">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="${type === 'WIN_STREAK' ? 'text-success' : 'text-danger'} fw-bold" style="font-size: 0.9rem;">${type === 'WIN_STREAK' ? '🔥' : '❄️'}</span>
+                            <span class="${type === 'SEQ. VITÓRIAS' ? 'text-success' : 'text-danger'} fw-bold" style="font-size: 0.9rem;">${type === 'SEQ. VITÓRIAS' ? '🔥' : '❄️'}</span>
                             <span class="text-white fw-bold text-uppercase" style="font-size: 0.9rem;">${tag.split('#')[0]}</span>
                         </div>
-                        <div class="leader-score ${type === 'WIN_STREAK' ? 'text-success' : 'text-danger'}" style="font-size: 0.7rem;">${type.replace('_', ' ')}</div>
+                        <div class="leader-score ${type === 'SEQ. VITÓRIAS' ? 'text-success' : 'text-danger'}" style="font-size: 0.7rem;">${type}</div>
                     </div>
                 `).join('') : `<div class="p-3 text-center border border-secondary border-opacity-10" style="background: rgba(255,255,255,0.02);">
                     <span class="text-success blink-terminal fw-bold" style="font-size: 0.8rem;">ESTADO OPERACIONAL: NOMINAL</span>
@@ -757,18 +757,24 @@ async function fetchIntelData() {
         
         const { data: pData } = await supabaseClient.from('players').select('riot_id, lone_wolf, synergy_score, updated_at');
         if (pData) {
+            const now = new Date();
             pData.forEach(p => {
+                const lastUpdated = new Date(p.updated_at);
+                const diffDays = Math.floor((now - lastUpdated) / (1000 * 60 * 60 * 24));
+                const daysLeft = Math.max(0, 7 - diffDays);
+
                 if (p.lone_wolf) {
+                    const soloCount = (window.protocolInsights && window.protocolInsights.soloq.find(s => s.tag === p.riot_id))?.score || 1;
                     tacticalAlerts.push({ 
                         name: p.riot_id.split('#')[0], 
                         reason: 'SOLO QUEUE', 
-                        info: 'Detectado fora do grupo' 
+                        info: `${soloCount} partidas detectadas`
                     });
                 } else if (p.synergy_score === 0) {
                     tacticalAlerts.push({ 
                         name: p.riot_id.split('#')[0], 
                         reason: 'ESTAGNADO', 
-                        info: 'Sinergia Zero' 
+                        info: `Expurgo em ${daysLeft} dias`
                     });
                 }
             });
@@ -811,24 +817,26 @@ async function fetchIntelData() {
             const syncInfo = document.getElementById('intel-sync-info');
             if (syncInfo) syncInfo.innerText = `SINC: ${nowTime}`;
 
-            let bestMap = 'N/A';
-            let bestMapWinrate = 0;
-            let bestMapPlays = 0;
-            Object.keys(mapCounts).forEach(m => {
-                if (mapCounts[m] >= 3) {
-                    const wr = (mapWins[m] / mapCounts[m]) * 100;
-                    if (wr > bestMapWinrate || (wr === bestMapWinrate && mapCounts[m] > bestMapPlays)) {
-                        bestMapWinrate = wr;
-                        bestMapPlays = mapCounts[m];
-                        bestMap = m;
-                    }
-                }
-            });
+            let topMaps = Object.keys(mapCounts)
+                .map(m => {
+                    const plays = mapCounts[m];
+                    const wins = mapWins[m];
+                    const wr = (wins / plays) * 100;
+                    return { name: m, plays, wr };
+                })
+                .filter(m => m.plays >= 2)
+                .sort((a, b) => b.wr - a.wr || b.plays - a.plays)
+                .slice(0, 3); // TOP 3 MAPAS
             
             const mapEl = document.getElementById('intel-map-data');
             if (mapEl) {
-                if (bestMap !== 'N/A') {
-                    mapEl.innerHTML = `<span class="text-light">${bestMap.toUpperCase()}</span> &mdash; <span class="${bestMapWinrate >= 50 ? 'text-success' : 'text-danger'}">${bestMapWinrate.toFixed(0)}% WINRATE</span>`;
+                if (topMaps.length > 0) {
+                    mapEl.innerHTML = topMaps.map(m => `
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-light">${m.name.toUpperCase()}</span>
+                            <span class="${m.wr >= 50 ? 'text-success' : 'text-danger'}">${m.wr.toFixed(0)}% WR</span>
+                        </div>
+                    `).join('');
                 } else {
                     mapEl.innerHTML = `<span class="text-muted">A aguardar missões táticas...</span>`;
                 }
