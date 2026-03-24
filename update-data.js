@@ -45,7 +45,9 @@ async function run() {
             results.forEach(res => {
                 if (res.status === 'fulfilled') {
                     playersWorkersResults.push(res.value);
-                    res.value.newMatches.forEach((m, id) => allNewMatches.set(id, m));
+                    if (res.value.newMatches) {
+                        res.value.newMatches.forEach((m, id) => allNewMatches.set(id, m));
+                    }
                 }
             });
 
