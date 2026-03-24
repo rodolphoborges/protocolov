@@ -15,9 +15,10 @@ O **Protocolo V** é uma plataforma de gestão e análise tática para times de 
 
 ### Estrutura de Diretórios
 - `/`: Scripts coordenadores (`telegram-bot.js`, `update-data.js`).
-- `/services`: Módulos de lógica desacoplada.
-- `/tests`: Suíte de testes (Jest).
-- `db.js`: Centralizador de conexão Supabase.
+- `/services`: Módulos de lógica desacoplada (Engine, Notifier, Workers).
+- `/tests`: Suíte de testes automatizados (Jest).
+- `db.js`: Centralizador de conexão Supabase com tratamento de segurança.
+- **Protocolo Fantasma**: Camada de integridade que valida e expurga agentes inexistentes.
 
 ## 2. Fluxo de Dados
 1.  **Ingestão de Dados**: O arquivo `update-data.js` é executado via GitHub Actions a cada 30 minutos.
@@ -34,7 +35,7 @@ Baseado no Code Review (Março/2026), foram identificados os seguintes pontos pa
 > **Segurança (RLS)**: Embora as chaves Service Role tenham sido removidas do código, o sistema ainda depende fortemente de políticas de Row Level Security (RLS) no Supabase para proteger a escrita de dados no frontend. Recomenda-se migrar toda lógica de escrita para Edge Functions.
 
 > [!IMPORTANT]
-> **Acoplamento**: O `update-data.js` ainda é um script monolítico. Long-term, deve ser quebrado em micro-workers ou jobs de fila menores para maior resiliência a falhas de rede.
+> **Integridade de Dados (Ghost Protocol)**: O sistema agora valida automaticamente o alistamento via API e remove registros "fakes" (404) durante a sincronização, garantindo que apenas agentes reais ocupem o banco.
 
 > [!TIP]
-> **Performance**: A renderização do frontend via `innerHTML` em grandes volumes de dados pode ser otimizada para virtualização ou o uso de um framework reativo (ex: Vue/React) caso o volume de operações cresça exponencialmente.
+> **Performance**: A renderização do frontend utiliza cache local (`localStorage`) para ativos pesados como mapas, reduzindo o tempo de carregamento e o consumo de banda.
