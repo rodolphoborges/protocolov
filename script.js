@@ -692,8 +692,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            btn.disabled = true; btn.innerHTML = "A ENVIAR...";
+            btn.disabled = true; btn.innerHTML = "A VERIFICAR...";
             try {
+                // Pre-flight check: Verificar se a conta existe na API HenrikDev
+                const [name, tag] = riotId.split('#');
+                const verifyRes = await fetch(`https://api.henrikdev.xyz/valorant/v1/account/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`);
+                
+                if (verifyRes.status === 404) {
+                    throw new Error("Agente não encontrado no banco de dados da Riot. Verifique o Nick#Tag.");
+                }
+
+                if (verifyRes.status !== 200) {
+                    console.warn("⚠️ Falha na pré-verificação, mas prosseguindo com alistamento manual.");
+                }
+
                 const { error } = await supabaseClient.from('players').insert([{ 
                     riot_id: riotId, 
                     role_raw: role, 
@@ -721,7 +733,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     btn.disabled = false; 
                     btn.innerHTML = "ALISTAR-SE";
                     isSubmittingForm = false;
-                }, 2000);
+                }, 1000);
             }
         });
     }

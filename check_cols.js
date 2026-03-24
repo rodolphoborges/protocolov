@@ -1,14 +1,8 @@
-const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
-
-const oraculoUrl = process.env.ORACULO_SUPABASE_URL;
-const oraculoKey = process.env.ORACULO_SUPABASE_SERVICE_KEY;
-
-const oraculo = createClient(oraculoUrl, oraculoKey);
+const { supabase } = require('./db');
 
 async function checkColumns() {
-    const { data, error } = await oraculo
-        .from('match_analysis_queue')
+    const { data, error } = await supabase
+        .from('players')
         .select('*')
         .limit(1);
 
