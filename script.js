@@ -457,13 +457,13 @@ function renderOperations(operations, append = false, completedMap = {}) {
                             </div>
                         </div>
                         
-                        <div class="d-flex align-items-center gap-4 font-monospace text-nowrap" style="font-size: 0.9rem;">
+                        <div class="d-flex align-items-center gap-2 gap-md-4 font-monospace text-nowrap" style="font-size: 0.9rem;">
                             <div class="text-start bg-dark rounded-0 px-2 py-1 border border-secondary border-opacity-25" aria-label="KDA: ${kills} abates, ${deaths} mortes, ${assists} assistências">
-                                <span class="text-secondary small me-1">K</span><span class="text-white fw-bold me-2">${kills}</span>
-                                <span class="text-secondary small me-1">D</span><span class="text-danger fw-bold me-2">${deaths}</span>
-                                <span class="text-secondary small me-1">A</span><span class="text-info fw-bold">${assists}</span>
+                                <span class="text-secondary small me-0 me-md-1">K</span><span class="text-white fw-bold me-1 me-md-2">${kills}</span>
+                                <span class="text-secondary small me-0 me-md-1">D</span><span class="text-danger fw-bold me-1 me-md-2">${deaths}</span>
+                                <span class="text-secondary small me-0 me-md-1">A</span><span class="text-info fw-bold">${assists}</span>
                             </div>
-                            <div style="width: 60px;" class="text-end" style="color: #adb5bd;" aria-label="Porcentagem de Headshots: ${m.hs}%"><span class="text-light">${m.hs}%</span> <span style="font-size:0.65rem" aria-hidden="true">HS</span></div>
+                            <div style="width: 50px;" class="text-end" style="color: #adb5bd;" aria-label="Porcentagem de Headshots: ${m.hs}%"><span class="text-light">${m.hs}%</span> <span style="font-size:0.65rem" aria-hidden="true">HS</span></div>
                         </div>
                     </div>
                 </div>

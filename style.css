@@ -1,13 +1,13 @@
 :root {
-    --val-dark: #0f1923;
+    --val-dark: #050505; /* True Black */
     --val-light: #ece8e1;
     --val-red: #ff4655;
     --val-gray: #768079;
     --val-blue: #47a2ff;
     --val-info: #0dcaf0;
     --header-height: 70px;
-    --glass-bg: rgba(15, 25, 35, 0.85);
-    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-bg: rgba(5, 5, 5, 0.92);
+    --glass-border: rgba(255, 255, 255, 0.05);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -17,7 +17,7 @@
 }
 
 .mission-row {
-    background-color: #0f1923;
+    background-color: var(--val-dark);
     border: 1px solid rgba(255, 255, 255, 0.05);
     transition: var(--transition-smooth);
     position: relative;
@@ -581,7 +581,29 @@ h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-tran
     .contender-score { font-size: 1.8rem !important; }
     .contender-avatar { margin-right: 10px !important; }
 
-    /* Terminal Fix */
+    /* Operations & KDA Alignment */
+    .mission-row {
+        gap: 20px !important;
+        padding: 15px !important;
+    }
+    .mission-row .gap-4 {
+        gap: 15px !important;
+    }
+    .mission-row .font-monospace {
+        font-size: 0.8rem !important;
+        gap: 8px !important;
+    }
+    .mission-row .text-start.bg-dark {
+        padding: 4px 8px !important;
+    }
+    
+    /* Spacing between sections to avoid overlap */
+    #recrutamento-section {
+        margin-top: 60px !important;
+        padding-top: 40px !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
     .terminal-screen {
         border-width: 5px !important;
         padding: 10px !important;
