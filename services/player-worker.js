@@ -77,6 +77,7 @@ class PlayerWorker {
 
             } else {
                 this.playerData.api_error = true;
+                if (listRes.status === 404) this.playerData.is_ghost = true; // Marca como "fantasma" para possível remoção
             }
         } catch (err) {
             this.playerData.api_error = true;

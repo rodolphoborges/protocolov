@@ -57,7 +57,10 @@ async function run() {
         const { operations, newSynergyPoints, newDmPoints } = SynergyEngine.processMatchResults(allNewMatches, rosterMap);
 
         // 4. Atualizar Jogadores e Notificar Lobos
-        const finalPlayersUpdate = playersWorkersResults.map(res => {
+        const validResults = playersWorkersResults.filter(r => !r.playerData.is_ghost);
+        const ghosts = playersWorkersResults.filter(r => r.playerData.is_ghost);
+
+        const finalPlayersUpdate = validResults.map(res => {
             const nId = res.playerData.riot_id.toLowerCase().replace(/\s/g, '');
             const earnedPoints = newSynergyPoints[nId] || 0;
             const earnedDm = newDmPoints[nId] || 0;
@@ -114,10 +117,18 @@ async function run() {
             }
         }
 
-        // 6. Maintenance (Purge Inativos)
+        // 6. Maintenance (Purge Inativos & Protocolo Fantasma)
         console.log('4. Limpeza de Agentes Inativos...');
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
         await supabase.from('players').delete().eq('synergy_score', 0).lt('created_at', sevenDaysAgo);
+
+        if (ghosts.length > 0) {
+            console.log(`   👻 Protocolo Fantasma: Removendo ${ghosts.length} agentes inexistentes...`);
+            for (const g of ghosts) {
+                await supabase.from('players').delete().eq('riot_id', g.playerData.riot_id);
+                console.log(`      [-] ${g.playerData.riot_id} expurgado.`);
+            }
+        }
 
         console.log('✅ Sincronização concluída com sucesso!');
 
