@@ -56,7 +56,8 @@ class IntelligenceLayer {
                     totalPerformance: 0,
                     synergyPoints: 0,
                     soloQMatches: 0,
-                    lastMatches: []
+                    lastMatches: [],
+                    lastMatchId: record.match_id // Captura o ID da partida mais recente
                 };
             }
 
@@ -96,7 +97,11 @@ class IntelligenceLayer {
         this.insights.kda = [...players]
             .filter(p => p.matches >= 2)
             .sort((a, b) => (b.totalKd/b.matches) - (a.totalKd/a.matches))
-            .map(p => ({ tag: p.tag, score: (p.totalKd/p.matches).toFixed(2) }));
+            .map(p => ({ 
+                tag: p.tag, 
+                score: (p.totalKd/p.matches).toFixed(2),
+                lastMatchId: p.lastMatchId
+            }));
 
         // 3. SoloQ Ranking
         this.insights.soloq = [...players]
@@ -108,8 +113,8 @@ class IntelligenceLayer {
             const isLossStreak = p.lastMatches.length >= 3 && p.lastMatches.slice(0,3).every(v => v < 70);
             const isWinStreak = p.lastMatches.length >= 3 && p.lastMatches.slice(0,3).every(v => v > 120);
             
-            if (isLossStreak) this.insights.streaks[p.tag] = 'LOSS_STREAK';
-            if (isWinStreak) this.insights.streaks[p.tag] = 'WIN_STREAK';
+            if (isLossStreak) this.insights.streaks[p.tag] = 'SEQ. DERROTAS';
+            if (isWinStreak) this.insights.streaks[p.tag] = 'SEQ. VITÓRIAS';
         });
 
         console.log(">>> [INTEL] Insights gerados com sucesso.");
