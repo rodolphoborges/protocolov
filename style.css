@@ -33,9 +33,16 @@
     z-index: 0;
     background-size: cover;
     background-position: center 25%;
-    opacity: 1; /* Opacidade total para o elemento, controlamos no gradiente se necessário */
-    filter: brightness(0.6); /* Ajuste de brilho para dar o tom tático */
+    opacity: 0.15; /* Sóbrio por padrão */
+    filter: grayscale(100%) brightness(0.5); /* Cinza e escuro para não distrair */
     pointer-events: none;
+    transition: opacity 0.4s ease, filter 0.4s ease; /* Transição suave */
+}
+
+/* Hover effect na linha da missão */
+.mission-row:hover .mission-bg-overlay {
+    opacity: 0.55; /* Revela o mapa */
+    filter: grayscale(0%) brightness(0.8); /* Traz as cores de volta */
 }
 
 .mission-row > * {
@@ -323,9 +330,13 @@ h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-tran
 }
 .mission-row::before { 
     content: ''; position: absolute; left: 0; top: 0; bottom: 0; right: 0;
-    /* Gradiente vai do azul escuro sólido na esquerda para transparente na direita */
-    background: linear-gradient(90deg, rgba(15, 25, 35, 1) 10%, rgba(15, 25, 35, 0.4) 100%);
+    /* Gradiente firme na esquerda para manter o texto legível, suave na direita */
+    background: linear-gradient(90deg, rgba(15, 25, 35, 1) 15%, rgba(15, 25, 35, 0.25) 100%);
     z-index: 1;
+    transition: background 0.4s ease;
+}
+.mission-row:hover::before {
+    background: linear-gradient(90deg, rgba(15, 25, 35, 1) 10%, rgba(15, 25, 35, 0.1) 100%);
 }
 .mission-row::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; z-index: 2; }
 .mission-row > * { position: relative; z-index: 2; }
