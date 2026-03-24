@@ -245,7 +245,26 @@ h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-tran
 .decor-square { width: 10px; height: 10px; background-color: var(--val-red); display: inline-block; margin-right: 15px; }
 
 .content-wrapper { position: relative; z-index: 1; padding: 40px 0; }
-.bg-dark-section { background-color: var(--val-dark); color: var(--val-light); }
+.bg-dark-section { 
+    background: radial-gradient(circle at center, #0f1923 0%, #050505 100%); 
+    color: var(--val-light); 
+    position: relative;
+    overflow: hidden;
+}
+
+.bg-dark-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.3;
+}
 .text-accent { color: var(--val-red); }
 
 /* =========================================
