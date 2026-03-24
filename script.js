@@ -568,7 +568,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 synergyContainer.innerHTML = insights.synergy.slice(0, 5).map((p, i) => `
                     <div class="d-flex align-items-center justify-content-between mb-3 leader-row">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="text-muted fw-bold" style="width: 20px;">0${i+1}</span>
+                            <span class="leader-rank fw-bold" style="width: 20px;">0${i+1}</span>
                             <span class="text-white fw-bold text-uppercase" style="font-size: 0.9rem;">${p.tag.split('#')[0]}</span>
                         </div>
                         <div class="leader-score text-info">${p.score} <span class="small opacity-50">PTS</span></div>
@@ -582,7 +582,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 kdaContainer.innerHTML = insights.kda.slice(0, 5).map((p, i) => `
                     <div class="d-flex align-items-center justify-content-between mb-3 leader-row">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="text-muted fw-bold" style="width: 20px;">0${i+1}</span>
+                            <span class="leader-rank fw-bold" style="width: 20px;">0${i+1}</span>
                             <span class="text-white fw-bold text-uppercase" style="font-size: 0.9rem;">${p.tag.split('#')[0]}</span>
                         </div>
                         <div class="leader-score text-danger">${p.score} <span class="small opacity-50">KDA</span></div>

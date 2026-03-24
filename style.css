@@ -33,11 +33,11 @@
     z-index: 0;
     background-size: cover;
     background-position: center;
-    opacity: 0.12;
-    filter: grayscale(100%) brightness(0.4);
+    opacity: 0.25; /* Aumentado de 0.12 */
+    filter: grayscale(60%) brightness(0.7); /* Melhorado brilho e mantido algum tom original */
     pointer-events: none;
-    mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 100%);
-    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 100%);
+    mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 100%);
+    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 100%);
 }
 
 .mission-row > * {
@@ -63,6 +63,10 @@
     font-family: 'Teko', sans-serif;
     font-size: 1.2rem;
     letter-spacing: 1px;
+}
+.leader-rank {
+    color: #b0b8b4 !important; /* Cinza claro para legibilidade no escuro */
+    font-size: 0.85rem;
 }
 
 /* =========================================
@@ -321,7 +325,7 @@ h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-tran
 }
 .mission-row::before { 
     content: ''; position: absolute; left: 0; top: 0; bottom: 0; right: 0;
-    background: linear-gradient(90deg, rgba(15, 25, 35, 1) 15%, rgba(15, 25, 35, 0.4) 100%);
+    background: linear-gradient(90deg, rgba(15, 25, 35, 0.85) 15%, rgba(15, 25, 35, 0.2) 100%); /* Suavizado opacidade inicial */
     z-index: 1;
 }
 .mission-row::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; z-index: 2; }
@@ -357,7 +361,7 @@ h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-tran
     position: relative; transition: all 0.2s ease; border-left: 4px solid transparent;
 }
 .contender-card:hover { background-color: #1a2733; border-left-color: var(--val-red); transform: translateX(10px); }
-.contender-rank { font-family: 'Teko', sans-serif; font-size: 2.5rem; color: var(--val-gray); width: 40px; text-align: left; line-height: 1; }
+.contender-rank { font-family: 'Teko', sans-serif; font-size: 2.5rem; color: #b0b8b4; width: 40px; text-align: left; line-height: 1; }
 .contender-avatar { width: 50px; height: 50px; border-radius: 0; object-fit: cover; margin-right: 20px; border: 1px solid var(--val-gray); }
 .contender-name { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 1.2rem; flex-grow: 1; text-transform: uppercase; }
 .contender-score { font-family: 'Teko', sans-serif; font-size: 3rem; color: var(--val-red); line-height: 1; }
