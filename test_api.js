@@ -1,4 +1,5 @@
-const henrikApiKey = 'HDEV-f8ab178e-da4d-40d6-9426-e127dabe60b3';
+require('dotenv').config();
+const henrikApiKey = process.env.HENRIK_API_KEY;
 const matchId = '2c7944be-f3c4-4429-a0fa-8d3604acd7a7';
 const region = 'br';
 

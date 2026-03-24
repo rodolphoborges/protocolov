@@ -1,13 +1,5 @@
-require('dotenv').config();
-const { createClient } = require('@supabase/supabase-js');
-
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
-const oraculoUrl = process.env.ORACULO_SUPABASE_URL;
-const oraculoKey = process.env.ORACULO_SUPABASE_SERVICE_KEY;
+const { supabase, oraculo: oraculoExt } = require('./db');
 const henrikApiKey = process.env.HENRIK_API_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
-const oraculoExt = (oraculoUrl && oraculoKey) ? createClient(oraculoUrl, oraculoKey) : null;
 
 
 const settings = require('./settings.json');

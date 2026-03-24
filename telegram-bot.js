@@ -1,33 +1,12 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
-const { createClient } = require('@supabase/supabase-js');
 const express = require('express');
-
 // --- CONFIGURAÇÃO ---
+const { supabase, oraculo: oraculoExt } = require('./db');
+const henrikApiKey = process.env.HENRIK_API_KEY ? process.env.HENRIK_API_KEY.trim() : null;
 const token = process.env.TELEGRAM_BOT_TOKEN;
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
-const oraculoUrl = process.env.ORACULO_SUPABASE_URL;
-const oraculoKey = process.env.ORACULO_SUPABASE_SERVICE_KEY;
 const rawAdminId = process.env.ADMIN_TELEGRAM_ID ? process.env.ADMIN_TELEGRAM_ID.trim() : null;
 const ADMIN_ID = rawAdminId ? parseInt(rawAdminId, 10) : null; 
-const henrikApiKey = process.env.HENRIK_API_KEY ? process.env.HENRIK_API_KEY.trim() : null;
-
-if (!henrikApiKey || henrikApiKey === 'INSIRA_SUA_CHAVE_AQUI') {
-    console.warn('⚠️ AVISO: HENRIK_API_KEY não configurada ou usando placeholder.');
-}
-
-if (!ADMIN_ID) {
-    console.warn('⚠️ AVISO: ADMIN_TELEGRAM_ID não configurado. Comandos de administrador desabilitados.');
-}
-
-if (!token || !supabaseUrl || !supabaseKey) {
-    console.error('🔥 ERRO: Variáveis de ambiente faltando.');
-    process.exit(1);
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-const oraculoExt = (oraculoUrl && oraculoKey) ? createClient(oraculoUrl, oraculoKey) : null;
 
 let bot;
 if (process.env.WEBHOOK_URL) {

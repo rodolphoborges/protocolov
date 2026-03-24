@@ -19,7 +19,15 @@ jobs:
           node-version: '20'
 
       - name: Instalar Dependências
-        run: npm install
+        run: npm ci
+
+      - name: Cache Node Modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Roda o script de extração e API
         run: node update-data.js
