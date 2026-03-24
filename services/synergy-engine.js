@@ -29,41 +29,57 @@ class SynergyEngine {
         const newDmPoints = {};
 
         for (const [matchId, match] of matches) {
-            if (!match.players || !Array.isArray(match.players)) continue;
+            // Suporte para V3 (Object com all_players) e V4 (Array direto ou data.players)
+            let playersArray = [];
+            if (Array.isArray(match.players)) {
+                playersArray = match.players;
+            } else if (match.players && Array.isArray(match.players.all_players)) {
+                playersArray = match.players.all_players;
+            } else {
+                continue; // Pular se não houver array de jogadores válido
+            }
 
-            const mode = match.metadata.mode.toLowerCase();
+            const rawMode = match.metadata.queue?.id || match.metadata.mode || '';
+            const mode = rawMode.toLowerCase();
+            const mapName = (typeof match.metadata.map === 'object') ? match.metadata.map.name : match.metadata.map;
 
             if (mode === 'deathmatch') {
-                const myPlayersInDm = match.players.filter(player => 
+                const myPlayersInDm = playersArray.filter(player => 
                     rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, ''))
                 );
 
                 if (myPlayersInDm.length > 0) {
                     myPlayersInDm.forEach(m => {
                         const nId = `${m.name}#${m.tag}`.toLowerCase().replace(/\s/g, '');
-                        newDmPoints[nId] = (newDmPoints[nId] || 0) + this.calculateDmPoints(match.players, m);
+                        newDmPoints[nId] = (newDmPoints[nId] || 0) + this.calculateDmPoints(playersArray, m);
                     });
 
+                    const startTime = match.metadata.game_start ? match.metadata.game_start * 1000 : new Date(match.metadata.started_at).getTime();
+
                     operations.push({
-                        id: matchId, map: match.metadata.map, mode: 'Deathmatch',
-                        started_at: match.metadata.game_start * 1000,
+                        id: matchId, map: mapName, mode: 'Deathmatch',
+                        started_at: startTime,
                         score: 'TREINO', result: 'MATA-MATA', team_color: 'N/A',
                         squad: []
                     });
                 }
             } else if (mode === 'competitive') {
-                const squadMembers = match.players.filter(player => 
+                const squadMembers = playersArray.filter(player => 
                     rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, ''))
                 );
 
                 if (squadMembers.length >= 2) {
                     const teamId = squadMembers[0].team;
-                    const teamData = (match.teams && teamId) ? match.teams[teamId.toLowerCase()] : null;
+                    const teamKey = teamId ? teamId.toLowerCase() : null;
+                    const teamData = (match.teams && teamKey) ? match.teams[teamKey] : null;
 
                     let finalResult = 'DERROTA';
                     if (match.teams) {
-                        if (match.teams.blue.rounds_won === match.teams.red.rounds_won) finalResult = 'EMPATE';
-                        else if (teamData && teamData.has_won) finalResult = 'VITÓRIA';
+                        const blueWon = match.teams.blue.rounds_won || match.teams.blue.score || 0;
+                        const redWon = match.teams.red.rounds_won || match.teams.red.score || 0;
+                        
+                        if (blueWon === redWon) finalResult = 'EMPATE';
+                        else if (teamData && (teamData.has_won || teamData.won)) finalResult = 'VITÓRIA';
                     }
 
                     const earnedPoints = this.calculateSynergyPoints(squadMembers.length, finalResult);
@@ -73,10 +89,14 @@ class SynergyEngine {
                         newSynergyPoints[nId] = (newSynergyPoints[nId] || 0) + earnedPoints;
                     });
 
+                    const startTime = match.metadata.game_start ? match.metadata.game_start * 1000 : new Date(match.metadata.started_at).getTime();
+                    const blueScore = match.teams.blue.rounds_won ?? match.teams.blue.score ?? 0;
+                    const redScore = match.teams.red.rounds_won ?? match.teams.red.score ?? 0;
+
                     operations.push({
-                        id: matchId, map: match.metadata.map, mode: match.metadata.mode,
-                        started_at: match.metadata.game_start * 1000,
-                        score: match.teams ? `${match.teams.blue.rounds_won}-${match.teams.red.rounds_won}` : 'N/A',
+                        id: matchId, map: mapName, mode: 'Competitive',
+                        started_at: startTime,
+                        score: `${blueScore}-${redScore}`,
                         result: finalResult, team_color: teamId,
                         squad: squadMembers.map(m => {
                             const hs = m.stats.headshots || 0;
@@ -84,8 +104,10 @@ class SynergyEngine {
                             const ls = m.stats.legshots || 0;
                             const totalHits = hs + bs + ls;
                             const hsPercent = totalHits > 0 ? Math.round((hs / totalHits) * 100) : 0;
+                            const character = m.character || m.agent || 'Unknown';
+                            const agentImg = (m.assets && m.assets.agent) ? m.assets.agent.small : '';
                             return {
-                                riotId: `${m.name}#${m.tag}`, agent: m.character, agentImg: m.assets.agent.small,
+                                riotId: `${m.name}#${m.tag}`, agent: character, agentImg: agentImg,
                                 kda: `${m.stats.kills}/${m.stats.deaths}/${m.stats.assists}`, hs: hsPercent
                             };
                         })
