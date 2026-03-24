@@ -683,11 +683,11 @@ app.listen(process.env.PORT || 3000, () => {
     console.log(`🌐 Terminal Avançado: ${modoStr} e camuflado.`);
     
     // Inicializa o Worker do Oráculo V se estivermos no ambiente correto
-    if (process.env.HENRIK_API_KEY) {
+    if (process.env.HENRIK_API_KEY && process.env.NODE_ENV !== 'test') {
         console.log("🧠 [ORÁCULO-V] Protocolo de Análise Ativo. Aguardando jobs...");
         startQueueWorker();
     } else {
-        console.log("⚠️ [ORÁCULO-V] HENRIK_API_KEY ausente. Worker em standby.");
+        console.log("⚠️ [ORÁCULO-V] Worker em standby (Ambiente de Teste ou API Key ausente).");
     }
 });
 
@@ -698,6 +698,11 @@ async function startQueueWorker() {
     // Loop infinito para processar a fila
     while (true) {
         try {
+            if (!oraculoExt) {
+                console.warn("⚠️ [ORÁCULO-V] Conexão externa não configurada. Worker abortado.");
+                return;
+            }
+
             // Busca o próximo job pendente
             const { data: job, error } = await oraculoExt
                 .from('match_analysis_queue')

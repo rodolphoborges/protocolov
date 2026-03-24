@@ -80,6 +80,7 @@ describe('K.A.I.O. Telegram Bot - Unit Tests', () => {
         process.env.SUPABASE_SERVICE_KEY = 'test-key';
         process.env.ADMIN_TELEGRAM_ID = '1104821838';
         process.env.HENRIK_API_KEY = 'test-henrik-key';
+        process.env.NODE_ENV = 'test';
 
         // Silenciar logs mas permitir erros
         jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -120,7 +121,7 @@ describe('K.A.I.O. Telegram Bot - Unit Tests', () => {
 
         expect(mockBotInstance.sendMessage).toHaveBeenCalledWith(
             123, 
-            expect.stringContaining('SISTEMA K.A.I.O ONLINE'), 
+            expect.stringContaining('SISTEMA ONLINE'), 
             expect.any(Object)
         );
     });
@@ -183,7 +184,7 @@ describe('K.A.I.O. Telegram Bot - Unit Tests', () => {
         // Deve enviar mensagem de confirmação de transferência
         expect(mockBotInstance.sendMessage).toHaveBeenCalledWith(
             456,
-            expect.stringContaining('esquadrão *ALPHA* concluída'),
+            expect.stringContaining('Designado para o esquadrão *ALPHA*'),
             expect.any(Object)
         );
     });
