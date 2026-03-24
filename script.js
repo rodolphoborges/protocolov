@@ -464,7 +464,7 @@ function renderOperations(operations, append = false, completedMap = {}) {
         const bgOverlay = mapUrl ? `<div class="mission-bg-overlay" style="background-image: url('${mapUrl}');"></div>` : '';
 
         html += `
-            <div onclick="window.open('https://tracker.gg/valorant/match/${op.id}', '_blank')" aria-label="Ver detalhes da partida ${op.map} no Tracker.gg" class="mission-row ${resultClass} p-3 p-md-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; cursor: pointer;">
+            <div onclick="window.open('https://tracker.gg/valorant/match/${op.id}', '_blank')" aria-label="Ver detalhes da partida ${op.map} no Tracker.gg" class="mission-row ${resultClass} p-3 p-md-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; cursor: pointer; background-image: url('${mapUrl}');">
                 ${bgOverlay}
                 <div class="d-flex align-items-center gap-4" style="min-width: 220px;">
                     <div class="text-center" style="min-width: 80px; white-space: nowrap;">
