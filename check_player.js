@@ -1,8 +1,4 @@
-const { createClient } = require('@supabase/supabase-js');
-
-const url = 'https://jneuumdktavwzdwvcuhf.supabase.co';
-const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuZXV1bWRrdGF2d3pkd3ZjdWhmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mzk4MDIzMSwiZXhwIjoyMDg5NTU2MjMxfQ.hJnAuAxHM_LCXi_sELcvwOIpkUx-per0nwtZBaprSrk';
-const supabase = createClient(url, key);
+const { oraculo: supabase } = require('./db');
 
 const matchId = '2c7944be-f3c4-4429-a0fa-8d3604acd7a7';
 const playerTag = 'DefeitoDeFábrica#ZzZ';

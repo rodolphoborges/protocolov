@@ -1,4 +1,7 @@
-const henrikApiKey = 'HDEV-f8ab178e-da4d-40d6-9426-e127dabe60b3';
+require('dotenv').config();
+const { oraculo: supabase } = require('./db');
+const henrikApiKey = process.env.HENRIK_API_KEY;
+
 const name = 'Guxxtavo';
 const tag = 'easy';
 const region = 'br';

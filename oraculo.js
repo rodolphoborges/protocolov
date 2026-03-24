@@ -1,12 +1,5 @@
-require('dotenv').config();
-const { createClient } = require('@supabase/supabase-js');
-
+const { oraculo: oraculoDb } = require('./db');
 const henrikApiKey = process.env.HENRIK_API_KEY;
-const oraculoUrl = process.env.ORACULO_SUPABASE_URL;
-const oraculoKey = process.env.ORACULO_SUPABASE_SERVICE_KEY;
-
-// Inicializa o cliente para histórico (Holt-Winters)
-const oraculoDb = (oraculoUrl && oraculoKey) ? createClient(oraculoUrl, oraculoKey) : null;
 
 /**
  * Funçao helper para fetch com retentativa básica (para o motor analítico)

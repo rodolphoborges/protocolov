@@ -1,15 +1,9 @@
-const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
+const { oraculo } = require('./db');
 
-const oraculoUrl = process.env.ORACULO_SUPABASE_URL || 'https://jneuumdktavwzdwvcuhf.supabase.co';
-const oraculoKey = process.env.ORACULO_SUPABASE_SERVICE_KEY || process.env.ORACULO_SUPABASE_ANON_KEY;
-
-if (!oraculoUrl || !oraculoKey) {
-    console.error("Faltam chaves do Oráculo!");
+if (!oraculo) {
+    console.error("Faltam chaves do Oráculo no .env!");
     process.exit(1);
 }
-
-const oraculo = createClient(oraculoUrl, oraculoKey);
 
 async function check() {
     console.log("--- Verificando match_analysis_queue ---");

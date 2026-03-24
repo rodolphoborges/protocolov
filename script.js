@@ -26,13 +26,27 @@ if (organicPlayer && organicMatchId) {
 }
 
 async function fetchMapData() {
+    const CACHE_KEY = 'vstats_maps_cache';
+    const CACHE_EXPIRATION = 24 * 60 * 60 * 1000; // 24 horas
+
     try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+            const { timestamp, data } = JSON.parse(cached);
+            if (Date.now() - timestamp < CACHE_EXPIRATION) {
+                data.forEach(m => { mapImages[m.displayName.toUpperCase()] = m.splash; });
+                return;
+            }
+        }
+
         const res = await fetch('https://valorant-api.com/v1/maps');
-        const data = await res.json();
-        if (data && data.data) {
-            data.data.forEach(m => {
-                mapImages[m.displayName.toUpperCase()] = m.splash;
-            });
+        const json = await res.json();
+        if (json && json.data) {
+            json.data.forEach(m => { mapImages[m.displayName.toUpperCase()] = m.splash; });
+            localStorage.setItem(CACHE_KEY, JSON.stringify({
+                timestamp: Date.now(),
+                data: json.data
+            }));
         }
     } catch (e) { console.error("⚠️ Falha ao carregar satélite orbital de mapas:", e); }
 }
