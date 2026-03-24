@@ -33,8 +33,8 @@
     z-index: 0;
     background-size: cover;
     background-position: center 25%;
-    opacity: 0.45; /* Aumentado para visibilidade real */
-    filter: brightness(0.8); /* Removido grayscale para as cores do mapa ajudarem na identificação */
+    opacity: 1; /* Opacidade total para o elemento, controlamos no gradiente se necessário */
+    filter: brightness(0.6); /* Ajuste de brilho para dar o tom tático */
     pointer-events: none;
 }
 
@@ -323,7 +323,8 @@ h1, h2, h3, .role-title, .teko-font { font-family: 'Teko', sans-serif; text-tran
 }
 .mission-row::before { 
     content: ''; position: absolute; left: 0; top: 0; bottom: 0; right: 0;
-    background: linear-gradient(90deg, rgba(15, 25, 35, 0.95) 10%, rgba(15, 25, 35, 0.25) 100%);
+    /* Gradiente vai do azul escuro sólido na esquerda para transparente na direita */
+    background: linear-gradient(90deg, rgba(15, 25, 35, 1) 10%, rgba(15, 25, 35, 0.4) 100%);
     z-index: 1;
 }
 .mission-row::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; z-index: 2; }
