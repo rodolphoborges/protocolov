@@ -1,77 +1,54 @@
-# Protocolo V: Hub de Inteligência Tática 🛡️
+# PROTOCOLO V // Oráculo Analytics
 
-O **Protocolo V** é um ecossistema completo para gestão de line-ups de Valorant, análise de performance via IA (Oráculo V) e automação de operações de recrutamento.
+[![Atualiza Dados](https://github.com/seu-usuario/protocolov/actions/workflows/update.yml/badge.svg)](https://github.com/seu-usuario/protocolov/actions/workflows/update.yml)
 
----
+Plataforma avançada de recrutamento, análise de performance e gestão de esquadrões de elite para Valorant. O Protocolo V atua como a interface de comando central (K.A.I.O.) para otimizar a sinergia e os resultados táticos do time.
 
-## 🚀 Tecnologias Utilizadas
+## 🚀 Tecnologias
+- **Engine**: [Node.js](https://nodejs.org/) v20+
+- **Database**: [Supabase](https://supabase.com/) (PostgreSQL)
+- **Frontend**: HTML5, CSS3/Vanilla (Cyberpunk Aesthetic)
+- **API**: HenrikDev Valorant API
+- **Bot**: Telegram Bot API
 
-- **Backend:** Node.js, Express
-- **Frontend:** HTML5, CSS3, Vanilla JavaScript
-- **Banco de Dados:** Supabase (PostgreSQL)
-- **Integrações:** Telegram Bot API, HenrikDev API (Unofficial Riot Games API)
-- **Automação:** GitHub Actions (CI/CD)
-- **Testes:** Jest
+## ⚙️ Instalação e Execução
 
----
+### 1. Pré-requisitos
+- Node.js instalado.
+- Conta no Supabase.
+- API Key da [HenrikDev](https://henrikdev.xyz/dashboard).
 
-## 🛠️ Como Rodar Localmente
+### 2. Configuração do Ambiente
+Clone o projeto e crie o arquivo `.env` baseado no `.env.example`:
+```bash
+cp .env.example .env
+```
+Preencha as variáveis mandatórias:
+- `SUPABASE_URL` / `SUPABASE_SERVICE_KEY`
+- `HENRIK_API_KEY`
+- `TELEGRAM_BOT_TOKEN`
 
-Siga os passos abaixo para preparar seu ambiente de comando:
+### 3. Execução
+```bash
+# Instalar dependências
+npm install
 
-1. **Clone o repositório:**
-   ```bash
-   git clone https://github.com/usuario/protocolov.git
-   cd protocolov
-   ```
+# Iniciar o Bot do Telegram e Servidor
+npm start
 
-2. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
-
-3. **Configure as variáveis de ambiente:**
-   - Crie um arquivo `.env` baseado no `.env.example`.
-   - Preencha com suas chaves do Supabase, Telegram e HenrikDev API.
-
-4. **Inicie o Bot e o Servidor:**
-   ```bash
-   npm start
-   ```
-
-5. **Acesse o Site:**
-   - Abra o arquivo `index.html` em seu navegador ou use uma extensão de Live Server.
-
----
-
-## 📜 Scripts do package.json
-
-- `npm start`: Inicia o bot do Telegram (`telegram-bot.js`) e o servidor Express.
-- `npm test`: Executa a suíte de testes unitários e de integração utilizando Jest.
-- `node update-data.js`: Manualmente engatilha a sincronização de dados da API.
-- `node check_db.js`: Script utilitário para diagnóstico de saúde do banco de dados.
-
----
-
-## 📐 Arquitetura Básica
-
-```mermaid
-graph TD
-    A[Riot Games API] -->|HenrikDev| B(Update Engine)
-    B -->|Sync| C[Supabase DB]
-    D[Telegram Bot] -->|Comandos| C
-    D -->|Pedidos| E[Oráculo V]
-    E -->|Análise| C
-    F[Web Frontend] -->|Leitura| C
+# Rodar sincronizador de dados manualmente
+node update-data.js
 ```
 
-Para uma visão detalhada, consulte o arquivo [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md).
+## 🔄 CI/CD e Automação
+O projeto utiliza **GitHub Actions** para garantir a continuidade operacional:
+- **Update Workflow (`update.yml`)**: Executa a cada 30 minutos para sincronizar partidas e atualizar a Sinergia do time. Utiliza cache de `node_modules` e `npm ci` para performance.
+- **Testes Automáticos**: Validação de lógica de sinergia e handlers do bot antes de cada merge.
+
+## 📖 Documentação Adicional
+- [Arquitetura e Contexto](PROJECT_CONTEXT.md)
+- [Guia de API e Integrações](API.md)
+- [Contribuindo com o Projeto](CONTRIBUTING.md)
 
 ---
-
-## 🤝 Contribuição
-
-Interessado em fortalecer o protocolo? Veja nossas diretrizes em [CONTRIBUTING.md](./CONTRIBUTING.md).
-
----
-_Protocolo V // Sistemas de Defesa Avançada_
+*Protocolo V: Precisão. Sinergia. Vitória.*
