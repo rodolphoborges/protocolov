@@ -1,11 +1,11 @@
 # PROTOCOLO V // Oráculo Analytics
 
-[![Atualiza Dados](https://github.com/seu-usuario/protocolov/actions/workflows/update.yml/badge.svg)](https://github.com/seu-usuario/protocolov/actions/workflows/update.yml)
+[![Atualiza Dados](https://github.com/rodolphoborges/protocolov/actions/workflows/update.yml/badge.svg)](https://github.com/rodolphoborges/protocolov/actions/workflows/update.yml)
 
 Plataforma avançada de recrutamento, análise de performance e gestão de esquadrões de elite para Valorant. O Protocolo V atua como a interface de comando central (K.A.I.O.) para otimizar a sinergia e os resultados táticos do time.
 
 ## 🚀 Tecnologias
-- **Engine**: [Node.js](https://nodejs.org/) v20+
+- **Engine**: [Node.js](https://nodejs.org/) v18+
 - **Database**: [Supabase](https://supabase.com/) (PostgreSQL)
 - **Frontend**: HTML5, CSS3/Vanilla (Cyberpunk Aesthetic)
 - **API**: HenrikDev Valorant API

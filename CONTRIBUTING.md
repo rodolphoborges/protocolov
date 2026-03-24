@@ -38,4 +38,4 @@ Utilizamos o padrão [Conventional Commits](https://www.conventionalcommits.org/
 Se você adicionar uma nova lógica de cálculo ou um novo comando, **é obrigatório** incluir testes correspondentes na pasta `tests/`.
 
 ---
-*Mantenha o padrão. Refforce o protocolo.*
+*Mantenha o padrão. Reforce o protocolo.*
