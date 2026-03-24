@@ -5,16 +5,19 @@ O **Protocolo V** é uma plataforma de gestão e análise tática para times de 
 
 ### Stack Tecnológica
 - **Backend**: Node.js (Express) executando scripts de sincronização e o Bot do Telegram.
-- **Frontend**: Single Page Application (SPA) em HTML5/Vanilla JS e CSS3 customizado.
-- **Banco de Dados**: Supabase (PostgreSQL + Realtime + Auth).
-- **Infraestrutura**: GitHub Actions para CI/CD e workflows de atualização periódica.
-- **Integração**: HenrikDev API (v3/v4) para extração de dados brutos da Riot Games.
+- **Frontend**: SPA em HTML5/Vanilla JS e CSS3 customizado.
+- **Banco de Dados**: Supabase (PostgreSQL).
+- **Arquitetura de Serviços**: O sistema foi refatorado para uma estrutura modular:
+    - `services/api-client.js`: Abstração de rede e rate-limiting.
+    - `services/synergy-engine.js`: Lógica pura de cálculo de pontos.
+    - `services/notifier.js`: Sistema descentralizado de alertas.
+    - `services/player-worker.js`: Tarefa isolada de atualização por agente.
 
 ### Estrutura de Diretórios
-- `/`: Scripts principais do backend (`telegram-bot.js`, `update-data.js`, `oraculo.js`).
-- `/lib` ou `/utils` (em transição): Contém `db.js` para conexões centralizadas.
-- `/tests`: Suíte de testes unitários e de integração (Jest).
-- `index.html`, `analise.html`, `briefing.html`: Pontos de entrada do frontend.
+- `/`: Scripts coordenadores (`telegram-bot.js`, `update-data.js`).
+- `/services`: Módulos de lógica desacoplada.
+- `/tests`: Suíte de testes (Jest).
+- `db.js`: Centralizador de conexão Supabase.
 
 ## 2. Fluxo de Dados
 1.  **Ingestão de Dados**: O arquivo `update-data.js` é executado via GitHub Actions a cada 30 minutos.
