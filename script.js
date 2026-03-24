@@ -449,10 +449,10 @@ function renderOperations(operations, append = false, completedMap = {}) {
             squadHTML += `
                 <div class="d-flex flex-column py-2 ${borderClass}">
                     <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-3">
-                            <img src="${safeUrl(m.agentImg, '')}" class="rounded-0 border border-secondary" style="width: 32px; height: 32px; object-fit: cover;" onerror="this.onerror=null; this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png';">
-                            <div class="d-flex flex-row align-items-center">
-                                <span class="fw-bold text-light text-truncate text-uppercase" style="max-width: 120px; font-size: 0.95rem; letter-spacing: 1px;">${escapeHtml(m.riotId.split('#')[0])}</span>
+                        <div class="d-flex align-items-center gap-2 overflow-hidden flex-grow-1">
+                            <img src="${safeUrl(m.agentImg, '')}" class="rounded-0 border border-secondary flex-shrink-0" style="width: 28px; height: 28px; object-fit: cover;" onerror="this.onerror=null; this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png';">
+                            <div class="d-flex flex-row align-items-center overflow-hidden">
+                                <span class="fw-bold text-light text-truncate text-uppercase" style="max-width: 80px; max-width: clamp(60px, 20vw, 120px); font-size: 0.85rem; letter-spacing: 1px;">${escapeHtml(m.riotId.split('#')[0])}</span>
                                 ${intelBtn}
                             </div>
                         </div>
