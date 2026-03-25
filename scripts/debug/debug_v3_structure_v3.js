@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { smartFetch } = require('./services/api-client');
+const { smartFetch } = require('../../src/../services/api-client');
 const henrikApiKey = process.env.HENRIK_API_KEY;
 
 const p = { name: 'm4sna', tag: 'chama' };

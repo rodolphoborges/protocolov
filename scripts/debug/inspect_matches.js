@@ -1,4 +1,4 @@
-const { oraculo: supabase } = require('./db');
+const { oraculo: supabase } = require('../../src/db');
 
 async function inspectMatches() {
     const { data, error } = await supabase

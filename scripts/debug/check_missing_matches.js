@@ -1,4 +1,4 @@
-const { oraculo: supabase } = require('./db');
+const { oraculo: supabase } = require('../../src/db');
 
 const matchIds = [
     'e910223e-2c48-48e1-b270-35bb5001b65f',

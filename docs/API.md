@@ -5,8 +5,8 @@
 ### HenrikDev API (V4)
 O projeto utiliza a API da HenrikDev como fonte primária de dados do Valorant.
 - **Endpoint Base**: `https://api.henrikdev.xyz/valorant/v4/`
-- **Script de Validação**: `probe_api_v4.js`
-    - Uso: `node probe_api_v4.js [type] [matchId]`
+- **Script de Validação**: `scripts/api/probe_api_v4.js`
+    - Uso: `node scripts/api/probe_api_v4.js [type] [matchId]`
     - Tipos suportados: `metadata`, `damage`, `stats`, `round`, `player`.
 
 ### Telegram Bot API

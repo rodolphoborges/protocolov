@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { oraculo: supabase } = require('./db');
+const { oraculo: supabase } = require('../../src/db');
 const henrikApiKey = process.env.HENRIK_API_KEY;
 
 const name = 'Guxxtavo';

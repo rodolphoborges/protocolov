@@ -1,4 +1,4 @@
-const { supabase, oraculo } = require('./db');
+const { supabase, oraculo } = require('../../src/db');
 
 async function syncQueue() {
     if (!oraculo) {

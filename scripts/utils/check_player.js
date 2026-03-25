@@ -1,4 +1,4 @@
-const { oraculo: supabase } = require('./db');
+const { oraculo: supabase } = require('../../src/db');
 
 const matchId = '2c7944be-f3c4-4429-a0fa-8d3604acd7a7';
 const playerTag = 'DefeitoDeFábrica#ZzZ';
