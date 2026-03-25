@@ -1,4 +1,4 @@
-const { oraculo: supabase } = require('./db');
+const { oraculo: supabase } = require('../../src/db');
 const { analyzeMatch } = require('./oraculo');
 
 async function migrate() {

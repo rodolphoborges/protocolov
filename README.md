@@ -37,7 +37,7 @@ npm install
 npm start
 
 # Rodar sincronizador de dados manualmente
-node update-data.js
+npm run sync
 ```
 
 ## 🔄 CI/CD e Automação
@@ -46,8 +46,8 @@ O projeto utiliza **GitHub Actions** para garantir a continuidade operacional:
 - **Testes Automáticos**: Validação de lógica de sinergia e handlers do bot via Jest antes de cada merge.
 
 ## 📖 Documentação Adicional
-- [Arquitetura e Contexto](PROJECT_CONTEXT.md)
-- [Guia de API e Integrações](API.md)
+- [Arquitetura e Contexto](docs/PROJECT_CONTEXT.md)
+- [Guia de API e Integrações](docs/API.md)
 - [Contribuindo com o Projeto](CONTRIBUTING.md)
 
 ---

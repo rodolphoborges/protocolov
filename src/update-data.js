@@ -1,11 +1,11 @@
 require('dotenv').config();
 const { supabase, oraculo: oraculoExt } = require('./db');
-const settings = require('./settings.json');
+const settings = require('../settings.json');
 
 // Modulos Refatorados
-const PlayerWorker = require('./services/player-worker');
-const SynergyEngine = require('./services/synergy-engine');
-const { alertarLoboSolitario, notificarOperacao } = require('./services/notifier');
+const PlayerWorker = require('../services/player-worker');
+const SynergyEngine = require('../services/synergy-engine');
+const { alertarLoboSolitario, notificarOperacao } = require('../services/notifier');
 
 const henrikApiKey = process.env.HENRIK_API_KEY;
 const delay = ms => new Promise(res => setTimeout(res, ms));

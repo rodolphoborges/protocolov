@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { supabase } = require('./db');
+const { supabase } = require('../../src/db');
 
 const matchPlayers = [
     'WhatsApp#Iza',

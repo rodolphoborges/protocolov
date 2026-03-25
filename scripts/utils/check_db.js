@@ -1,4 +1,4 @@
-const { oraculo } = require('./db');
+const { oraculo } = require('../../src/db');
 
 if (!oraculo) {
     console.error("Faltam chaves do Oráculo no .env!");

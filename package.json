@@ -2,9 +2,10 @@
   "name": "protocolov-tracker",
   "version": "1.0.0",
   "description": "Rastreador automático de line-up e operações do Protocolo V",
-  "main": "update-data.js",
+  "main": "src/update-data.js",
   "scripts": {
-    "start": "node telegram-bot.js",
+    "start": "node src/telegram-bot.js",
+    "sync": "node src/update-data.js",
     "test": "jest"
   },
   "dependencies": {

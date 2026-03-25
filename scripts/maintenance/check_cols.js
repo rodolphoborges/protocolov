@@ -1,4 +1,4 @@
-const { supabase } = require('./db');
+const { supabase } = require('../../src/db');
 
 async function checkColumns() {
     const { data, error } = await supabase
