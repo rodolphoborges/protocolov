@@ -105,15 +105,12 @@ async function run() {
                 if (op.mode.toLowerCase() === 'competitive') {
                     await notificarOperacao(op);
                     
-                    // Oráculo Queue
-                    for (const member of op.squad) {
-                        const pFound = finalPlayersUpdate.find(p => p.riot_id === member.riotId);
-                        if (pFound?.telegram_id && oraculoExt) {
-                            await oraculoExt.from('match_analysis_queue').upsert([{
-                                match_id: op.id, agente_tag: member.riotId.trim(),
-                                chat_id: pFound.telegram_id, status: 'pending'
-                            }], { onConflict: 'match_id,agente_tag' });
-                        }
+                    // Oráculo Queue (AUTO-SCAN)
+                    if (oraculoExt) {
+                        await oraculoExt.from('match_analysis_queue').upsert([{
+                            match_id: op.id, agente_tag: 'AUTO',
+                            status: 'pending'
+                        }], { onConflict: 'match_id,agente_tag' });
                     }
                 }
             }
