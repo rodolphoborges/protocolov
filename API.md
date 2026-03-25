@@ -5,8 +5,8 @@
 ### HenrikDev API (V4)
 O projeto utiliza a API da HenrikDev como fonte primária de dados do Valorant.
 - **Endpoint Base**: `https://api.henrikdev.xyz/valorant/v4/`
-- **Script de Validação**: `probe_v4.js`
-    - Uso: `node probe_v4.js [type] [matchId]`
+- **Script de Validação**: `probe_api_v4.js`
+    - Uso: `node probe_api_v4.js [type] [matchId]`
     - Tipos suportados: `metadata`, `damage`, `stats`, `round`, `player`.
 
 ### Telegram Bot API
@@ -16,16 +16,16 @@ O projeto utiliza a API da HenrikDev como fonte primária de dados do Valorant.
     - `/radar`: Verifica o status operacional dos sistemas.
     - `/meu_id`: Retorna o ID do usuário (identificação de admin).
     - `/convocar`: Inicia protocolo de convocação de esquadrão.
-    - `/analisar [RiotID]`: Solicita análise profunda ao Oráculo V.
+    - `/analisar [MatchID]`: Solicita análise profunda ao Oráculo V (Varredura AUTO).
 
 ## 2. Gestão de Credenciais e Segurança
 
 ### Configuração de Ambiente
 Todas as chaves sensíveis devem residir no arquivo `.env`. Nunca comite tokens reais para o repositório.
-- `SUPABASE_SERVICE_KEY`: Chave administrativa (apenas backend).
-- `ORACULO_SUPABASE_SERVICE_KEY`: Chave para instância de análise profunda.
-- `HENRIK_API_KEY`: Chave de autenticação para API Riot.
-
+- `SUPABASE_URL` / `SUPABASE_SERVICE_KEY`: Instância principal do Protocolo V.
+- `ORACULO_SUPABASE_URL` / `ORACULO_SUPABASE_SERVICE_KEY`: Instância do motor Oráculo V.
+- `HENRIK_API_KEY`: Chave de autenticação (Produção/Hobby).
+- `TELEGRAM_BOT_TOKEN`: Token do rádio central.
 ### Tratamento de Erros
 - Chamadas externas utilizam retentativas (retries) em caso de **Rate Limit (429)**.
 - O sistema loga falhas táticas na tabela `players.api_error` para visibilidade no painel administrativo.

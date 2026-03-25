@@ -42,8 +42,8 @@ node update-data.js
 
 ## 🔄 CI/CD e Automação
 O projeto utiliza **GitHub Actions** para garantir a continuidade operacional:
-- **Update Workflow (`update.yml`)**: Executa a cada 30 minutos para sincronizar partidas e atualizar a Sinergia do time. Utiliza cache de `node_modules` e `npm ci` para performance.
-- **Testes Automáticos**: Validação de lógica de sinergia e handlers do bot antes de cada merge.
+- **Update Workflow (`update.yml`)**: Executa a cada 30 minutos para sincronizar partidas, atualizar a Sinergia do time e disparar o **AUTO-SCAN do Oráculo V** para análise tática imediata. Utiliza cache de `node_modules` e `npm ci` para performance.
+- **Testes Automáticos**: Validação de lógica de sinergia e handlers do bot via Jest antes de cada merge.
 
 ## 📖 Documentação Adicional
 - [Arquitetura e Contexto](PROJECT_CONTEXT.md)
