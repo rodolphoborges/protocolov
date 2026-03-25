@@ -1,4 +1,4 @@
-const updater = require('../update-data');
+const updater = require('../src/update-data');
 const matchMock = require('./mocks/match-vr.json');
 
 // Mock do Supabase
@@ -89,7 +89,7 @@ describe('Motor de Sinergia do Protocolo V (E2E Shadow Test)', () => {
 
   test('Deve calcular corretamente 2 pontos de Sinergia para uma vitória em DUO', async () => {
     // IMPORTANTE: Mocar o delay interno para o teste não demorar 13s por player
-    const updaterMod = require('../update-data');
+    const updaterMod = require('../src/update-data');
     
     // Tentativa de mocar o delay injetado ou no escopo (como é local, vamos mocar o timer)
     jest.useFakeTimers();
