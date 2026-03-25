@@ -130,6 +130,22 @@ async function run() {
         }
 
         console.log('✅ Sincronização concluída com sucesso!');
+        
+        // 7. Oráculo Queue Health Check (Ensuring last 10 competitive ops are queued)
+        if (oraculoExt) {
+            const { data: recentOps } = await supabase.from('operations').select('id').eq('mode', 'Competitive').order('started_at', { ascending: false }).limit(10);
+            if (recentOps && recentOps.length > 0) {
+                const opIds = recentOps.map(op => op.id);
+                const { data: existingQueue } = await oraculoExt.from('match_analysis_queue').select('match_id').in('match_id', opIds).eq('agente_tag', 'AUTO');
+                const queuedIds = new Set(existingQueue ? existingQueue.map(q => q.match_id) : []);
+                const missingOps = recentOps.filter(op => !queuedIds.has(op.id));
+                if (missingOps.length > 0) {
+                    console.log(`📡 Oráculo Sync: Adicionando ${missingOps.length} operações em falta à fila...`);
+                    const newEntries = missingOps.map(op => ({ match_id: op.id, agente_tag: 'AUTO', status: 'pending' }));
+                    await oraculoExt.from('match_analysis_queue').insert(newEntries);
+                }
+            }
+        }
 
     } catch (error) {
         console.error('🔥 Erro fatal no Coordenador:', error);
