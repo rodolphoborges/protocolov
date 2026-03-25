@@ -597,7 +597,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <span class="leader-rank fw-bold" style="width: 20px;">0${i+1}</span>
                             <span class="text-white fw-bold text-uppercase" style="font-size: 0.9rem;">${p.tag.split('#')[0]}</span>
                         </div>
-                        <div class="leader-score text-danger">${p.score} <span class="small opacity-50">KDA</span><br><span style="font-size: 0.55rem; opacity: 0.6; display: block; text-align: right; color: var(--val-light);">VER PARTIDA</span></div>
+                        <div class="leader-score text-danger">${p.score} <span class="small opacity-50">MÉDIA</span><br><span style="font-size: 0.55rem; opacity: 0.6; display: block; text-align: right; color: var(--val-light);">ÚLTIMA PARTIDA</span></div>
                     </div>
                 `).join('') || '<div class="text-muted small">A aguardar missões de elite...</div>';
             }
@@ -609,10 +609,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 streaksContainer.innerHTML = streakList.length > 0 ? streakList.slice(0, 5).map(([tag, type]) => `
                     <div class="d-flex align-items-center justify-content-between mb-3 leader-row">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="${type === 'SEQ. VITÓRIAS' ? 'text-success' : 'text-danger'} fw-bold" style="font-size: 0.9rem;">${type === 'SEQ. VITÓRIAS' ? '🔥' : '❄️'}</span>
+                            <span class="${type.includes('VITÓRIAS') ? 'text-success' : 'text-danger'} fw-bold" style="font-size: 0.9rem;">${type.includes('VITÓRIAS') ? '🔥' : '❄️'}</span>
                             <span class="text-white fw-bold text-uppercase" style="font-size: 0.9rem;">${tag.split('#')[0]}</span>
                         </div>
-                        <div class="leader-score ${type === 'SEQ. VITÓRIAS' ? 'text-success' : 'text-danger'}" style="font-size: 0.7rem;">${type}</div>
+                        <div class="leader-score ${type.includes('VITÓRIAS') ? 'text-success' : 'text-danger'}" style="font-size: 0.7rem;">${type}</div>
                     </div>
                 `).join('') : `<div class="p-3 text-center border border-secondary border-opacity-10" style="background: rgba(255,255,255,0.02);">
                     <span class="text-success blink-terminal fw-bold" style="font-size: 0.8rem;">ESTADO OPERACIONAL: NOMINAL</span>

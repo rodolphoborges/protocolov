@@ -42,6 +42,8 @@ class IntelligenceLayer {
 
         this.data.forEach(record => {
             const tag = record.agente_tag;
+            if (tag === 'AUTO' || !tag || !tag.includes('#')) return; // IGNORAR REGISTROS DO SISTEMA
+            
             const meta = record.metadata;
             const analysis = meta.analysis || {};
             const timestamp = new Date(record.processed_at || record.created_at);
@@ -108,13 +110,27 @@ class IntelligenceLayer {
             .sort((a, b) => b.soloQMatches - a.soloQMatches)
             .map(p => ({ tag: p.tag, score: p.soloQMatches }));
 
-        // 4. Streaks (Negative sequences)
+        // 4. Streaks (Sequence counting)
         players.forEach(p => {
-            const isLossStreak = p.lastMatches.length >= 3 && p.lastMatches.slice(0,3).every(v => v < 70);
-            const isWinStreak = p.lastMatches.length >= 3 && p.lastMatches.slice(0,3).every(v => v > 120);
+            let winStreak = 0;
+            let lossStreak = 0;
             
-            if (isLossStreak) this.insights.streaks[p.tag] = 'SEQ. DERROTAS';
-            if (isWinStreak) this.insights.streaks[p.tag] = 'SEQ. VITÓRIAS';
+            // Iterate from newest to oldest
+            for (let i = 0; i < p.lastMatches.length; i++) {
+                const perf = p.lastMatches[i];
+                if (perf > 120) {
+                    if (lossStreak > 0) break;
+                    winStreak++;
+                } else if (perf < 75) {
+                    if (winStreak > 0) break;
+                    lossStreak++;
+                } else {
+                    break; // Reset on average performance
+                }
+            }
+            
+            if (winStreak >= 2) this.insights.streaks[p.tag] = `${winStreak} VITÓRIAS`;
+            if (lossStreak >= 2) this.insights.streaks[p.tag] = `${lossStreak} DERROTAS`;
         });
 
         console.log(">>> [INTEL] Insights gerados com sucesso.");
