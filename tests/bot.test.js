@@ -92,7 +92,7 @@ describe('K.A.I.O. Telegram Bot - Unit Tests', () => {
         express.prototype.listen = jest.fn();
 
         // Carregar o bot
-        require('../telegram-bot');
+        require('../src/telegram-bot');
 
         // Capturar os handlers
         mockBotInstance.onText.mock.calls.forEach(([regex, handler]) => {
