@@ -15,11 +15,11 @@ O **Protocolo V** é uma plataforma de gestão e análise tática para times de 
 
 ### Estrutura de Diretórios
 - `src/`: Core Engine (`telegram-bot.js`, `update-data.js`, `db.js`).
-- `public/`: Assets Frontend (HTML, CSS, JS).
+- `docs/`: Portal Frontend (HTML, CSS, JS) - GitHub Pages.
 - `scripts/`: Utilitários (Maintenance, API Probe, Debug).
 - `services/`: Módulos de lógica desacoplada (Engine, Notifier, Workers).
 - `tests/`: Suíte de testes automatizados (Jest).
-- `docs/`: Documentação técnica.
+- `documentation/`: Documentação técnica.
 - **Protocolo Fantasma**: Camada de integridade que valida e expurga agentes inexistentes.
 
 ## 2. Fluxo de Dados
@@ -29,7 +29,7 @@ O **Protocolo V** é uma plataforma de gestão e análise tática para times de 
 2.  **Análise Profunda (Oráculo V)**: Após a ingestão, o sistema enfileira automaticamente uma ordem `AUTO` na `match_analysis_queue`.
     - O **Worker do Oráculo** (integrado ao bot) processa essa ordem, varre a partida via API V4 para identificar todos os membros do Protocolo V presentes e gera relatórios individuais com Badges Táticas e Heurística K.A.I.O.
 3.  **Interface de Controle (Telegram)**: O `src/telegram-bot.js` atua como o HUB de comando, permitindo vincular rádios, convocar esquadrões (LFG) e disparar análises manuais.
-4.  **Exibição (Frontend)**: A pasta `public/` contém o site que consome dados do Supabase e do Oráculo.
+4.  **Exibição (Frontend)**: A pasta `docs/` contém o site que consome dados do Supabase e do Oráculo.
 
 ## 3. Débitos Técnicos e Pontos de Atenção
 Baseado no Code Review (Março/2026), foram identificados os seguintes pontos para evolução futura:
