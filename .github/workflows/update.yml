@@ -30,7 +30,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Roda o script de extração e API
-        run: node update-data.js
+        run: npm run sync
         env:
           HENRIK_API_KEY: ${{ secrets.HENRIK_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
