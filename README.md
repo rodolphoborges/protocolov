@@ -27,6 +27,8 @@ Preencha as variáveis mandatórias:
 - `SUPABASE_URL` / `SUPABASE_SERVICE_KEY`
 - `HENRIK_API_KEY`
 - `TELEGRAM_BOT_TOKEN`
+- `ORACULO_SUPABASE_URL` / `ORACULO_SUPABASE_SERVICE_KEY` (Opcional, para fila do Oráculo)
+
 
 ### 3. Execução
 ```bash
@@ -36,8 +38,11 @@ npm install
 # Iniciar o Bot do Telegram e Servidor
 npm start
 
-# Rodar sincronizador de dados manualmente
+# Rodar sincronizador de dados manualmente (via wrapper ou npm)
+node update-data.js
+# ou
 npm run sync
+
 ```
 
 ## 🔄 CI/CD e Automação
