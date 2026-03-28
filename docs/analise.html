@@ -379,6 +379,9 @@
                             </div>
                         </div>
 
+                        <!-- A.I. Head Coach Container -->
+                        <div id="ai-insight-container"></div>
+
                         <div class="text-info fw-bold mb-3 teko-font" style="letter-spacing: 1px;">_ ANÁLISE TÁTICA E EVENTOS DE COMBATE:</div>
                         <div id="rounds-container">
                             <!-- Rounds will be populated here -->
@@ -417,6 +420,11 @@
     <script>
         function toggleRound(element) {
             element.classList.toggle('collapsed');
+        }
+
+        function escapeHtml(unsafe) {
+            if (!unsafe) return "";
+            return String(unsafe).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         function closeTerminal() {
@@ -460,14 +468,31 @@
 
                 const oraculo = window.supabase.createClient(oUrl, oKey);
 
-                // Fetch data
-                const { data, error } = await oraculo
+                const pUrl = window.ProtocolConfig.supabase ? window.ProtocolConfig.supabase.url : '';
+                const pKey = window.ProtocolConfig.supabase ? window.ProtocolConfig.supabase.anonKey : '';
+                const protocoloClient = (pUrl && !pUrl.includes('INSIRA_URL')) ? window.supabase.createClient(pUrl, pKey) : null;
+
+                // Fetch data concurrently
+                const oraculoPromise = oraculo
                     .from('match_analysis_queue')
                     .select('*')
                     .eq('match_id', matchId)
                     .ilike('agente_tag', player)
                     .limit(1)
                     .single();
+
+                const aiInsightPromise = protocoloClient ? protocoloClient
+                    .from('ai_insights')
+                    .select('insight_resumo, model_used, created_at')
+                    .ilike('player_id', player)
+                    .eq('match_id', matchId)
+                    .limit(1)
+                    .single() : Promise.resolve({ data: null, error: { message: "No Protocolo Client" } });
+
+                const [oraculoResult, aiInsightResult] = await Promise.all([oraculoPromise, aiInsightPromise]);
+
+                const { data, error } = oraculoResult;
+                const insightData = aiInsightResult.data;
 
                 if (error) throw error;
                 if (!data || data.status !== 'completed') {
@@ -541,6 +566,53 @@
                 if (kaioText) {
                     document.getElementById('kaio-directive-container').style.display = 'block';
                     document.getElementById('kaio-text').innerText = kaioText;
+                }
+
+                // Render A.I. Head Coach Insights
+                const aiContainer = document.getElementById('ai-insight-container');
+                if (insightData && insightData.insight_resumo) {
+                    const resumo = insightData.insight_resumo;
+                    
+                    aiContainer.innerHTML = `
+                        <div class="p-4 mb-4" style="background: rgba(0, 0, 0, 0.6); border: 1px solid #00ff41; position: relative;">
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-success border-opacity-25 pb-2">
+                                <h3 class="teko-font text-info m-0" style="font-size: 1.5rem; letter-spacing: 1px;">🤖 ORÁCULO A.I. HEAD COACH</h3>
+                                <span class="badge bg-dark border border-success text-info">
+                                    Nota Final: ${escapeHtml(resumo.nota_coach)} / 10
+                                </span>
+                            </div>
+
+                            <div class="d-flex flex-column gap-3">
+                                <div>
+                                    <h4 class="stat-label-term mb-1" style="font-size: 0.7rem;">DIAGNÓSTICO PRINCIPAL</h4>
+                                    <p class="text-white small mb-0 opacity-75">${escapeHtml(resumo.diagnostico_principal)}</p>
+                                </div>
+
+                                <div class="p-3" style="background: rgba(0, 255, 65, 0.05); border-left: 2px solid #00ff41;">
+                                    <h4 class="stat-label-term text-info mb-2" style="font-size: 0.7rem;">AVALIAÇÃO TÁTICA</h4>
+                                    <p class="text-white small fst-italic mb-0 opacity-75">"${escapeHtml(resumo.tatico)}"</p>
+                                </div>
+
+                                ${(resumo.foco_treino && resumo.foco_treino.length > 0) ? `
+                                <div>
+                                    <h4 class="stat-label-term text-warning mb-2" style="font-size: 0.7rem;">FOCO DE TREINO REESCRITO</h4>
+                                    <ul class="list-unstyled text-white small opacity-75 mb-0" style="margin-left: 10px;">
+                                        ${resumo.foco_treino.map(dica => `
+                                            <li class="mb-1 d-flex align-items-start gap-2">
+                                                <span class="text-warning mt-1" style="font-size: 0.5rem;">▶</span>
+                                                ${escapeHtml(dica)}
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                                ` : ''}
+                            </div>
+
+                            <div class="mt-4 pt-2 border-top border-success border-opacity-25 text-end">
+                                <span class="font-monospace text-muted" style="font-size: 0.6rem;">PROCESSADO POR: ${escapeHtml(insightData.model_used || 'DESCONHECIDO')}</span>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 // NEW v3.2: Holt Trend
