@@ -11,7 +11,7 @@ async function syncQueue() {
     // 1. Pegar as últimas 20 operações competitivas
     const { data: recentOps, error: opsError } = await supabase
         .from('operations')
-        .select('id, mode')
+        .select('id, mode, operation_squads(riot_id)')
         .eq('mode', 'Competitive')
         .order('started_at', { ascending: false })
         .limit(20);
@@ -46,15 +46,27 @@ async function syncQueue() {
 
     console.log(`🚀 Adicionando ${missingOps.length} operações em falta à fila...`);
 
-    const newEntries = missingOps.map(op => ({
-        match_id: op.id,
-        agente_tag: 'AUTO',
-        status: 'pending'
-    }));
+    const newEntries = [];
+    missingOps.forEach(op => {
+        newEntries.push({
+            match_id: op.id,
+            agente_tag: 'AUTO',
+            status: 'pending'
+        });
+        if (op.operation_squads && Array.isArray(op.operation_squads)) {
+            op.operation_squads.forEach(member => {
+                newEntries.push({
+                    match_id: op.id,
+                    agente_tag: member.riot_id,
+                    status: 'pending'
+                });
+            });
+        }
+    });
 
     const { error: insertError } = await oraculo
         .from('match_analysis_queue')
-        .insert(newEntries);
+        .upsert(newEntries, { onConflict: 'match_id,agente_tag' });
 
     if (insertError) {
         console.error('❌ Erro ao sincronizar fila:', insertError.message);
