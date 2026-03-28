@@ -105,12 +105,15 @@ async function run() {
                 if (op.mode.toLowerCase() === 'competitive') {
                     await notificarOperacao(op);
                     
-                    // Oráculo Queue (AUTO-SCAN)
+                    // Oráculo Queue (SCAN DIRETO)
                     if (oraculoExt) {
-                        await oraculoExt.from('match_analysis_queue').upsert([{
-                            match_id: op.id, agente_tag: 'AUTO',
-                            status: 'pending'
-                        }], { onConflict: 'match_id,agente_tag' });
+                        const queueEntries = [
+                            { match_id: op.id, agente_tag: 'AUTO', status: 'pending' },
+                            ...op.squad.map(m => ({
+                                match_id: op.id, agente_tag: m.riotId, status: 'pending'
+                            }))
+                        ];
+                        await oraculoExt.from('match_analysis_queue').upsert(queueEntries, { onConflict: 'match_id,agente_tag' });
                     }
                 }
             }
@@ -133,7 +136,7 @@ async function run() {
         
         // 7. Oráculo Queue Health Check (Ensuring last 10 competitive ops are queued)
         if (oraculoExt) {
-            const { data: recentOps } = await supabase.from('operations').select('id').eq('mode', 'Competitive').order('started_at', { ascending: false }).limit(10);
+            const { data: recentOps } = await supabase.from('operations').select('id, operation_squads(riot_id)').eq('mode', 'Competitive').order('started_at', { ascending: false }).limit(10);
             if (recentOps && recentOps.length > 0) {
                 const opIds = recentOps.map(op => op.id);
                 const { data: existingQueue } = await oraculoExt.from('match_analysis_queue').select('match_id').in('match_id', opIds).eq('agente_tag', 'AUTO');
@@ -141,8 +144,16 @@ async function run() {
                 const missingOps = recentOps.filter(op => !queuedIds.has(op.id));
                 if (missingOps.length > 0) {
                     console.log(`📡 Oráculo Sync: Adicionando ${missingOps.length} operações em falta à fila...`);
-                    const newEntries = missingOps.map(op => ({ match_id: op.id, agente_tag: 'AUTO', status: 'pending' }));
-                    await oraculoExt.from('match_analysis_queue').insert(newEntries);
+                    const newEntries = [];
+                    missingOps.forEach(op => {
+                        newEntries.push({ match_id: op.id, agente_tag: 'AUTO', status: 'pending' });
+                        if (op.operation_squads && Array.isArray(op.operation_squads)) {
+                            op.operation_squads.forEach(member => {
+                                newEntries.push({ match_id: op.id, agente_tag: member.riot_id, status: 'pending' });
+                            });
+                        }
+                    });
+                    await oraculoExt.from('match_analysis_queue').upsert(newEntries, { onConflict: 'match_id,agente_tag' });
                 }
             }
         }
