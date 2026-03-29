@@ -123,7 +123,7 @@ class OraculoService {
 
                 if (response.data && response.data.insight) {
                     const { insight, technical_data } = response.data;
-                    console.log(`   [←] Insight recebido: Rank ${insight.rank} | Score: ${insight.score}`);
+                    console.log(`   [←] Insight recebido: Rank ${insight.rank || 'N/A'} | Score: ${insight.score || '0'}`);
 
                     // 3. Persistência Local (ai_insights)
                     const { error: insError } = await supabase.from('ai_insights').upsert([{
