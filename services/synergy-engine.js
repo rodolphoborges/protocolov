@@ -98,6 +98,7 @@ class SynergyEngine {
                         started_at: startTime,
                         score: `${blueScore}-${redScore}`,
                         result: finalResult, team_color: teamId,
+                        rawMatchData: match, // Passando o objeto original para métricas avançadas
                         squad: squadMembers.map(m => {
                             const hs = m.stats.headshots || 0;
                             const bs = m.stats.bodyshots || 0;
