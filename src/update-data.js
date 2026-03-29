@@ -1,5 +1,6 @@
 const { supabase } = require('./db');
 const OraculoService = require('../services/oraculo-service');
+const OraculoIntegrationService = require('../services/OraculoIntegrationService');
 
 async function notificarOperacao(op) {
     console.log(`   [📢] Notificação: Operação ${op.id.substring(0,8)} | Mapa: ${op.map_name} | Modo: ${op.mode}`);
@@ -29,6 +30,13 @@ async function run() {
             // 3. Notificações e Gatilhos
             if (op.is_competitive) {
                 await notificarOperacao(op);
+                
+                // [NOVO] Gatilho de Integração Oráculo-V
+                // Processa a análise tática e atualiza performance do jogador
+                if (op.match_id) {
+                    OraculoIntegrationService.notifyMatch(op.match_id)
+                        .catch(err => console.error(`   [❌] Falha no gatilho Oráculo: ${err.message}`));
+                }
             }
         }
 
