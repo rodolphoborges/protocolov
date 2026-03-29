@@ -118,7 +118,7 @@ class OraculoService {
                         'Content-Type': 'application/json',
                         'x-api-key': this.apiKey
                     },
-                    timeout: 60000 // 60s
+                    timeout: 90000 // 90s para aguentar fallbacks da LLM
                 });
 
                 if (response.data && response.data.insight) {
