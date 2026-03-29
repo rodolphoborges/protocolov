@@ -458,60 +458,37 @@
             }
 
             try {
-                // Initialize clients using ProtocolConfig
-                const oUrl = window.ProtocolConfig.oraculo ? window.ProtocolConfig.oraculo.url : '';
-                const oKey = window.ProtocolConfig.oraculo ? window.ProtocolConfig.oraculo.anonKey : '';
-                
-                if (!oUrl || !oKey || oUrl.includes('INSIRA_URL')) {
-                    throw new Error("Módulo Oráculo V não configurado corretamente no config.js");
-                }
-
-                const oraculo = window.supabase.createClient(oUrl, oKey);
-
-                const pUrl = window.ProtocolConfig.supabase ? window.ProtocolConfig.supabase.url : '';
-                const pKey = window.ProtocolConfig.supabase ? window.ProtocolConfig.supabase.anonKey : '';
-                const protocoloClient = (pUrl && !pUrl.includes('INSIRA_URL')) ? window.supabase.createClient(pUrl, pKey) : null;
-
-                // Fetch data concurrently
-                const oraculoPromise = oraculo
-                    .from('match_analysis_queue')
-                    .select('*')
-                    .eq('match_id', matchId)
-                    .ilike('agente_tag', player)
-                    .limit(1)
-                    .single();
-
-                const aiInsightPromise = protocoloClient ? protocoloClient
+                // Fetch all data from the LOCAL Protocolo-V ai_insights table
+                // This replaces the legacy dual-database fetch system.
+                const { data, error } = await protocoloClient
                     .from('ai_insights')
-                    .select('insight_resumo, model_used, created_at')
+                    .select('insight_resumo, model_used, created_at, analysis_report')
                     .ilike('player_id', player)
                     .eq('match_id', matchId)
-                    .limit(1)
-                    .single() : Promise.resolve({ data: null, error: { message: "No Protocolo Client" } });
+                    .single();
 
-                const [oraculoResult, aiInsightResult] = await Promise.all([oraculoPromise, aiInsightPromise]);
+                if (error) {
+                    console.error("🔍 [FRONTEND] Insight não detectado localmente:", error.message);
+                    throw new Error("A análise tática para este agente/missão ainda não foi sincronizada.");
+                }
 
-                const { data, error } = oraculoResult;
-                const insightData = aiInsightResult.data;
+                if (!data) throw new Error("Registro de análise não encontrado.");
 
-                if (error) throw error;
-                if (!data || data.status !== 'completed') {
+                // Map data from the new local structure
+                const insightData = data;
+                const report = data.analysis_report || {};
+                
+                if (!report || Object.keys(report).length === 0) {
                     document.getElementById('loader').innerHTML = `
                         <div class="alert alert-dark border-warning rounded-0 text-center py-4">
                             <h2 class="teko-font text-warning">RELATÓRIO PENDENTE</h2>
-                            <p class="font-monospace text-muted">A análise tática solicitada ainda está na fila de processamento.</p>
+                            <p class="font-monospace text-muted">A análise técnica foi iniciada, mas os detalhes ainda estão sendo processados.</p>
                             <button onclick="window.location.reload()" class="btn-val-terminal mt-3">RECARREGAR</button>
                             <a href="index.html" class="btn-val-terminal mt-3 ms-2">VOLTAR AO QG</a>
                         </div>`;
                     return;
                 }
 
-                // Data mapping (support for multiple report structures)
-                // Data mapping (support for multiple report structures)
-                // New format: data.report
-                // Legacy format: data.metadata.analysis
-                const report = data.report || data.metadata?.analysis || data.metadata || {};
-                
                 // Populate metadata
                 document.getElementById('agent-display').innerText = `AGENTE: ${player.split('#')[0].toUpperCase()}`;
                 document.getElementById('op-id').innerText = matchId;

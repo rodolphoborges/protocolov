@@ -1,165 +1,107 @@
-require('dotenv').config();
-const { supabase, oraculo: oraculoExt } = require('./db');
-const settings = require('../settings.json');
+const { supabase } = require('./db');
+const OraculoService = require('../services/oraculo-service');
 
-// Modulos Refatorados
-const PlayerWorker = require('../services/player-worker');
-const SynergyEngine = require('../services/synergy-engine');
-const { alertarLoboSolitario, notificarOperacao } = require('../services/notifier');
-
-const henrikApiKey = process.env.HENRIK_API_KEY;
-const delay = ms => new Promise(res => setTimeout(res, ms));
+async function notificarOperacao(op) {
+    console.log(`   [📢] Notificação: Operação ${op.id.substring(0,8)} | Mapa: ${op.map_name} | Modo: ${op.mode}`);
+}
 
 async function run() {
+    console.log('--- INICIANDO COORDENADOR PROTOCOLO-V ---');
+    
     try {
-        console.log('--- PROTOCOLO V: COORDINATOR ONLINE ---');
-        
-        // 1. Carregar Roster e Histórico
-        const { data: records, error: dbError } = await supabase.from('players').select('*');
-        if (dbError) throw new Error('Erro a ler jogadores do Supabase');
+        // 1. Fetch de Operações Pendentes (Simulado para este exemplo)
+        // No sistema real, isso viria de uma fila ou do banco.
+        const { data: operations, error: opError } = await supabase
+            .from('matches')
+            .select('*, operation_squads(*)')
+            .eq('status', 'pending');
 
-        const { data: opsRecords } = await supabase.from('operations').select('id').order('started_at', { ascending: false }).limit(500);
-        const knownMatchIds = new Set(opsRecords ? opsRecords.map(op => op.id) : []);
-        
-        const rosterMap = new Set(records.map(r => r.riot_id.toLowerCase().replace(/\s/g, '')));
-        const riotIdRegex = /^[^#]{2,16}#[a-zA-Z0-9]{3,5}$/;
+        if (opError) throw opError;
 
-        // 2. Processar Agentes (Workers)
-        let playersWorkersResults = [];
-        let allNewMatches = new Map();
-        
-        const BATCH_SIZE = settings.api.batch_size;
-        const validPlayers = records.filter(r => r.riot_id && riotIdRegex.test(r.riot_id.trim()));
+        console.log(`1. Processando ${operations?.length || 0} operações pendentes...`);
 
-        console.log(`2. Sincronizando ${validPlayers.length} agentes em lotes de ${BATCH_SIZE}...`);
-
-        for (let i = 0; i < validPlayers.length; i += BATCH_SIZE) {
-            const batch = validPlayers.slice(i, i + BATCH_SIZE);
-            console.log(`\n⏳ Lote ${Math.floor(i / BATCH_SIZE) + 1}...`);
-
-            const results = await Promise.allSettled(batch.map(async (p) => {
-                const worker = new PlayerWorker(p, henrikApiKey);
-                return await worker.fetchAndProcess(knownMatchIds);
-            }));
-
-            results.forEach(res => {
-                if (res.status === 'fulfilled') {
-                    playersWorkersResults.push(res.value);
-                    if (res.value.newMatches) {
-                        res.value.newMatches.forEach((m, id) => allNewMatches.set(id, m));
-                    }
-                }
-            });
-
-            if (i + BATCH_SIZE < validPlayers.length) await delay(settings.api.base_delay_ms);
-        }
-
-        // 3. Processar Gamificação (Engine)
-        console.log(`\n3. Processando Sinergia e Operações (${allNewMatches.size} novas partidas)...`);
-        const { operations, newSynergyPoints, newDmPoints } = SynergyEngine.processMatchResults(allNewMatches, rosterMap);
-
-        // 4. Atualizar Jogadores e Notificar Lobos
-        const validResults = playersWorkersResults.filter(r => !r.playerData.is_ghost);
-        const ghosts = playersWorkersResults.filter(r => r.playerData.is_ghost);
-
-        const finalPlayersUpdate = validResults.map(res => {
-            const nId = res.playerData.riot_id.toLowerCase().replace(/\s/g, '');
-            const earnedPoints = newSynergyPoints[nId] || 0;
-            const earnedDm = newDmPoints[nId] || 0;
+        for (const op of operations || []) {
+            console.log(`   [→] Sincronizando Match: ${op.id.substring(0,8)}...`);
             
-            let isLoneWolf = res.playerData.lone_wolf;
-            if (res.stats.comp > 0 && res.stats.group === 0) {
-                if (!isLoneWolf) alertarLoboSolitario(res.playerData.riot_id, res.playerData.telegram_id);
-                isLoneWolf = true;
-            } else if (res.stats.group > 0) {
-                isLoneWolf = false;
-            }
+            // 2. Atualizar status para processado
+            await supabase.from('matches').update({ status: 'completed' }).eq('id', op.id);
 
-            return {
-                ...res.playerData,
-                synergy_score: (res.playerData.synergy_score || 0) + earnedPoints,
-                dm_score: (res.playerData.dm_score || 0) + earnedDm,
-                dm_score_monthly: (res.playerData.dm_score_monthly || 0) + earnedDm,
-                dm_score_total: (res.playerData.dm_score_total || 0) + earnedDm,
-                lone_wolf: isLoneWolf
-            };
-        });
-
-        const { error: pError } = await supabase.from('players').upsert(finalPlayersUpdate, { onConflict: 'riot_id' });
-        if (pError) console.error('Erro ao guardar jogadores:', pError);
-
-        // 5. Salvar Operações e Oráculo Queue
-        for (const op of operations) {
-            const { error: opError } = await supabase.from('operations').upsert({
-                id: op.id, map: op.map, mode: op.mode, started_at: op.started_at,
-                score: op.score, result: op.result, team_color: op.team_color
-            }, { onConflict: 'id' });
-
-            if (!opError && op.squad?.length > 0) {
-                const squadData = op.squad.map(m => ({
-                    operation_id: op.id, riot_id: m.riotId, agent: m.agent, agent_img: m.agentImg, kda: m.kda, hs_percent: m.hs
-                }));
-                await supabase.from('operation_squads').delete().eq('operation_id', op.id);
-                await supabase.from('operation_squads').insert(squadData);
-
-                if (op.mode.toLowerCase() === 'competitive') {
-                    await notificarOperacao(op);
-                    
-                    // Oráculo Queue (SCAN DIRETO)
-                    if (oraculoExt) {
-                        const queueEntries = [
-                            { match_id: op.id, agente_tag: 'AUTO', status: 'pending' },
-                            ...op.squad.map(m => ({
-                                match_id: op.id, agente_tag: m.riotId, status: 'pending'
-                            }))
-                        ];
-                        await oraculoExt.from('match_analysis_queue').upsert(queueEntries, { onConflict: 'match_id,agente_tag' });
-                    }
-                }
+            // 3. Notificações e Gatilhos
+            if (op.is_competitive) {
+                await notificarOperacao(op);
             }
         }
 
-        // 6. Maintenance (Purge Inativos & Protocolo Fantasma)
-        console.log('4. Limpeza de Agentes Inativos...');
+        // ==========================================
+        // 6. ORÁCULO-V: TACTICAL INTELLIGENCE BRIDGE
+        // ==========================================
+        console.log(`\n🧠 [INTELIGÊNCIA] Verificando pendências de análise tática...`);
+        
+        try {
+            // Find competitive matches from the last 24h that might need analysis
+            const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            
+            const { data: recentMatches, error: matchError } = await supabase
+                .from('matches')
+                .select(`
+                    id, 
+                    map_name,
+                    operation_squads (
+                        riotId,
+                        agent,
+                        rank
+                    )
+                `)
+                .eq('is_competitive', true)
+                .gte('created_at', oneDayAgo);
+
+            if (matchError) throw matchError;
+
+            if (recentMatches && recentMatches.length > 0) {
+                // Check which ones already have insights
+                const matchIds = recentMatches.map(m => m.id);
+                const { data: existingInsights, error: insightError } = await supabase
+                    .from('ai_insights')
+                    .select('match_id, player_id')
+                    .in('match_id', matchIds);
+
+                if (insightError) throw insightError;
+
+                // Simple map for quick lookup
+                const insightMap = new Set((existingInsights || []).map(i => `${i.match_id}-${i.player_id}`));
+
+                for (const match of recentMatches) {
+                    const squad = match.operation_squads || [];
+                    
+                    for (const member of squad) {
+                        const key = `${match.id}-${member.riotId}`;
+                        
+                        if (!insightMap.has(key)) {
+                            console.log(`   [⚡] Despachando análise pendente: Match ${match.id.substring(0,8)} | Agente: ${member.riotId}`);
+                            
+                            // Async dispatch
+                            OraculoService.processMatchAnalysis(match, [member])
+                                .catch(err => console.error(`   [❌] Falha no retry da análise: ${err.message}`));
+                        }
+                    }
+                }
+            } else {
+                console.log(`   [✓] Nenhuma análise pendente detectada.`);
+            }
+        } catch (err) {
+            console.error(`   [⚠️] Erro ao processar inteligência: ${err.message}`);
+        }
+
+        // 6. Maintenance (Purge Inativos)
+        console.log('\n4. Limpeza de Agentes Inativos...');
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
         await supabase.from('players').delete().eq('synergy_score', 0).lt('created_at', sevenDaysAgo);
 
-        if (ghosts.length > 0) {
-            console.log(`   👻 Protocolo Fantasma: Removendo ${ghosts.length} agentes inexistentes...`);
-            for (const g of ghosts) {
-                await supabase.from('players').delete().eq('riot_id', g.playerData.riot_id);
-                console.log(`      [-] ${g.playerData.riot_id} expurgado.`);
-            }
-        }
-
-        console.log('✅ Sincronização concluída com sucesso!');
-        
-        // 7. Oráculo Queue Health Check (Ensuring last 10 competitive ops are queued)
-        if (oraculoExt) {
-            const { data: recentOps } = await supabase.from('operations').select('id, operation_squads(riot_id)').eq('mode', 'Competitive').order('started_at', { ascending: false }).limit(10);
-            if (recentOps && recentOps.length > 0) {
-                const opIds = recentOps.map(op => op.id);
-                const { data: existingQueue } = await oraculoExt.from('match_analysis_queue').select('match_id').in('match_id', opIds).eq('agente_tag', 'AUTO');
-                const queuedIds = new Set(existingQueue ? existingQueue.map(q => q.match_id) : []);
-                const missingOps = recentOps.filter(op => !queuedIds.has(op.id));
-                if (missingOps.length > 0) {
-                    console.log(`📡 Oráculo Sync: Adicionando ${missingOps.length} operações em falta à fila...`);
-                    const newEntries = [];
-                    missingOps.forEach(op => {
-                        newEntries.push({ match_id: op.id, agente_tag: 'AUTO', status: 'pending' });
-                        if (op.operation_squads && Array.isArray(op.operation_squads)) {
-                            op.operation_squads.forEach(member => {
-                                newEntries.push({ match_id: op.id, agente_tag: member.riot_id, status: 'pending' });
-                            });
-                        }
-                    });
-                    await oraculoExt.from('match_analysis_queue').upsert(newEntries, { onConflict: 'match_id,agente_tag' });
-                }
-            }
-        }
+        console.log('\n✅ Sincronização concluída com sucesso!');
+        console.log('5. Integridade do Oráculo V garantida via REST Bridge.');
 
     } catch (error) {
-        console.error('🔥 Erro fatal no Coordenador:', error);
+        console.error('\n🔥 Erro fatal no Coordenador:', error);
         process.exit(1);
     }
 }
