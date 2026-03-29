@@ -4,12 +4,19 @@
 
 Plataforma avançada de recrutamento, análise de performance e gestão de esquadrões de elite para Valorant. O Protocolo V atua como a interface de comando central (K.A.I.O.) para otimizar a sinergia e os resultados táticos do time.
 
-## 🚀 Tecnologias
+## 🏢 Governança de Dados (Data Owner)
+
+O Protocolo-V é a autoridade máxima e única fonte da verdade para o ecossistema. Suas responsabilidades incluem:
+
+- **Identidade de Agente**: Gestão de Riot IDs, Tags e metadados de perfil dos jogadores.
+- **Operações de Esquadrão**: Orquestração das squads (Alpha, Omega, Depósito de Torreta) e alocação de missões.
+- **Integridade Referencial**: Geração mandatória de `match_id` no formato **UUID**. Esta é a regra de ouro para a sincronização com serviços externos.
+
+## 🚀 Stack & Resiliência
+- **Framework**: Antigravity (Arquitetura Ágil & Resiliente)
 - **Engine**: [Node.js](https://nodejs.org/) v18+
 - **Database**: [Supabase](https://supabase.com/) (PostgreSQL)
-- **Frontend**: HTML5, CSS3/Vanilla (Cyberpunk Aesthetic)
 - **API**: HenrikDev Valorant API
-- **Bot**: Telegram Bot API
 
 ## ⚙️ Instalação e Execução
 
@@ -45,13 +52,15 @@ npm run sync
 
 ```
 
-## 🔄 CI/CD e Automação
-O projeto utiliza **GitHub Actions** para garantir a continuidade operacional:
-- **Update Workflow (`update.yml`)**: Executa a cada 30 minutos para sincronizar partidas, atualizar a Sinergia do time e disparar o **AUTO-SCAN do Oráculo V** para análise tática imediata. Utiliza cache de `node_modules` e `npm ci` para performance.
-- **Testes Automáticos**: Validação de lógica de sinergia e handlers do bot via Jest antes de cada merge.
+## 🔄 Ciclo de Vida da Missão
+O projeto utiliza **GitHub Actions** e o motor **Antigravity** para garantir a continuidade operacional:
+- **Update Workflow (`update.yml`)**: Sincronização de partidas a cada 30 minutos.
+- **Despacho de Briefing**: Ao detectar uma nova partida, o Protocolo-V gera o `match_id` (UUID) e despacha o briefing JSON para o Oráculo-V.
+- **Ingestão de Insights**: O sistema monitora o callback do Oráculo para atualizar o dashboard tático.
 
-## 📖 Documentação Adicional
-- [Arquitetura e Contexto](documentation/PROJECT_CONTEXT.md)
+## 📖 Documentação de Arquitetura
+Para detalhes técnicos sobre o ecossistema distribuído, consulte o [Arquivo de Arquitetura Principal](../ARCHITECTURE.md).
+
 - [Guia de API e Integrações](documentation/API.md)
 - [Contribuindo com o Projeto](CONTRIBUTING.md)
 
