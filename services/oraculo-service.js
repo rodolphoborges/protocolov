@@ -58,6 +58,10 @@ class OraculoService {
         console.log(`\n🧠 [ORÁCULO-V] Iniciando ponte tática | Match: ${op.id}`);
 
         for (const member of op.squad) {
+            // [POLISH] Delay de 2s para evitar 429 no OpenRouter
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            let briefing = null;
             try {
                 // 1. Extração de Métricas do Objeto Raw
                 const rawMatch = op.rawMatchData;
@@ -87,7 +91,7 @@ class OraculoService {
                     }
                 }
 
-                const briefing = {
+                briefing = {
                     match_id: op.id,
                     player_id: member.riotId,
                     map_name: op.map || op.map_name,
@@ -127,6 +131,7 @@ class OraculoService {
                         player_id: member.riotId,
                         insight_resumo: insight.resumo,
                         classification: insight.rank,
+                        impact_score: insight.score,
                         model_used: insight.model_used,
                         analysis_report: technical_data // Relatório completo persistido localmente
                     }], { onConflict: 'match_id,player_id' });
