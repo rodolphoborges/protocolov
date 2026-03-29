@@ -40,7 +40,7 @@ async function backfill() {
             try {
                 let op = null;
                 // 1. Tentar recuperar dados completos da partida via Henrik API
-                const res = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/match/br/${match.id}`, { 
+                const res = await smartFetch(`https://api.henrikdev.xyz/valorant/v3/match/${match.id}`, { 
                     'Authorization': process.env.HENRIK_API_KEY 
                 });
                 
@@ -49,7 +49,7 @@ async function backfill() {
                     const matchData = Array.isArray(json.data) ? json.data[0] : (json.data?.match_data || json.data);
                     const players = Array.isArray(matchData.players) ? matchData.players : (matchData.players?.all_players || []);
                     
-                    const targetMatchPlayer = players.find(p => `${p.name}#${p.tag}` === TARGET_PLAYER);
+                    const targetMatchPlayer = players.find(p => `${p.name}#${p.tag}`.toLowerCase() === TARGET_PLAYER.toLowerCase());
                     if (targetMatchPlayer) {
                         op = {
                             id: match.id,
@@ -57,7 +57,7 @@ async function backfill() {
                             mode: match.mode,
                             rawMatchData: matchData,
                             squad: [{
-                                riotId: TARGET_PLAYER,
+                                riotId: `${targetMatchPlayer.name}#${targetMatchPlayer.tag}`,
                                 agent: targetMatchPlayer.character || targetMatchPlayer.agent,
                                 kda: `${targetMatchPlayer.stats.kills}/${targetMatchPlayer.stats.deaths}/${targetMatchPlayer.stats.assists}`
                             }]
@@ -66,24 +66,25 @@ async function backfill() {
                 } else if (res.status === 404) {
                     console.warn(`   [⚠️] Match ${match.id.substring(0,8)} não encontrada na API (404). Usando dados locais...`);
                     
-                    // Fallback: Buscar dados na tabela operation_squads
+                    // Fallback: Buscar dados na tabela operation_squads (Case-insensitive)
                     const { data: squadData, error: squadErr } = await supabase
                         .from('operation_squads')
-                        .select('agent, kda')
+                        .select('agent, kda, riot_id')
                         .eq('operation_id', match.id)
-                        .eq('riot_id', TARGET_PLAYER)
-                        .single();
+                        .ilike('riot_id', TARGET_PLAYER)
+                        .limit(1);
 
-                    if (!squadErr && squadData) {
+                    if (!squadErr && squadData && squadData.length > 0) {
+                        const player = squadData[0];
                         op = {
                             id: match.id,
                             map: match.map_name,
                             mode: match.mode,
                             rawMatchData: null, // Sem métricas avançadas (ADR/KAST)
                             squad: [{
-                                riotId: TARGET_PLAYER,
-                                agent: squadData.agent,
-                                kda: squadData.kda
+                                riotId: player.riot_id,
+                                agent: player.agent,
+                                kda: player.kda
                             }]
                         };
                     } else {
