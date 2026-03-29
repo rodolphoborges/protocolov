@@ -175,8 +175,12 @@ class OraculoService {
     }
 
     async sendTelegramNotification(riotId, insight, isTrashTalk = false) {
-        const telegramId = '1104821838'; // ID fixo para o MVP
         const token = process.env.TELEGRAM_BOT_TOKEN;
+        
+        // Muta se o token for o padrão (não configurado)
+        if (!token || token === 'your_telegram_bot_token') return;
+
+        const telegramId = '1104821838'; // ID fixo para o MVP
         const url = `https://api.telegram.org/bot${token}/sendMessage`;
 
         let message = '';
