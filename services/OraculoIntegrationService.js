@@ -77,9 +77,13 @@ class OraculoIntegrationService {
         }
 
         // Filtro MVP: Apenas processar se o usuário alvo estiver na partida
-        const players = Array.isArray(matchData.players) 
-            ? matchData.players 
-            : (matchData.players?.all_players || []);
+        // Handle V3/V4 discrepancies where data can be an array or object
+        const finalMatchData = Array.isArray(matchData) ? matchData[0] : matchData;
+        if (!finalMatchData) return;
+
+        const players = Array.isArray(finalMatchData.players) 
+            ? finalMatchData.players 
+            : (finalMatchData.players?.all_players || []);
         
         const target = players.find(p => `${p.name}#${p.tag}` === this.targetPlayer);
         if (!target) return;

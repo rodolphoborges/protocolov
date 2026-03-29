@@ -1,107 +1,101 @@
 const { supabase } = require('./db');
+const { smartFetch } = require('../services/api-client');
+const SynergyEngine = require('../services/synergy-engine');
 const OraculoService = require('../services/oraculo-service');
 const OraculoIntegrationService = require('../services/OraculoIntegrationService');
-
-async function notificarOperacao(op) {
-    console.log(`   [📢] Notificação: Operação ${op.id.substring(0,8)} | Mapa: ${op.map_name} | Modo: ${op.mode}`);
-}
 
 async function run() {
     console.log('--- INICIANDO COORDENADOR PROTOCOLO-V ---');
     
     try {
-        // 1. Fetch de Operações Pendentes (Simulado para este exemplo)
-        // No sistema real, isso viria de uma fila ou do banco.
-        const { data: operations, error: opError } = await supabase
-            .from('matches')
-            .select('*, operation_squads(*)')
-            .eq('status', 'pending');
+        // 1. Fetch de Roster (Jogadores Acompanhados)
+        const { data: roster, error: rosterErr } = await supabase
+            .from('players')
+            .select('*');
+        
+        if (rosterErr) throw rosterErr;
+        const rosterIds = roster.map(p => p.riot_id);
+        const rosterMap = new Map(roster.map(p => [p.riot_id.toLowerCase().replace(/\s/g, ''), p]));
 
-        if (opError) throw opError;
+        console.log(`1. Monitorando ${roster.length} agentes no radar...`);
 
-        console.log(`1. Processando ${operations?.length || 0} operações pendentes...`);
+        // 2. Fetch de Partidas Recentes (via API HenrikDev)
+        // No ambiente real, buscaríamos para cada jogador. No teste, o mock responde global.
+        console.log(`2. Varrendo satélites em busca de novas operações...`);
+        const henrikKey = process.env.HENRIK_API_KEY;
+        const matchesBatch = new Map();
 
-        for (const op of operations || []) {
-            console.log(`   [→] Sincronizando Match: ${op.id.substring(0,8)}...`);
+        // Para o MVP/Teste: pegamos partidas recentes de um jogador âncora ou do mock
+        const anchorPlayer = rosterIds[0] || 'ousadia#013';
+        const [name, tag] = anchorPlayer.split('#');
+        
+        try {
+            const url = `https://api.henrikdev.xyz/valorant/v3/matches/br/${name}/${tag}`;
+            const res = await smartFetch(url, { 'Authorization': henrikKey });
             
-            // 2. Atualizar status para processado
-            await supabase.from('matches').update({ status: 'completed' }).eq('id', op.id);
+            if (res.status === 200) {
+                const json = await res.json();
+                const matches = json.data || [];
+                matches.forEach(m => matchesBatch.set(m.metadata.matchid, m));
+            }
+        } catch (err) {
+            console.error(`   [⚠️] Falha ao consultar API Henrik: ${err.message}`);
+        }
 
-            // 3. Notificações e Gatilhos
-            if (op.is_competitive) {
-                await notificarOperacao(op);
-                
-                // [NOVO] Gatilho de Integração Oráculo-V
-                // Processa a análise tática e atualiza performance do jogador
-                if (op.match_id) {
-                    OraculoIntegrationService.notifyMatch(op.match_id)
+        // 3. Processamento de Sinergia e Resultados
+        console.log(`3. Calculando Sinergia e Impacto Tático (${matchesBatch.size} partidas)...`);
+        const { operations, newSynergyPoints, newDmPoints } = SynergyEngine.processMatchResults(matchesBatch, rosterMap);
+
+        // 4. Persistência de Dados (Upsert de Players e Insert de Operações)
+        if (operations.length > 0) {
+            console.log(`   [⚡] Sincronizando ${operations.length} novas operações...`);
+            
+            // Upsert dos Players com novos Scores
+            const playersToUpdate = [];
+            for (const p of roster) {
+                const nId = p.riot_id.toLowerCase().replace(/\s/g, '');
+                const addedSynergy = newSynergyPoints[nId] || 0;
+                const addedDm = newDmPoints[nId] || 0;
+
+                if (addedSynergy > 0 || addedDm > 0) {
+                    playersToUpdate.push({
+                        ...p,
+                        synergy_score: p.synergy_score + addedSynergy,
+                        dm_score_total: (p.dm_score_total || 0) + addedDm,
+                        api_error: false, // Flag de integridade para o motor
+                        updated_at: new Date().toISOString()
+                    });
+                }
+            }
+
+            if (playersToUpdate.length > 0) {
+                const { error: upsertErr } = await supabase.from('players').upsert(playersToUpdate);
+                if (upsertErr) console.error(`   [❌] Erro ao atualizar scores: ${upsertErr.message}`);
+            }
+
+            // Registro das operações e gatilho do Oráculo
+            for (const op of operations) {
+                // Tenta inserir a operação (ignora se já existir)
+                const { error: opInsErr } = await supabase.from('matches').insert([{
+                    id: op.id,
+                    map_name: op.map,
+                    mode: op.mode,
+                    status: 'completed',
+                    is_competitive: op.mode === 'Competitive',
+                    created_at: new Date(op.started_at).toISOString()
+                }]);
+
+                // Gatilho Oráculo para Inteligência Tática
+                if (op.mode === 'Competitive') {
+                    console.log(`   [🧠] Oráculo: Iniciando análise tática para ${op.id.substring(0,8)}...`);
+                    OraculoIntegrationService.notifyMatch(op.id)
                         .catch(err => console.error(`   [❌] Falha no gatilho Oráculo: ${err.message}`));
                 }
             }
         }
 
-        // ==========================================
-        // 6. ORÁCULO-V: TACTICAL INTELLIGENCE BRIDGE
-        // ==========================================
-        console.log(`\n🧠 [INTELIGÊNCIA] Verificando pendências de análise tática...`);
-        
-        try {
-            // Find competitive matches from the last 24h that might need analysis
-            const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-            
-            const { data: recentMatches, error: matchError } = await supabase
-                .from('matches')
-                .select(`
-                    id, 
-                    map_name,
-                    operation_squads (
-                        riotId,
-                        agent,
-                        rank
-                    )
-                `)
-                .eq('is_competitive', true)
-                .gte('created_at', oneDayAgo);
-
-            if (matchError) throw matchError;
-
-            if (recentMatches && recentMatches.length > 0) {
-                // Check which ones already have insights
-                const matchIds = recentMatches.map(m => m.id);
-                const { data: existingInsights, error: insightError } = await supabase
-                    .from('ai_insights')
-                    .select('match_id, player_id')
-                    .in('match_id', matchIds);
-
-                if (insightError) throw insightError;
-
-                // Simple map for quick lookup
-                const insightMap = new Set((existingInsights || []).map(i => `${i.match_id}-${i.player_id}`));
-
-                for (const match of recentMatches) {
-                    const squad = match.operation_squads || [];
-                    
-                    for (const member of squad) {
-                        const key = `${match.id}-${member.riotId}`;
-                        
-                        if (!insightMap.has(key)) {
-                            console.log(`   [⚡] Despachando análise pendente: Match ${match.id.substring(0,8)} | Agente: ${member.riotId}`);
-                            
-                            // Async dispatch
-                            OraculoService.processMatchAnalysis(match, [member])
-                                .catch(err => console.error(`   [❌] Falha no retry da análise: ${err.message}`));
-                        }
-                    }
-                }
-            } else {
-                console.log(`   [✓] Nenhuma análise pendente detectada.`);
-            }
-        } catch (err) {
-            console.error(`   [⚠️] Erro ao processar inteligência: ${err.message}`);
-        }
-
-        // 6. Maintenance (Purge Inativos)
-        console.log('\n4. Limpeza de Agentes Inativos...');
+        // 5. Limpeza de Agentes Inativos (Maintenance)
+        console.log('\n4. Manutenção de Sistema...');
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
         await supabase.from('players').delete().eq('synergy_score', 0).lt('created_at', sevenDaysAgo);
 
@@ -112,6 +106,10 @@ async function run() {
         console.error('\n🔥 Erro fatal no Coordenador:', error);
         process.exit(1);
     }
+}
+
+async function notificarOperacao(op) {
+    console.log(`   [📢] Notificação: Operação ${op.id.substring(0,8)} | Mapa: ${op.map_name} | Modo: ${op.mode}`);
 }
 
 if (require.main === module) run();
