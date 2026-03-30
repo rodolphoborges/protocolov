@@ -228,6 +228,7 @@ async function fetchOperations(append = false) {
 
         if (data && data.length > 0) {
             // NEW: Fetch analysis indicators from LOCAL Protocolo-V database
+            const matchIds = data.map(op => op.id);
             let analysesData = [];
             const { data: localAnalyses, error: intelError } = await supabaseClient
                 .from('ai_insights')
