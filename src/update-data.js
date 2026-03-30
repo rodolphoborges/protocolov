@@ -106,18 +106,30 @@ async function run() {
                     team_color: op.team_color
                 }]);
 
-                // 2. Registrar os Membros do Esquadrão (CRÍTICO para o frontend)
+                // 2. Registrar os Membros do Esquadrão (Resiliente a falta de constraint única)
                 if (op.squad && op.squad.length > 0) {
-                    const squadRecords = op.squad.map(m => ({
-                        operation_id: op.id,
-                        riot_id: m.riotId,
-                        agent: m.agent,
-                        agent_img: m.agentImg,
-                        kda: m.kda,
-                        hs_percent: m.hs
-                    }));
-                    const { error: sqErr } = await supabase.from('operation_squads').upsert(squadRecords, { onConflict: 'operation_id,riot_id' });
-                    if (sqErr) console.error(`   [❌] Erro ao registrar squad para ${op.id}: ${sqErr.message}`);
+                    // Buscar membros já registrados para evitar duplicatas manuais
+                    const { data: existingSquad } = await supabase
+                        .from('operation_squads')
+                        .select('riot_id')
+                        .eq('operation_id', op.id);
+                    
+                    const existingIds = new Set(existingSquad?.map(s => s.riot_id.toLowerCase()) || []);
+                    const squadRecords = op.squad
+                        .filter(m => !existingIds.has(m.riotId.toLowerCase()))
+                        .map(m => ({
+                            operation_id: op.id,
+                            riot_id: m.riotId,
+                            agent: m.agent,
+                            agent_img: m.agentImg,
+                            kda: m.kda,
+                            hs_percent: m.hs
+                        }));
+                    
+                    if (squadRecords.length > 0) {
+                        const { error: sqErr } = await supabase.from('operation_squads').insert(squadRecords);
+                        if (sqErr) console.error(`   [❌] Erro ao registrar squad para ${op.id}: ${sqErr.message}`);
+                    }
                 }
 
                 // 3. Gatilho de Análise IA (Apenas Competitivo)
@@ -137,8 +149,8 @@ async function run() {
             };
 
             const opChunks = [];
-            for (let i = 0; i < operations.length; i += 2) {
-                opChunks.push(operations.slice(i, i + 2));
+            for (let i = 0; i < operations.length; i += 10) {
+                opChunks.push(operations.slice(i, i + 10));
             }
 
             for (const chunk of opChunks) {
