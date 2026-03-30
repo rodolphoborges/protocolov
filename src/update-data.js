@@ -27,20 +27,32 @@ async function run() {
         const henrikKey = process.env.HENRIK_API_KEY;
         const matchesBatch = new Map();
 
-        const anchorPlayer = rosterIds[0] || 'ousadia#013';
-        const [name, tag] = anchorPlayer.split('#');
-        
-        try {
-            const url = `https://api.henrikdev.xyz/valorant/v3/matches/br/${name}/${tag}`;
-            const res = await smartFetch(url, { 'Authorization': henrikKey });
+        // Fazemos a busca individual para cada agente para garantir cobertura total
+        for (const agent of roster) {
+            const [name, tag] = agent.riot_id.split('#');
+            console.log(`   [📡] Escaneando histórico de ${agent.riot_id}...`);
             
-            if (res.status === 200) {
-                const json = await res.json();
-                const matches = json.data || [];
-                matches.forEach(m => matchesBatch.set(m.metadata.matchid, m));
+            try {
+                const url = `https://api.henrikdev.xyz/valorant/v3/matches/br/${name}/${tag}`;
+                const res = await smartFetch(url, { 'Authorization': henrikKey });
+                
+                if (res.status === 200) {
+                    const json = await res.json();
+                    const matches = json.data || [];
+                    let newOnes = 0;
+                    matches.forEach(m => {
+                        if (!matchesBatch.has(m.metadata.matchid)) {
+                            matchesBatch.set(m.metadata.matchid, m);
+                            newOnes++;
+                        }
+                    });
+                    if (newOnes > 0) {
+                        console.log(`       [+] ${newOnes} novas operações encontradas.`);
+                    }
+                }
+            } catch (err) {
+                console.error(`   [⚠️] Falha ao consultar histórico de ${agent.riot_id}: ${err.message}`);
             }
-        } catch (err) {
-            console.error(`   [⚠️] Falha ao consultar API Henrik: ${err.message}`);
         }
 
         // 3. Processamento de Sinergia e Resultados
