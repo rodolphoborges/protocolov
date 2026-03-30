@@ -510,7 +510,7 @@
         async function runAnalysis() {
             const params = new URLSearchParams(window.location.search);
             const player = params.get('player');
-            const matchId = params.get('matchId');
+            const matchId = params.get('matchId') || params.get('match');
 
             const loader = document.getElementById('loader');
             const results = document.getElementById('results');
