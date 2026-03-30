@@ -27,11 +27,9 @@ async function run() {
         const henrikKey = process.env.HENRIK_API_KEY;
         const matchesBatch = new Map();
 
-        // Fazemos a busca individual para cada agente para garantir cobertura total
-        for (const agent of roster) {
+        // Fazemos a busca em paralelo (chunks de 5) para otimizar sem exceder limites severos
+        const scanAgent = async (agent) => {
             const [name, tag] = agent.riot_id.split('#');
-            console.log(`   [📡] Escaneando histórico de ${agent.riot_id}...`);
-            
             try {
                 const url = `https://api.henrikdev.xyz/valorant/v3/matches/br/${name}/${tag}`;
                 const res = await smartFetch(url, { 'Authorization': henrikKey });
@@ -47,12 +45,21 @@ async function run() {
                         }
                     });
                     if (newOnes > 0) {
-                        console.log(`       [+] ${newOnes} novas operações encontradas.`);
+                        console.log(`   [📡] ${agent.riot_id}: ${newOnes} novas operações encontradas.`);
                     }
                 }
             } catch (err) {
                 console.error(`   [⚠️] Falha ao consultar histórico de ${agent.riot_id}: ${err.message}`);
             }
+        };
+
+        const agentChunks = [];
+        for (let i = 0; i < roster.length; i += 5) {
+            agentChunks.push(roster.slice(i, i + 5));
+        }
+
+        for (const chunk of agentChunks) {
+            await Promise.all(chunk.map(scanAgent));
         }
 
         // 3. Processamento de Sinergia e Resultados
@@ -86,8 +93,9 @@ async function run() {
                 if (upsertErr) console.error(`   [❌] Erro ao atualizar scores: ${upsertErr.message}`);
             }
 
-            // Registro das operações e gatilho do Oráculo
-            for (const op of operations) {
+            // Registro das operações e gatilho do Oráculo (Processamento em Paralelo de 2 em 2)
+            const processOp = async (op) => {
+                // 1. Registrar a Operação Principal
                 const { error: opInsErr } = await supabase.from('operations').insert([{
                     id: op.id,
                     map_name: op.map,
@@ -98,7 +106,21 @@ async function run() {
                     team_color: op.team_color
                 }]);
 
-                if (op.mode === 'Competitive') {
+                // 2. Registrar os Membros do Esquadrão (CRÍTICO para o frontend)
+                if (op.squad && op.squad.length > 0) {
+                    const squadRecords = op.squad.map(m => ({
+                        operation_id: op.id,
+                        riot_id: m.riotId,
+                        agent: m.agent,
+                        agent_img: m.agentImg,
+                        kda: m.kda,
+                        hs_percent: m.hs
+                    }));
+                    const { error: sqErr } = await supabase.from('operation_squads').insert(squadRecords);
+                    if (sqErr) console.error(`   [❌] Erro ao registrar squad para ${op.id}: ${sqErr.message}`);
+                }
+
+                // 3. Gatilho de Análise IA (Apenas Competitivo)
                     try {
                         const analysisResult = await OraculoService.processMatchAnalysis(op);
                         if (analysisResult) {
@@ -111,6 +133,15 @@ async function run() {
                         hasFailures = true;
                     }
                 }
+            };
+
+            const opChunks = [];
+            for (let i = 0; i < operations.length; i += 2) {
+                opChunks.push(operations.slice(i, i + 2));
+            }
+
+            for (const chunk of opChunks) {
+                await Promise.all(chunk.map(processOp));
             }
         }
 
