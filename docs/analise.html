@@ -490,6 +490,11 @@
         const protocoloKey = window.ProtocolConfig.supabase.anonKey;
         const protocoloClient = window.supabase.createClient(protocoloUrl, protocoloKey);
 
+        function escapeHtml(unsafe) {
+            if (!unsafe) return "";
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
         async function runAnalysis() {
             const params = new URLSearchParams(window.location.search);
             const player = params.get('player');
@@ -707,10 +712,11 @@
                 results.classList.remove('hidden');
 
             } catch (err) {
-                console.error(err);
+            } catch (err) {
+                console.error("❌ CRITICAL_ERROR in runAnalysis:", err);
                 loader.classList.add('hidden');
                 errorSection.classList.remove('hidden');
-                errorMsg.innerText = err.message;
+                errorMsg.innerText = `[SYSTEM_FAILURE] ${err.message}`;
             }
         }
 
