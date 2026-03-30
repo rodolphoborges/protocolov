@@ -27,14 +27,6 @@
             --font: 'Share Tech Mono', 'Fira Code', monospace;
         }
 
-        body {
-            /* Inherit global styles from style.css */
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
         .terminal-body {
             background: var(--bg);
             color: var(--white);
@@ -351,24 +343,21 @@
     </style>
 </head>
 <body>
-    <div class="scanline"></div>
 
-    <!-- Massive Background Text -->
-    <div class="val-bg-text-massive">ANALYSIS</div>
+    <div class="val-bg-text-massive">ORÁCULO V</div>
 
-    <!-- Standard Hero Header -->
-    <header class="container content-wrapper fade-in-section is-visible">
+    <div class="container content-wrapper fade-in-section is-visible">
         <div class="row pt-5 pb-4">
             <div class="col-lg-8">
                 <div class="d-flex align-items-center mb-3">
                     <div class="decor-square"></div>
                     <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px;">Inteligência Artificial // Oráculo V</span>
                 </div>
-                <h1 class="val-section-header" style="font-size: 6rem; border: none; margin-bottom: 0;">ANÁLISE <span class="text-accent">TACTICAL</span></h1>
+                <h1 class="val-section-header text-dark" style="font-size: 6rem; border: none; margin-bottom: 0;">ANÁLISE <span class="text-accent">TACTICAL</span></h1>
                 <p class="fs-5 fw-bold text-dark mt-3" style="max-width: 600px;">Relatório detalhado de performance, tendências cognitivas e recomendações estratégicas do Oráculo para o combate.</p>
             </div>
         </div>
-    </header>
+    </div>
 
     <div class="bg-dark-section py-5">
         <main class="container content-wrapper py-0 terminal-body" style="background: transparent;">
@@ -510,11 +499,10 @@
 
     </div>
 
-    </div>
-
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="nav.js"></script>
     <script>
         function toggleRound(element) {
             element.classList.toggle('collapsed');
@@ -745,6 +733,5 @@
 
         window.onload = runAnalysis;
     </script>
-    <script src="nav.js"></script>
 </body>
 </html>
