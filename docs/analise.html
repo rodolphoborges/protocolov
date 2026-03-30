@@ -550,38 +550,61 @@
                 document.getElementById('impact-val').innerText = parseFloat(impactVal).toFixed(1);
                 document.getElementById('rank-val').innerText = report.player_rank || report.estimated_rank || 'ANALISANDO...';
 
-                // ── AI Coach (Strength/Weakness) ─────────────────
+                // ── AI Coach (Resilient Extraction) ─────────────────
                 const strengthContainer = document.getElementById('strength-container');
                 const weaknessContainer = document.getElementById('weakness-container');
-                
-                // Limpa recipientes
                 strengthContainer.innerHTML = '';
                 weaknessContainer.innerHTML = '';
 
-                // Lógica de Extração Resiliente para Pontos Fortes
-                const strongPoints = resumo.pontos_fortes || (resumo.diagnostico_principal ? [resumo.diagnostico_principal] : []);
-                if (resumo.tatico && !strongPoints.includes(resumo.tatico)) strongPoints.push(resumo.tatico);
+                let strongPoints = [];
+                let criticalFlaws = [];
 
-                if (strongPoints.length > 0) {
+                // 1. Extração de Objetos Estruturados (Resumo ou Kaio)
+                if (typeof resumo === 'object' && resumo !== null) {
+                    strongPoints = resumo.pontos_fortes || (resumo.diagnostico_principal ? [resumo.diagnostico_principal] : []);
+                    criticalFlaws = resumo.pontos_fracos || resumo.foco_treino || resumo.falhas_criticas || [];
+                }
+
+                // 2. Fallback para report.conselho_kaio (Se estiver vazio)
+                const kaioObj = report.conselho_kaio;
+                if (strongPoints.length === 0 && kaioObj && kaioObj.pontos_fortes) strongPoints = kaioObj.pontos_fortes;
+                if (criticalFlaws.length === 0 && kaioObj && (kaioObj.pontos_fracos || kaioObj.falhas_criticas)) {
+                    criticalFlaws = kaioObj.pontos_fracos || kaioObj.falhas_criticas;
+                }
+
+                // 3. Extrator de Regex (Para strings puras no insight_resumo)
+                if (strongPoints.length === 0 && typeof data.insight_resumo === 'string') {
+                    const strMatch = data.insight_resumo.match(/\[\s*PONTOS_FORTES\s*\]\s*([\s\S]*?)(?=\[\s*|$)/i);
+                    if (strMatch && strMatch[1]) {
+                        strongPoints = strMatch[1].trim().split('\n').map(s => s.replace(/^\s*[-•]\s*/, '').trim()).filter(s => s.length > 0);
+                    }
+                }
+                if (criticalFlaws.length === 0 && typeof data.insight_resumo === 'string') {
+                    const weakMatch = data.insight_resumo.match(/\[\s*(FALHAS_CRÍTICAS|PONTOS_FRACOS)\s*\]\s*([\s\S]*?)(?=\[\s*|$)/i);
+                    if (weakMatch && weakMatch[2]) {
+                        criticalFlaws = weakMatch[2].trim().split('\n').map(s => s.replace(/^\s*[-•]\s*/, '').trim()).filter(s => s.length > 0);
+                    }
+                }
+
+                // Renderização Pontos Fortes
+                if (strongPoints.length > 0 && Array.isArray(strongPoints)) {
                     strengthContainer.innerHTML = `
                         <div class="diag-block strength">
                             <div class="diag-header">[ PONTOS_FORTES ]</div>
-                            <div class="diag-list">
+                            <ul class="diag-list">
                                 ${strongPoints.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
-                            </div>
+                            </ul>
                         </div>`;
                 }
 
-                // Lógica de Extração Resiliente para Falhas Críticas
-                const criticalFlaws = resumo.pontos_fracos || resumo.foco_treino || resumo.falhas_criticas || [];
-                
+                // Renderização Falhas Críticas
                 if (criticalFlaws.length > 0 && Array.isArray(criticalFlaws)) {
                     weaknessContainer.innerHTML = `
                         <div class="diag-block weakness">
                             <div class="diag-header">[ FALHAS_CRÍTICAS ]</div>
-                            <div class="diag-list">
+                            <ul class="diag-list">
                                 ${criticalFlaws.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
-                            </div>
+                            </ul>
                         </div>`;
                 }
 
