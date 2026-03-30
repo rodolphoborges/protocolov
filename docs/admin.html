@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocolo V | Painel Admin</title>
+    <link rel="icon" type="image/png" href="https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/24/smallicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        :root {
+            --status-pending:    #f0a500;
+            --status-processing: #4fc3f7;
+            --status-completed:  #00c36d;
+            --status-failed:     #ff4655;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .admin-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 4px;
+            padding: 1.25rem 1.5rem;
+            text-align: center;
+            transition: border-color 0.2s;
+        }
+        .stat-card:hover { border-color: rgba(255,255,255,0.2); }
+        .stat-card .count {
+            font-family: 'Teko', sans-serif;
+            font-size: 3rem;
+            line-height: 1;
+            font-weight: 600;
+        }
+        .stat-card .label {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.5;
+            margin-top: 0.3rem;
+        }
+
+        .stat-card.pending    .count { color: var(--status-pending); }
+        .stat-card.processing .count { color: var(--status-processing); }
+        .stat-card.completed  .count { color: var(--status-completed); }
+        .stat-card.failed     .count { color: var(--status-failed); }
+
+        .queue-table {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.78rem;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .queue-table th {
+            color: var(--val-red, #ff4655);
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: left;
+        }
+        .queue-table td {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: #ece8e1;
+            vertical-align: middle;
+        }
+        .queue-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .badge-status {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 2px;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-status.pending    { background: rgba(240,165,0,0.15);   color: var(--status-pending);    border: 1px solid var(--status-pending); }
+        .badge-status.processing { background: rgba(79,195,247,0.15);  color: var(--status-processing); border: 1px solid var(--status-processing); }
+        .badge-status.completed  { background: rgba(0,195,109,0.15);   color: var(--status-completed);  border: 1px solid var(--status-completed); }
+        .badge-status.failed     { background: rgba(255,70,85,0.15);   color: var(--status-failed);     border: 1px solid var(--status-failed); }
+
+        .match-id-cell {
+            font-size: 0.65rem;
+            opacity: 0.6;
+            max-width: 240px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn-refresh {
+            background: transparent;
+            border: 1px solid rgba(255,70,85,0.5);
+            color: #ff4655;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            padding: 6px 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-refresh:hover {
+            background: rgba(255,70,85,0.1);
+            border-color: #ff4655;
+        }
+        .btn-refresh:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .admin-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .admin-toolbar .filter-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            padding: 4px 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .admin-toolbar .filter-btn.active,
+        .admin-toolbar .filter-btn:hover {
+            border-color: rgba(255,255,255,0.4);
+            color: #ece8e1;
+        }
+        .admin-toolbar .filter-btn.active { border-color: #ff4655; color: #ff4655; }
+
+        .api-key-input {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #ece8e1;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            width: 260px;
+            outline: none;
+        }
+        .api-key-input:focus { border-color: rgba(255,70,85,0.5); }
+
+        .status-bar {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.35);
+            margin-left: auto;
+        }
+        .status-bar .dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00c36d;
+            margin-right: 6px;
+            animation: pulse-green 2s infinite;
+        }
+        .status-bar .dot.offline { background: #ff4655; animation: none; }
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            opacity: 0.3;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .retry-count {
+            font-size: 0.65rem;
+            opacity: 0.5;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(to right, rgba(255,70,85,0.4), transparent);
+            margin: 2rem 0 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="val-bg-text-massive">ADMIN</div>
+
+    <script src="nav.js"></script>
+
+    <div class="container content-wrapper">
+
+        <!-- Header -->
+        <div class="row pt-4 pb-3">
+            <div class="col-12">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="decor-square"></div>
+                    <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px; font-size: 0.75rem;">Acesso Restrito</span>
+                </div>
+                <h1 class="val-section-header" style="border: none; margin-bottom: 0;">PAINEL <span class="text-accent">ADMIN</span></h1>
+                <p class="text-muted" style="font-size: 0.85rem; margin-top: 0.5rem;">Monitor de fila de análise · Oráculo V Engine</p>
+            </div>
+        </div>
+
+        <!-- Auth Row -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                    <input id="apiKeyInput" type="password" class="api-key-input" placeholder="ADMIN_API_KEY (deixe vazio se local)" autocomplete="off">
+                    <button class="btn-refresh" id="btnLoad" onclick="loadStats()">▶ CARREGAR</button>
+                    <label style="font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:rgba(255,255,255,0.4); display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()"> AUTO-REFRESH 10s
+                    </label>
+                </div>
+                <div id="authError" style="color:#ff4655; font-family:'Share Tech Mono',monospace; font-size:0.75rem; margin-top:0.5rem; display:none;"></div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="admin-grid" id="statsGrid">
+            <div class="stat-card pending">
+                <div class="count" id="cnt-pending">—</div>
+                <div class="label">Pendente</div>
+            </div>
+            <div class="stat-card processing">
+                <div class="count" id="cnt-processing">—</div>
+                <div class="label">Processando</div>
+            </div>
+            <div class="stat-card completed">
+                <div class="count" id="cnt-completed">—</div>
+                <div class="label">Concluído</div>
+            </div>
+            <div class="stat-card failed">
+                <div class="count" id="cnt-failed">—</div>
+                <div class="label">Falhou</div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="admin-toolbar">
+            <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">TODOS</button>
+            <button class="filter-btn" data-filter="pending"    onclick="setFilter('pending', this)">PENDENTE</button>
+            <button class="filter-btn" data-filter="processing" onclick="setFilter('processing', this)">PROCESSANDO</button>
+            <button class="filter-btn" data-filter="completed"  onclick="setFilter('completed', this)">CONCLUÍDO</button>
+            <button class="filter-btn" data-filter="failed"     onclick="setFilter('failed', this)">FALHOU</button>
+            <div class="status-bar">
+                <span class="dot" id="connectionDot"></span>
+                <span id="statusText">Aguardando dados...</span>
+            </div>
+        </div>
+
+        <!-- Jobs Table -->
+        <div style="overflow-x: auto;">
+            <table class="queue-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Match ID</th>
+                        <th>Status</th>
+                        <th>Tentativas</th>
+                        <th>Criado em</th>
+                    </tr>
+                </thead>
+                <tbody id="jobsTableBody">
+                    <tr><td colspan="5" class="empty-state">Carregue os dados para visualizar a fila.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tableFooter" style="font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:rgba(255,255,255,0.25); margin-top:0.75rem; text-align:right; display:none;">
+            Exibindo últimos 50 jobs · <span id="filteredCount">0</span> visíveis
+        </div>
+
+    </div>
+
+    <script>
+        const ORACULO_BASE = 'http://localhost:3000'; // Ajuste se Oráculo V rodar em outro host
+        let allJobs = [];
+        let currentFilter = 'all';
+        let autoRefreshInterval = null;
+
+        async function loadStats() {
+            const btn = document.getElementById('btnLoad');
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const authError = document.getElementById('authError');
+            authError.style.display = 'none';
+
+            btn.disabled = true;
+            btn.textContent = '⏳ CARREGANDO...';
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (apiKey) headers['x-api-key'] = apiKey;
+
+                const res = await fetch(`${ORACULO_BASE}/api/admin/stats`, { headers });
+
+                if (res.status === 401) {
+                    authError.textContent = '⛔ API Key inválida ou ausente. Acesso negado.';
+                    authError.style.display = 'block';
+                    setConnectionStatus(false);
+                    return;
+                }
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+
+                const data = await res.json();
+                allJobs = data.jobs || [];
+                renderStats(data.stats);
+                renderTable();
+                setConnectionStatus(true, `Última atualização: ${new Date().toLocaleTimeString('pt-BR')}`);
+                document.getElementById('tableFooter').style.display = 'block';
+
+            } catch (err) {
+                setConnectionStatus(false, `Erro: ${err.message}`);
+                authError.textContent = `⚠️ Não foi possível conectar ao Oráculo V em ${ORACULO_BASE}. Verifique se o servidor está online.`;
+                authError.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '▶ CARREGAR';
+            }
+        }
+
+        function renderStats(stats) {
+            if (!stats) return;
+            document.getElementById('cnt-pending').textContent    = stats.pending    ?? '—';
+            document.getElementById('cnt-processing').textContent = stats.processing ?? '—';
+            document.getElementById('cnt-completed').textContent  = stats.completed  ?? '—';
+            document.getElementById('cnt-failed').textContent     = stats.failed     ?? '—';
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('jobsTableBody');
+            const filtered = currentFilter === 'all'
+                ? allJobs
+                : allJobs.filter(j => j.status === currentFilter);
+
+            document.getElementById('filteredCount').textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Nenhum job com status "${currentFilter}".</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(job => {
+                const createdAt = job.created_at
+                    ? new Date(job.created_at).toLocaleString('pt-BR')
+                    : '—';
+                const retryHtml = job.retry_count
+                    ? `<span class="retry-count">${job.retry_count}x</span>`
+                    : '<span class="retry-count">—</span>';
+                const statusClass = job.status || 'pending';
+                return `
+                    <tr>
+                        <td>${escapeHtml(job.agente_tag || job.player_tag || '—')}</td>
+                        <td class="match-id-cell" title="${escapeHtml(job.match_id || '')}">${escapeHtml(job.match_id || '—')}</td>
+                        <td><span class="badge-status ${statusClass}">${statusClass}</span></td>
+                        <td>${retryHtml}</td>
+                        <td style="white-space:nowrap; opacity:0.6;">${createdAt}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function setFilter(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTable();
+        }
+
+        function setConnectionStatus(online, text) {
+            const dot = document.getElementById('connectionDot');
+            const statusText = document.getElementById('statusText');
+            dot.className = online ? 'dot' : 'dot offline';
+            statusText.textContent = text || (online ? 'Online' : 'Offline');
+        }
+
+        function toggleAutoRefresh() {
+            const checked = document.getElementById('autoRefresh').checked;
+            if (checked) {
+                autoRefreshInterval = setInterval(loadStats, 10000);
+            } else {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        // Auto-load if running on localhost (no key needed)
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+            loadStats();
+        }
+    </script>
+</body>
+</html>
