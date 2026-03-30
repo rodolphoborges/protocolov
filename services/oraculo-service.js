@@ -150,7 +150,6 @@ class OraculoService {
                         }
                     }
                 }
-                }
             } catch (err) {
                 const errorDetail = err.response?.data?.error || err.response?.data || err.message || "Erro desconhecido";
                 console.error(`   [❌] Falha ao processar análise para ${member.riotId}:`, errorDetail);
