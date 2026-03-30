@@ -116,7 +116,7 @@ async function run() {
                         kda: m.kda,
                         hs_percent: m.hs
                     }));
-                    const { error: sqErr } = await supabase.from('operation_squads').insert(squadRecords);
+                    const { error: sqErr } = await supabase.from('operation_squads').upsert(squadRecords, { onConflict: 'operation_id,riot_id' });
                     if (sqErr) console.error(`   [❌] Erro ao registrar squad para ${op.id}: ${sqErr.message}`);
                 }
 
