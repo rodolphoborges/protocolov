@@ -1,6 +1,9 @@
 /**
- * Protocolo V - Intelligence Layer
- * Aggregates match analysis data into global insights and leaderboards.
+ * Protocolo V - Intelligence Layer (v4.1)
+ * Aggregates match analysis data from ai_insights into global insights and leaderboards.
+ *
+ * [MIGRAÇÃO v4.1]: Dados agora vêm de 'ai_insights' (não mais de 'match_analysis_queue',
+ * pois jobs completos são DELETADOS da fila).
  */
 
 class IntelligenceLayer {
@@ -18,17 +21,22 @@ class IntelligenceLayer {
     }
 
     async refresh() {
-        console.log(">>> [INTEL] Iniciando agregação de dados...");
-        
+        console.log(">>> [INTEL] Iniciando agregação de dados via ai_insights...");
+
         const { data, error } = await this.supabase
-            .from('match_analysis_queue')
+            .from('ai_insights')
             .select('*')
-            .eq('status', 'completed')
-            .order('processed_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .limit(200);
 
         if (error) {
             console.error("[INTEL] Erro ao buscar dados:", error);
             return null;
+        }
+
+        if (!data || data.length === 0) {
+            console.warn("[INTEL] Nenhum insight encontrado em ai_insights.");
+            return this.insights;
         }
 
         this.data = data;
@@ -41,12 +49,11 @@ class IntelligenceLayer {
         const playerStats = {};
 
         this.data.forEach(record => {
-            const tag = record.agente_tag;
-            if (tag === 'AUTO' || !tag || !tag.includes('#')) return; // IGNORAR REGISTROS DO SISTEMA
-            
-            const meta = record.metadata;
-            const analysis = meta.analysis || {};
-            const timestamp = new Date(record.processed_at || record.created_at);
+            const tag = record.player_id;
+            if (!tag || tag === 'AUTO' || !tag.includes('#')) return;
+
+            const report = record.analysis_report || {};
+            const timestamp = new Date(record.created_at);
             const hour = timestamp.getHours();
 
             if (!playerStats[tag]) {
@@ -59,18 +66,19 @@ class IntelligenceLayer {
                     synergyPoints: 0,
                     soloQMatches: 0,
                     lastMatches: [],
-                    lastMatchId: record.match_id // Captura o ID da partida mais recente
+                    lastMatchId: record.match_id
                 };
             }
 
             const p = playerStats[tag];
             p.matches++;
-            p.totalKd += parseFloat(analysis.kd || 0);
-            p.totalAdr += parseFloat(analysis.adr || 0);
-            p.totalPerformance += parseInt(analysis.performance_index || 0);
-            
-            // Synergy logic: group size > 1
-            const groupSize = (meta.group && meta.group.length) || 1;
+            p.totalKd += parseFloat(report.kd || 0);
+            p.totalAdr += parseFloat(report.adr || 0);
+            p.totalPerformance += parseFloat(record.impact_score || report.impact_score || 0);
+
+            // Synergy logic: squad_stats presentes = jogo em grupo
+            const squadStats = report.squad_stats || report.squad || null;
+            const groupSize = Array.isArray(squadStats) ? squadStats.length : 0;
             if (groupSize > 1) {
                 p.synergyPoints += (groupSize - 1);
             } else {
@@ -81,8 +89,9 @@ class IntelligenceLayer {
             this.insights.hours[hour]++;
 
             // Recent performance for streaks (last 5)
+            const perfScore = parseFloat(record.impact_score || report.impact_score || 0);
             if (p.lastMatches.length < 5) {
-                p.lastMatches.push(analysis.performance_index || 0);
+                p.lastMatches.push(perfScore);
             }
         });
 
@@ -95,12 +104,12 @@ class IntelligenceLayer {
             .sort((a, b) => b.synergyPoints - a.synergyPoints)
             .map(p => ({ tag: p.tag, score: p.synergyPoints, games: p.matches }));
 
-        // 2. KDA Ranking (min 3 matches)
+        // 2. KDA Ranking (min 2 matches)
         this.insights.kda = [...players]
             .filter(p => p.matches >= 2)
             .sort((a, b) => (b.totalKd/b.matches) - (a.totalKd/a.matches))
-            .map(p => ({ 
-                tag: p.tag, 
+            .map(p => ({
+                tag: p.tag,
                 score: (p.totalKd/p.matches).toFixed(2),
                 lastMatchId: p.lastMatchId
             }));
@@ -110,30 +119,29 @@ class IntelligenceLayer {
             .sort((a, b) => b.soloQMatches - a.soloQMatches)
             .map(p => ({ tag: p.tag, score: p.soloQMatches }));
 
-        // 4. Streaks (Sequence counting)
+        // 4. Streaks (Sequence counting based on Performance Index)
         players.forEach(p => {
             let winStreak = 0;
             let lossStreak = 0;
-            
-            // Iterate from newest to oldest
+
             for (let i = 0; i < p.lastMatches.length; i++) {
                 const perf = p.lastMatches[i];
-                if (perf > 120) {
+                if (perf >= 115) { // Alpha threshold
                     if (lossStreak > 0) break;
                     winStreak++;
-                } else if (perf < 75) {
+                } else if (perf < 95) { // Depósito de Torreta threshold
                     if (winStreak > 0) break;
                     lossStreak++;
                 } else {
-                    break; // Reset on average performance
+                    break;
                 }
             }
-            
+
             if (winStreak >= 2) this.insights.streaks[p.tag] = `${winStreak} VITÓRIAS`;
             if (lossStreak >= 2) this.insights.streaks[p.tag] = `${lossStreak} DERROTAS`;
         });
 
-        console.log(">>> [INTEL] Insights gerados com sucesso.");
+        console.log(`>>> [INTEL] Insights gerados: ${players.length} agentes processados.`);
     }
 
     saveToCache() {
@@ -147,13 +155,13 @@ class IntelligenceLayer {
     static getFromCache() {
         const cache = localStorage.getItem('protocol_v_insights');
         if (!cache) return null;
-        
+
         const data = JSON.parse(cache);
         const age = Date.now() - data.timestamp;
-        
+
         // Cache valid for 30 minutes
         if (age > 30 * 60 * 1000) return null;
-        
+
         return data.insights;
     }
 }
