@@ -578,14 +578,17 @@
                 }
 
                 // 3. Extrator de Regex (Para strings puras no insight_resumo)
+                // Usamos uma regex mais específica para evitar parar em [80%] ou similares
+                const tagLookahead = '(?=\\[\\s*(FALHAS_CRÍTICAS|PONTOS_FRACOS|DIRETRIZ|SISTEMA|META|CONSELHO|RESUMO)|\n|$)';
+                
                 if (strongPoints.length === 0 && typeof data.insight_resumo === 'string') {
-                    const strMatch = data.insight_resumo.match(/\[\s*PONTOS_FORTES\s*\]\s*([\s\S]*?)(?=\[\s*|$)/i);
+                    const strMatch = data.insight_resumo.match(/\[\s*PONTOS_FORTES\s*\]\s*([\s\S]*?)(?=\[\s*[A-Z_]{5,}\s*\]|$)/i);
                     if (strMatch && strMatch[1]) {
                         strongPoints = strMatch[1].trim().split('\n').map(s => s.replace(/^\s*[-•]\s*/, '').trim()).filter(s => s.length > 0);
                     }
                 }
                 if (criticalFlaws.length === 0 && typeof data.insight_resumo === 'string') {
-                    const weakMatch = data.insight_resumo.match(/\[\s*(FALHAS_CRÍTICAS|PONTOS_FRACOS)\s*\]\s*([\s\S]*?)(?=\[\s*|$)/i);
+                    const weakMatch = data.insight_resumo.match(/\[\s*(FALHAS_CRÍTICAS|PONTOS_FRACOS)\s*\]\s*([\s\S]*?)(?=\[\s*[A-Z_]{5,}\s*\]|$)/i);
                     if (weakMatch && weakMatch[2]) {
                         criticalFlaws = weakMatch[2].trim().split('\n').map(s => s.replace(/^\s*[-•]\s*/, '').trim()).filter(s => s.length > 0);
                     }
