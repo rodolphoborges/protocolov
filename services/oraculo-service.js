@@ -63,17 +63,28 @@ class OraculoService {
             errors: []
         };
 
-        for (const member of op.squad) {
-            // [POLISH] Delay de 2s para evitar 429 no OpenRouter
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
+        // 0. Pré-verificação de Insights Existentes (Otimização para evitar re-análise)
+        const { data: existingInsights } = await supabase
+            .from('ai_insights')
+            .select('player_id')
+            .eq('match_id', op.id);
+        
+        const alreadyAnalyzed = new Set(existingInsights?.map(i => i.player_id.toLowerCase()) || []);
+
+        const analyzeMember = async (member) => {
+            // Se já existe no banco, pular completamente (Idempotência)
+            if (alreadyAnalyzed.has(member.riotId.toLowerCase())) {
+                console.log(`   [⏩] Análise já existe para ${member.riotId}. Pulando.`);
+                results.successCount++;
+                return;
+            }
+
             let briefing = null;
             try {
                 // 1. Extração de Métricas do Objeto Raw
                 const rawMatch = op.rawMatchData;
                 const roundsPlayed = rawMatch?.metadata?.rounds_played || 1;
                 
-                // Buscar jogador no array de players do rawMatch (compatível com v3/v4)
                 const allPlayers = Array.isArray(rawMatch?.players) 
                     ? rawMatch.players 
                     : (rawMatch?.players?.all_players || []);
@@ -85,7 +96,7 @@ class OraculoService {
                 const d = stats.deaths || 0;
                 const a = stats.assists || 0;
                 const adr = Math.round((stats.damage_made || 0) / roundsPlayed);
-                const kast = rawPlayer?.kast || 70; // Fallback se não disponível
+                const kast = rawPlayer?.kast || 70; 
                 const acs = Math.round((stats.score || 0) / roundsPlayed);
 
                 // Resolução de Habilidades
@@ -120,16 +131,13 @@ class OraculoService {
 
                 // 2. Chamada Síncrona à API do Oráculo-V
                 const response = await axios.post(`${this.apiUrl}/api/analyze`, briefing, {
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-api-key': this.apiKey
-                    },
-                    timeout: 150000 // 150s para aguentar processamento pesado de IA
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': this.apiKey },
+                    timeout: 180000 
                 });
 
                 if (response.data && response.data.insight) {
                     const { insight, technical_data } = response.data;
-                    console.log(`   [←] Insight recebido: Rank ${insight.rank || 'N/A'} | Score: ${insight.score || '0'}`);
+                    console.log(`   [←] Insight recebido: ${member.riotId} | Rank ${insight.rank || 'N/A'}`);
 
                     // 3. Persistência Local (ai_insights)
                     const { error: insError } = await supabase.from('ai_insights').upsert([{
@@ -139,7 +147,7 @@ class OraculoService {
                         classification: insight.rank,
                         impact_score: insight.score,
                         model_used: insight.model_used,
-                        analysis_report: technical_data // Relatório completo persistido localmente
+                        analysis_report: technical_data 
                     }], { onConflict: 'match_id,player_id' });
 
                     if (insError) console.error(`   [❌] Erro ao salvar insight local: ${insError.message}`);
@@ -147,7 +155,7 @@ class OraculoService {
                     // 4. Atualização de Performance (Holt Level & Sinergia)
                     await this.updatePlayerPerformance(member.riotId, insight);
 
-                    // 5. Notificações Telegram (Apenas para jogadores no radar com Rank Crítico ou Elite)
+                    // 5. Notificações Telegram
                     if (process.env.TELEGRAM_BOT_TOKEN) {
                         if (insight.rank === 'Depósito de Torreta') {
                             await this.sendTelegramNotification(member.riotId, insight, true);
@@ -158,19 +166,8 @@ class OraculoService {
                     results.successCount++;
                 }
             } catch (err) {
-                const errorDetail = err.response?.data?.error || 
-                                  (err.response?.data ? (typeof err.response.data === 'string' ? err.response.data : JSON.stringify(err.response.data)) : null) || 
-                                  err.message || 
-                                  (err.code ? `Código de Erro: ${err.code}` : null) ||
-                                  "Erro desconhecido (Conexão ou Timeout)";
-                
+                const errorDetail = err.response?.data?.error || err.message || "Erro desconhecido";
                 console.error(`   [❌] Falha ao processar análise para ${member.riotId}: ${errorDetail}`);
-                
-                if (err.code === 'ECONNREFUSED') {
-                    console.error(`       [!] Verifique se o Oráculo-V está rodando em ${this.apiUrl} e se o firewall permite conexões.`);
-                }
-                
-                if (err.response?.status) console.error(`       Status HTTP: ${err.response.status}`);
                 
                 // Resiliência: Enfileirar para depois se o Oráculo cair
                 if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND' || (err.response && err.response.status >= 500) || err.code === 'ETIMEDOUT') {
@@ -181,7 +178,10 @@ class OraculoService {
                 results.failureCount++;
                 results.errors.push({ player: member.riotId, error: errorDetail });
             }
-        }
+        };
+
+        // Processamento paralelo dos membros da squad
+        await Promise.all(op.squad.map(member => analyzeMember(member)));
         return results;
     }
 
