@@ -570,7 +570,10 @@
                 if (!data || !data.analysis_report) throw new Error("Registro de análise incompleto.");
 
                 const report = data.analysis_report;
-                const resumo = data.insight_resumo || {};
+                let resumo = data.insight_resumo || {};
+                if (typeof resumo === 'string') {
+                    try { resumo = JSON.parse(resumo); } catch(e) { resumo = {}; }
+                }
 
                 // ── Metadata ─────────────────────────────────────
                 document.getElementById('agent-name').innerText = player.split('#')[0].toUpperCase();
