@@ -127,20 +127,32 @@ class OraculoService {
                     }))
                 };
 
-                console.log(`   [→] Despachando análise para ${member.riotId}...`);
+                console.log(`   [→] Despachando análise para ${member.riotId} (Fila)...`);
 
-                // 2. Chamada Síncrona à API do Oráculo-V
-                const response = await axios.post(`${this.apiUrl}/api/analyze`, briefing, {
+                // 2. Chamada ASSÍNCRONA à API do Oráculo-V (/api/queue)
+                // O Oráculo agora registra na fila e processa em background, retornando 202 imediatamente.
+                const response = await axios.post(`${this.apiUrl}/api/queue`, briefing, {
                     headers: { 'Content-Type': 'application/json', 'x-api-key': this.apiKey },
-                    timeout: 180000 
+                    timeout: 30000 // Timeout menor para enfileiramento
                 });
 
-                if (response.data && response.data.insight) {
+                if (response.status === 202 || (response.data && response.data.message)) {
+                    console.log(`   [⌛] Briefing aceito pelo Oráculo. Análise em background iniciada.`);
+                    results.successCount++;
+                } else if (response.data && response.data.insight) {
+                    // Fallback para caso o endpoint ainda retorne o insight direto (compatibilidade)
                     const { insight, technical_data } = response.data;
                     console.log(`   [←] Insight recebido: ${member.riotId} | Rank ${insight.rank || 'N/A'}`);
 
-                    // 3. Persistência Local (ai_insights)
-                    const { error: insError } = await supabase.from('ai_insights').upsert([{
+                    // 3. Persistência Local (ai_insights) - Resiliente a falta de constraint
+                    const { data: existingInsight } = await supabase
+                        .from('ai_insights')
+                        .select('id')
+                        .eq('match_id', op.id)
+                        .eq('player_id', member.riotId)
+                        .limit(1);
+
+                    const insightData = {
                         match_id: op.id,
                         player_id: member.riotId,
                         insight_resumo: insight.resumo,
@@ -148,9 +160,13 @@ class OraculoService {
                         impact_score: insight.score,
                         model_used: insight.model_used,
                         analysis_report: technical_data 
-                    }], { onConflict: 'match_id,player_id' });
+                    };
 
-                    if (insError) console.error(`   [❌] Erro ao salvar insight local: ${insError.message}`);
+                    if (existingInsight && existingInsight.length > 0) {
+                        await supabase.from('ai_insights').update(insightData).eq('id', existingInsight[0].id);
+                    } else {
+                        await supabase.from('ai_insights').insert([insightData]);
+                    }
 
                     // 4. Atualização de Performance (Holt Level & Sinergia)
                     await this.updatePlayerPerformance(member.riotId, insight);
@@ -228,13 +244,26 @@ class OraculoService {
     }
 
     async enqueueForLater(matchId, riotId, payload) {
-        await supabase.from('match_analysis_queue').upsert([{
+        // Verificar se já existe na fila (Resiliente a falta de constraint única no banco)
+        const { data: existing } = await supabase
+            .from('match_analysis_queue')
+            .select('id')
+            .eq('match_id', matchId)
+            .eq('player_tag', riotId)
+            .limit(1);
+
+        if (existing && existing.length > 0) {
+            console.log(`       [⌛] Já existe registro na fila para ${riotId}. Ignorando duplicata.`);
+            return;
+        }
+
+        await supabase.from('match_analysis_queue').insert([{
             match_id: matchId,
             player_tag: riotId,
             status: 'pending',
             metadata: payload,
             created_at: new Date().toISOString()
-        }], { onConflict: 'match_id,player_tag' });
+        }]);
     }
 }
 
