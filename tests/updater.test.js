@@ -46,6 +46,22 @@ jest.mock('@supabase/supabase-js', () => {
   };
 });
 
+// Mock do Axios (REST Bridge para Oráculo-V)
+jest.mock('axios', () => ({
+  post: jest.fn(() => Promise.resolve({
+    data: {
+      success: true,
+      insight: {
+        rank: 'Omega',
+        score: 85,
+        resumo: 'Análise simulada por Mock (Ambiente de Teste)',
+        model_used: 'JestMock'
+      },
+      technical_data: { rounds: 5 }
+    }
+  }))
+}));
+
 // Mock do Fetch (API HenrikDev + Telegram)
 global.fetch = jest.fn((url) => {
   if (url.includes('matches')) {

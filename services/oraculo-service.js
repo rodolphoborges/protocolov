@@ -151,8 +151,11 @@ class OraculoService {
                     }
                 }
             } catch (err) {
-                const errorDetail = err.response?.data?.error || err.response?.data || err.message || "Erro desconhecido";
-                console.error(`   [❌] Falha ao processar análise para ${member.riotId}:`, errorDetail);
+                const errorDetail = err.response?.data?.error || 
+                                  (err.response?.data ? (typeof err.response.data === 'string' ? err.response.data : JSON.stringify(err.response.data)) : null) || 
+                                  err.message || 
+                                  "Erro desconhecido";
+                console.error(`   [❌] Falha ao processar análise para ${member.riotId}: ${errorDetail}`);
                 if (err.response?.status) console.error(`       Status: ${err.response.status}`);
                 
                 // Resiliência: Enfileirar para depois se o Oráculo cair
