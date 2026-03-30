@@ -204,7 +204,7 @@ class OraculoService {
         // Muta se o token for o padrão (não configurado)
         if (!token || token === 'your_telegram_bot_token') return;
 
-        const telegramId = '1104821838'; // ID fixo para o MVP
+        const telegramId = process.env.TELEGRAM_ALERT_CHAT_ID || '1104821838';
         const url = `https://api.telegram.org/bot${token}/sendMessage`;
 
         let message = '';

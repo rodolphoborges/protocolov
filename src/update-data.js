@@ -136,10 +136,6 @@ async function run() {
     }
 }
 
-async function notificarOperacao(op) {
-    console.log(`   [📢] Notificação: Operação ${op.id.substring(0,8)} | Mapa: ${op.map_name} | Modo: ${op.mode}`);
-}
-
 if (require.main === module) run();
 
 module.exports = { run };
