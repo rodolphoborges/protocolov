@@ -14,18 +14,26 @@ jest.mock('@supabase/supabase-js', () => {
     not: jest.fn().mockReturnThis(),
     ilike: jest.fn().mockReturnThis(),
     delete: jest.fn().mockReturnThis(),
+    single: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
     upsert: jest.fn().mockImplementation(() => Promise.resolve({ error: null })),
     insert: jest.fn().mockImplementation(() => Promise.resolve({ error: null })),
     // Implementação do Thenable para o await funcionar
     then: jest.fn(function(onFulfilled) {
       // Determinar o que retornar com base na última tabela chamada
       const table = this._lastTable;
+      const isSingle = this.single.mock.calls.length > 0;
+      
+      // Limpa os mocks para a próxima chamada
+      this.single.mockClear();
+      
       if (table === 'players') {
+        const players = [
+          { riot_id: 'AgenteA#BR1', synergy_score: 10, lone_wolf: false, unit: 'ALPHA', dm_score: 0, dm_score_monthly: 0, dm_score_total: 0 },
+          { riot_id: 'AgenteB#BR1', synergy_score: 5, lone_wolf: false, unit: 'OMEGA', dm_score: 0, dm_score_monthly: 0, dm_score_total: 0 }
+        ];
         return Promise.resolve({
-          data: [
-            { riot_id: 'AgenteA#BR1', synergy_score: 10, lone_wolf: false, unit: 'ALPHA', dm_score: 0, dm_score_monthly: 0, dm_score_total: 0 },
-            { riot_id: 'AgenteB#BR1', synergy_score: 5, lone_wolf: false, unit: 'OMEGA', dm_score: 0, dm_score_monthly: 0, dm_score_total: 0 }
-          ],
+          data: isSingle ? players[0] : players,
           error: null
         }).then(onFulfilled);
       }
