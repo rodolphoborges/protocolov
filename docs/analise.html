@@ -28,15 +28,19 @@
         }
 
         body {
-            background: var(--bg) !important;
-            color: var(--white) !important;
-            font-family: var(--font) !important;
-            font-size: 13px;
-            line-height: 1.75;
+            /* Inherit global styles from style.css */
             margin: 0;
-            padding: 2.5rem 1rem;
+            padding: 0;
             overflow-x: hidden;
             min-height: 100vh;
+        }
+
+        .terminal-body {
+            background: var(--bg);
+            color: var(--white);
+            font-family: var(--font);
+            font-size: 13px;
+            line-height: 1.75;
         }
 
         @keyframes valve-glitch {
@@ -346,14 +350,28 @@
 
     </style>
 </head>
-<body>
+<body class="terminal-body">
     <div class="scanline"></div>
 
-    <div class="terminal">
-        <header>
-            <div class="sys-info">SISTEMA ORÁCULO v4.0 // PROTOCOLO-V // SECURE_CHANNEL_92</div>
-            <h1 class="val-header">ORÁCULO <span class="highlight">V</span> // RELATÓRIO DE MISSÃO</h1>
-        </header>
+    <!-- Standard Hero Header -->
+    <header class="container content-wrapper fade-in-section is-visible">
+        <div class="row pt-5 pb-2">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="decor-square"></div>
+                    <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px;">Inteligência Artificial // Oráculo V</span>
+                </div>
+                <h1 class="val-section-header text-dark" style="font-size: 5rem; border: none; margin-bottom: 0;">ANÁLISE <span class="text-accent">TACTICAL</span></h1>
+                <p class="fs-5 fw-bold text-dark mt-3" style="max-width: 600px;">Relatório detalhado de performance, tendências cognitivas e recomendações estratégicas do Oráculo.</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container content-wrapper py-0">
+        <div class="terminal">
+            <div class="terminal-header-box mb-4" style="background: var(--red-lo); color: var(--red); border: 1px solid var(--red-dim);">
+                SYSTEM // ORÁCULO v4.0 // SECURE_CHANNEL_92
+            </div>
 
         <!-- ── Loader ────────────────────────────────────────────── -->
         <div id="loader">
@@ -479,11 +497,12 @@
                 <!-- Rounds Populated HERE -->
             </div>
 
-            <div style="margin-top: 3rem; text-align: center;">
-                <a href="javascript:void(0)" onclick="window.close();" class="btn-terminal">ENCERRAR SESSÃO</a>
+            <div style="margin-top: 3rem; text-align: center; border-top: 1px dashed var(--grey-lo); padding-top: 2rem;">
+                <a href="javascript:void(0)" onclick="closeTerminal();" class="btn-terminal">ENCERRAR SESSÃO TÁTICA</a>
             </div>
 
         </div>
+    </main>
 
     </div>
 
