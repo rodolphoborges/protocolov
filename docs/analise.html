@@ -577,23 +577,33 @@
                 const strengthContainer = document.getElementById('strength-container');
                 const weaknessContainer = document.getElementById('weakness-container');
                 
-                if (resumo.diagnostico_principal) {
+                // Limpa recipientes
+                strengthContainer.innerHTML = '';
+                weaknessContainer.innerHTML = '';
+
+                // Lógica de Extração Resiliente para Pontos Fortes
+                const strongPoints = resumo.pontos_fortes || (resumo.diagnostico_principal ? [resumo.diagnostico_principal] : []);
+                if (resumo.tatico && !strongPoints.includes(resumo.tatico)) strongPoints.push(resumo.tatico);
+
+                if (strongPoints.length > 0) {
                     strengthContainer.innerHTML = `
                         <div class="diag-block strength">
-                            <div class="diag-header">PONTOS FORTES / DIAGNÓSTICO</div>
+                            <div class="diag-header">[ PONTOS_FORTES ]</div>
                             <div class="diag-list">
-                                <li>${escapeHtml(resumo.diagnostico_principal)}</li>
-                                <li>${escapeHtml(resumo.tatico)}</li>
+                                ${strongPoints.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
                             </div>
                         </div>`;
                 }
 
-                if (resumo.foco_treino && Array.isArray(resumo.foco_treino)) {
+                // Lógica de Extração Resiliente para Falhas Críticas
+                const criticalFlaws = resumo.pontos_fracos || resumo.foco_treino || resumo.falhas_criticas || [];
+                
+                if (criticalFlaws.length > 0 && Array.isArray(criticalFlaws)) {
                     weaknessContainer.innerHTML = `
                         <div class="diag-block weakness">
-                            <div class="diag-header">ÁREAS DE MELHORIA / FOCO</div>
+                            <div class="diag-header">[ FALHAS_CRÍTICAS ]</div>
                             <div class="diag-list">
-                                ${resumo.foco_treino.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+                                ${criticalFlaws.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
                             </div>
                         </div>`;
                 }
