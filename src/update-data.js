@@ -121,6 +121,7 @@ async function run() {
                 }
 
                 // 3. Gatilho de Análise IA (Apenas Competitivo)
+                if (op.mode === 'Competitive') {
                     try {
                         const analysisResult = await OraculoService.processMatchAnalysis(op);
                         if (analysisResult) {
