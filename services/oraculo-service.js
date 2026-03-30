@@ -56,6 +56,12 @@ class OraculoService {
         if (!op || !op.id || !op.squad) return;
 
         console.log(`\n🧠 [ORÁCULO-V] Iniciando ponte tática | Match: ${op.id}`);
+        
+        const results = {
+            successCount: 0,
+            failureCount: 0,
+            errors: []
+        };
 
         for (const member of op.squad) {
             // [POLISH] Delay de 2s para evitar 429 no OpenRouter
@@ -149,6 +155,7 @@ class OraculoService {
                             await this.sendTelegramNotification(member.riotId, insight, false);
                         }
                     }
+                    results.successCount++;
                 }
             } catch (err) {
                 const errorDetail = err.response?.data?.error || 
@@ -166,12 +173,16 @@ class OraculoService {
                 if (err.response?.status) console.error(`       Status HTTP: ${err.response.status}`);
                 
                 // Resiliência: Enfileirar para depois se o Oráculo cair
-                if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND' || (err.response && err.response.status >= 500)) {
+                if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND' || (err.response && err.response.status >= 500) || err.code === 'ETIMEDOUT') {
                     console.log(`       [⏳] Enfileirando para processamento posterior...`);
                     await this.enqueueForLater(op.id, member.riotId, briefing);
                 }
+
+                results.failureCount++;
+                results.errors.push({ player: member.riotId, error: errorDetail });
             }
         }
+        return results;
     }
 
     async updatePlayerPerformance(riotId, insight) {
