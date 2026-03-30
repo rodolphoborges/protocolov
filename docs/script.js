@@ -439,7 +439,12 @@ function renderOperations(operations, append = false, completedMap = {}) {
         
         let squadHTML = '<div class="d-flex flex-column flex-grow-1 ms-md-auto" style="max-width: 500px;">';
         
+        const uniqueSquad = new Set();
         op.squad.forEach((m, index) => {
+            const riotIdLower = (m.riotId || "").toLowerCase();
+            if (uniqueSquad.has(riotIdLower)) return;
+            uniqueSquad.add(riotIdLower);
+
             const isLast = index === op.squad.length - 1;
             const borderClass = isLast ? '' : 'border-bottom border-secondary border-opacity-25';
             
