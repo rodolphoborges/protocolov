@@ -409,12 +409,26 @@
                     <span class="stat-value-term"><b id="hs-val">--%</b></span>
                 </div>
                 <div class="stat-row-term">
-                    <span class="stat-label-term">IMPACTO EM COMBATE</span>
-                    <span class="stat-value-term"><b id="impact-val">--</b></span>
+                    <span class="stat-label-term">├─ IMPACTO EM COMBATE</span>
+                    <span class="stat-value-term red-glow" id="impact-val">0.0</span>
                 </div>
                 <div class="stat-row-term">
-                    <span class="stat-label-term">RANK ESTIMADO</span>
-                    <span class="stat-value-term" id="rank-val">---</span>
+                    <span class="stat-label-term">├─ ESTIMATIVA_RANK</span>
+                    <span class="stat-value-term" id="rank-val">ANALISANDO...</span>
+                </div>
+                
+                <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+                    <div class="stat-row-term">
+                        <span class="stat-label-term">MISSION_INTEL:</span>
+                    </div>
+                    <div class="stat-row-term ps-3">
+                        <span class="stat-label-term text-secondary">PONTO_DE_FOCO:</span>
+                        <span class="stat-value-term small text-white" id="focus-val">--</span>
+                    </div>
+                    <div class="stat-row-term ps-3">
+                        <span class="stat-label-term text-secondary">SINERGIA_SQUAD:</span>
+                        <span class="stat-value-term small text-white" id="synergy-val">--</span>
+                    </div>
                 </div>
             </div>
 
@@ -473,32 +487,6 @@
 
     </div>
 
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <div class="p-3 border border-success border-opacity-10 h-100">
-                                <div class="stat-label-term small mb-1">Ponto de Foco</div>
-                                <div class="text-white small" id="focus-val">--</div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 border border-success border-opacity-10 h-100">
-                                <div class="stat-label-term small mb-1">Sinergia</div>
-                                <div class="text-white small" id="synergy-val">--</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Site Link -->
-            <div class="mt-5 pt-4 border-top border-success border-opacity-25 text-center">
-                <div class="opacity-25 font-monospace" style="font-size: 0.6rem; letter-spacing: 2px;">
-                    PROTOCOLO V // DIVISÃO DE INTELIGÊNCIA // MODO OTIMIZADO ATIVO
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
@@ -513,15 +501,12 @@
         }
 
         function closeTerminal() {
-            // Se houver histórico no navegador, volta (preserva scroll)
             if (window.history.length > 1) {
                 window.history.back();
             } 
-            // Se foi aberto em uma nova aba/janela, tenta fechar
             else if (window.opener) {
                 window.close();
             } 
-            // Fallback para a página inicial
             else {
                 window.location.href = 'index.html';
             }
@@ -573,21 +558,26 @@
                 perfStatusEl.innerText = status === 'ABOVE_BASELINE' ? '[ DIFERENCIADO ]' : '[ EM EVOLUÇÃO ]';
                 perfStatusEl.className = status === 'ABOVE_BASELINE' ? 'text-green' : 'text-red';
 
-                document.getElementById('kd-val').innerText = (parseFloat(report.kd) || 0).toFixed(2);
-                document.getElementById('kd-meta').innerText = (parseFloat(report.target_kd || report.meta_kd) || 1.15).toFixed(2);
+                const kdVal = parseFloat(report.kd) || 0;
+                const targetKd = (parseFloat(report.target_kd || report.meta_kd) || 1.15).toFixed(2);
+                document.getElementById('kd-val').innerText = `${kdVal.toFixed(2)} | META: ${targetKd}`;
+                document.getElementById('kd-meta').innerText = targetKd;
                 
-                document.getElementById('adr-val').innerText = Math.round(parseFloat(report.adr) || 0);
-                document.getElementById('hs-val').innerText = `${Math.round(parseFloat(report.hs_percent || report.headshot_percent) || 0)}%`;
-                document.getElementById('impact-val').innerText = (parseFloat(report.impact_score || report.impact) || 0).toFixed(1);
-                document.getElementById('rank-val').innerText = report.estimated_rank || 'ESTIMANDO...';
+                document.getElementById('adr-val').innerText = Math.round(parseFloat(report.adr || 0));
+                
+                // HS% e Impact Score
+                const hsVal = report.hs_percent || report.headshot_percent || 0;
+                const impactVal = report.impact_score || (report.conselho_kaio && report.conselho_kaio.nota_coach) || 0;
+
+                document.getElementById('hs-val').innerText = `${Math.round(hsVal)}%`;
+                document.getElementById('impact-val').innerText = parseFloat(impactVal).toFixed(1);
+                document.getElementById('rank-val').innerText = report.classification || report.estimated_rank || 'ANALISANDO...';
 
                 // ── AI Coach (Strength/Weakness) ─────────────────
                 const strengthContainer = document.getElementById('strength-container');
                 const weaknessContainer = document.getElementById('weakness-container');
                 
                 if (resumo.diagnostico_principal) {
-                    // Logic to split or categorize points if available
-                    // For now, let's use the main diagnosis and evaluation
                     strengthContainer.innerHTML = `
                         <div class="diag-block strength">
                             <div class="diag-header">PONTOS FORTES / DIAGNÓSTICO</div>
@@ -609,11 +599,37 @@
                 }
 
                 // ── K.A.I.O. Advice ──────────────────────────────
-                const kaioText = report.conselho_kaio || report.advice;
+                const kaioObj = report.conselho_kaio;
+                let kaioText = "";
+                
+                if (typeof kaioObj === 'object' && kaioObj !== null) {
+                    kaioText = kaioObj.diagnostico_principal || kaioObj.tatico || "Diretriz operacional estável.";
+                } else {
+                    kaioText = kaioObj || report.advice || "Análise tática concluída.";
+                }
+
                 if (kaioText) {
                     document.getElementById('kaio-advice-section').classList.remove('hidden');
                     document.getElementById('kaio-advice-body').innerText = kaioText;
                 }
+
+                // Encontrar Ponto de Foco e Sinergia nos conselhos
+                const allConselhos = report.all_conselhos || [];
+                let focusPoint = "--";
+                let synergyPoint = "INDETERMINADO";
+
+                allConselhos.forEach(msg => {
+                    if (msg.includes("SINERGIA OPERACIONAL:")) {
+                        synergyPoint = msg.replace("SINERGIA OPERACIONAL:", "").trim();
+                    } else if (msg.includes("Destaque do jogo:")) {
+                        focusPoint = msg.replace("Destaque do jogo:", "").trim();
+                    } else if (msg.length > 5 && focusPoint === "--") {
+                        if (!msg.includes("ANALISANDO") && msg !== kaioText) focusPoint = msg;
+                    }
+                });
+
+                document.getElementById('focus-val').innerText = focusPoint;
+                document.getElementById('synergy-val').innerText = synergyPoint;
 
                 // ── Holt Trends ──────────────────────────────────
                 if (report.holt) {
