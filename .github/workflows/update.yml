@@ -39,4 +39,6 @@ jobs:
           ORACULO_SUPABASE_SERVICE_KEY: ${{ secrets.ORACULO_SUPABASE_SERVICE_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ORACULO_API_URL: ${{ secrets.ORACULO_API_URL }}
+          ORACULO_API_KEY: ${{ secrets.ORACULO_API_KEY }}
 

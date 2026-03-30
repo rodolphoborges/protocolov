@@ -154,9 +154,16 @@ class OraculoService {
                 const errorDetail = err.response?.data?.error || 
                                   (err.response?.data ? (typeof err.response.data === 'string' ? err.response.data : JSON.stringify(err.response.data)) : null) || 
                                   err.message || 
-                                  "Erro desconhecido";
+                                  (err.code ? `Código de Erro: ${err.code}` : null) ||
+                                  "Erro desconhecido (Conexão ou Timeout)";
+                
                 console.error(`   [❌] Falha ao processar análise para ${member.riotId}: ${errorDetail}`);
-                if (err.response?.status) console.error(`       Status: ${err.response.status}`);
+                
+                if (err.code === 'ECONNREFUSED') {
+                    console.error(`       [!] Verifique se o Oráculo-V está rodando em ${this.apiUrl} e se o firewall permite conexões.`);
+                }
+                
+                if (err.response?.status) console.error(`       Status HTTP: ${err.response.status}`);
                 
                 // Resiliência: Enfileirar para depois se o Oráculo cair
                 if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND' || (err.response && err.response.status >= 500)) {

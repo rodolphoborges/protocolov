@@ -85,10 +85,13 @@ async function run() {
                     team_color: op.team_color
                 }]);
 
-                // Gatilho Oráculo para Inteligência Tática
+                // Gatilho Oráculo para Inteligência Tática (Aguardar para garantir persistência)
                 if (op.mode === 'Competitive') {
-                    OraculoService.processMatchAnalysis(op)
-                        .catch(err => console.error(`   [❌] Falha no gatilho Oráculo: ${err.message}`));
+                    try {
+                        await OraculoService.processMatchAnalysis(op);
+                    } catch (err) {
+                        console.error(`   [❌] Falha no gatilho Oráculo: ${err.message}`);
+                    }
                 }
             }
         }
