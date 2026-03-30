@@ -144,7 +144,12 @@ async function fetchCachedData() {
         });
         
         renderSquads();
-        updateLastSyncTime(playersData); 
+        updateLastSyncTime(playersData);
+
+        // Carregar conquistas para cada jogador (não-bloqueante)
+        if (window.AchievementsSystem) {
+            playersData.forEach(p => window.AchievementsSystem.load(p.riot_id, p));
+        }
 
         opsOffset = 0;
         await fetchOperations(false);
@@ -385,6 +390,7 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
                             </div>
                         </div>
                     </div>
+                    ${window.AchievementsSystem ? window.AchievementsSystem.createContainer(player.riot_id) : ''}
                 </div>
                 <div class="ms-auto pe-2">
                     <a href="${safeTracker}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-0 border-0" title="Ver no Tracker.gg" aria-label="Ver perfil de ${player.riotId} no Tracker.gg">
