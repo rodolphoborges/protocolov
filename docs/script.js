@@ -599,7 +599,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `).join('') || '<div class="text-muted small">A aguardar dados de grupo...</div>';
             }
 
-            // Render KDA
+            // Render KDA (Now Performance/Impact Score)
             const kdaContainer = document.getElementById('leader-kda');
             if (kdaContainer) {
                 kdaContainer.innerHTML = insights.kda.slice(0, 5).map((p, i) => `
@@ -608,9 +608,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <span class="leader-rank fw-bold" style="width: 20px;">0${i+1}</span>
                             <span class="text-white fw-bold text-uppercase" style="font-size: 0.9rem;">${p.tag.split('#')[0]}</span>
                         </div>
-                        <div class="leader-score text-danger">${p.score} <span class="small opacity-50">MÉDIA</span><br><span style="font-size: 0.55rem; opacity: 0.6; display: block; text-align: right; color: var(--val-light);">ÚLTIMA PARTIDA</span></div>
+                        <div class="leader-score text-danger">${p.score} <span class="small opacity-50">SCORE</span><br><span style="font-size: 0.55rem; opacity: 0.6; display: block; text-align: right; color: var(--val-light);">KD: ${p.kd}</span></div>
                     </div>
                 `).join('') || '<div class="text-muted small">A aguardar missões de elite...</div>';
+            }
+
+            // Render Global Stats
+            const globalEl = document.getElementById('intel-global-stats');
+            if (globalEl && insights.global) {
+                globalEl.innerText = `WR: ${insights.global.winRate}% | IMPACT: ${insights.global.avgImpact}`;
+                globalEl.style.display = 'block';
             }
 
             // Render Streaks/Status
@@ -863,14 +870,18 @@ async function fetchIntelData() {
             }
 
             // UI - Operador de Elite (MVP)
+            // Nota: No v4.2 priorizamos o ranking do IntelligenceLayer que usa Impact Score,
+            // mas aqui mantemos uma versão baseada em K/D para redundância das últimas 50 ops.
             let mvp = 'N/A';
-            let bestKd = 0;
+            let bestScore = 0;
             Object.keys(playerStats).forEach(htmlId => {
                 const ps = playerStats[htmlId];
-                if (ps.ops >= 3) { 
+                if (ps.ops >= 2) { 
                     const kd = ps.deaths === 0 ? ps.kills : (ps.kills / ps.deaths);
-                    if (kd > bestKd) {
-                        bestKd = kd;
+                    const avgHs = ps.hsTotal / ps.ops;
+                    const combinedScore = (kd * 0.7) + (avgHs / 15); // Simple heuristic for MVP
+                    if (combinedScore > bestScore) {
+                        bestScore = combinedScore;
                         mvp = htmlId; 
                     }
                 }
@@ -881,7 +892,10 @@ async function fetchIntelData() {
                 if (mvp !== 'N/A') {
                     const p = pData ? pData.find(x => x.riot_id.replace(/[^a-zA-Z0-9]/g, '') === mvp) : null;
                     const displayMvp = p ? p.riot_id.split('#')[0] : mvp.toUpperCase();
-                    mvpEl.innerHTML = `<span class="text-light">${displayMvp}</span> &mdash; <span class="text-warning">${bestKd.toFixed(2)} K/D</span>`;
+                    const ps = playerStats[mvp];
+                    const kd = ps.deaths === 0 ? ps.kills : (ps.kills / ps.deaths);
+                    const hs = ps.hsTotal / ps.ops;
+                    mvpEl.innerHTML = `<span class="text-light">${displayMvp}</span> &mdash; <span class="text-warning">${kd.toFixed(2)} KD</span> <span class="text-muted small">(${hs.toFixed(0)}% HS)</span>`;
                 } else {
                     mvpEl.innerHTML = `<span class="text-muted">A aguardar combatentes...</span>`;
                 }

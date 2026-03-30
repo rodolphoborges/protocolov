@@ -47,6 +47,9 @@ class IntelligenceLayer {
 
     process() {
         const playerStats = {};
+        let totalImpact = 0;
+        let globalWins = 0;
+        let globalMatches = 0;
 
         this.data.forEach(record => {
             const tag = record.player_id;
@@ -55,14 +58,18 @@ class IntelligenceLayer {
             const report = record.analysis_report || {};
             const timestamp = new Date(record.created_at);
             const hour = timestamp.getHours();
+            
+            // Check for match result (Victory)
+            const isVictory = (report.result || "").toUpperCase() === 'VITÓRIA';
 
             if (!playerStats[tag]) {
                 playerStats[tag] = {
                     tag: tag,
                     matches: 0,
+                    wins: 0,
                     totalKd: 0,
                     totalAdr: 0,
-                    totalPerformance: 0,
+                    totalImpact: 0,
                     synergyPoints: 0,
                     soloQMatches: 0,
                     lastMatches: [],
@@ -72,15 +79,31 @@ class IntelligenceLayer {
 
             const p = playerStats[tag];
             p.matches++;
+            if (isVictory) {
+                p.wins++;
+                globalWins++;
+            }
+            globalMatches++;
+            
             p.totalKd += parseFloat(report.kd || 0);
             p.totalAdr += parseFloat(report.adr || 0);
-            p.totalPerformance += parseFloat(record.impact_score || report.impact_score || 0);
+            const currentImpact = parseFloat(record.impact_score || report.impact_score || 0);
+            p.totalImpact += currentImpact;
+            totalImpact += currentImpact;
 
-            // Synergy logic: squad_stats presentes = jogo em grupo
+            // Synergy logic: Aligned with Protocolo V Manifesto
+            // Duos = 1pt, Trios = 2pts, Squad (4/5) = 5pts. Wins double the points.
             const squadStats = report.squad_stats || report.squad || null;
             const groupSize = Array.isArray(squadStats) ? squadStats.length : 0;
+            
             if (groupSize > 1) {
-                p.synergyPoints += (groupSize - 1);
+                let points = 0;
+                if (groupSize === 2) points = 1;
+                else if (groupSize === 3) points = 2;
+                else points = 5; // 4 or 5 players
+
+                if (isVictory) points *= 2;
+                p.synergyPoints += points;
             } else {
                 p.soloQMatches++;
             }
@@ -89,28 +112,38 @@ class IntelligenceLayer {
             this.insights.hours[hour]++;
 
             // Recent performance for streaks (last 5)
-            const perfScore = parseFloat(record.impact_score || report.impact_score || 0);
             if (p.lastMatches.length < 5) {
-                p.lastMatches.push(perfScore);
+                p.lastMatches.push({
+                    impact: currentImpact,
+                    win: isVictory
+                });
             }
         });
 
         // Convert to arrays and sort
         const players = Object.values(playerStats);
 
-        // 1. Synergy Ranking
+        // Global metrics for the dashboard
+        this.insights.global = {
+            winRate: globalMatches > 0 ? ((globalWins / globalMatches) * 100).toFixed(1) : 0,
+            avgImpact: players.length > 0 ? (totalImpact / globalMatches).toFixed(1) : 0,
+            totalOps: globalMatches
+        };
+
+        // 1. Synergy Ranking (Elite Communal activity)
         this.insights.synergy = [...players]
             .filter(p => p.synergyPoints > 0)
             .sort((a, b) => b.synergyPoints - a.synergyPoints)
             .map(p => ({ tag: p.tag, score: p.synergyPoints, games: p.matches }));
 
-        // 2. KDA Ranking (min 2 matches)
+        // 2. Performance Ranking (using Impact Score instead of just KD)
         this.insights.kda = [...players]
             .filter(p => p.matches >= 2)
-            .sort((a, b) => (b.totalKd/b.matches) - (a.totalKd/a.matches))
+            .sort((a, b) => (b.totalImpact/b.matches) - (a.totalImpact/a.matches))
             .map(p => ({
                 tag: p.tag,
-                score: (p.totalKd/p.matches).toFixed(2),
+                score: (p.totalImpact/p.matches).toFixed(1),
+                kd: (p.totalKd/p.matches).toFixed(2),
                 lastMatchId: p.lastMatchId
             }));
 
@@ -119,29 +152,31 @@ class IntelligenceLayer {
             .sort((a, b) => b.soloQMatches - a.soloQMatches)
             .map(p => ({ tag: p.tag, score: p.soloQMatches }));
 
-        // 4. Streaks (Sequence counting based on Performance Index)
+        // 4. Operational Streaks (Win/Performance combination)
         players.forEach(p => {
             let winStreak = 0;
-            let lossStreak = 0;
+            let performanceStreak = 0;
 
             for (let i = 0; i < p.lastMatches.length; i++) {
-                const perf = p.lastMatches[i];
-                if (perf >= 115) { // Alpha threshold
-                    if (lossStreak > 0) break;
-                    winStreak++;
-                } else if (perf < 95) { // Depósito de Torreta threshold
-                    if (winStreak > 0) break;
-                    lossStreak++;
-                } else {
-                    break;
-                }
+                const m = p.lastMatches[i];
+                if (m.win) winStreak++;
+                else break;
             }
 
-            if (winStreak >= 2) this.insights.streaks[p.tag] = `${winStreak} VITÓRIAS`;
-            if (lossStreak >= 2) this.insights.streaks[p.tag] = `${lossStreak} DERROTAS`;
+            for (let i = 0; i < p.lastMatches.length; i++) {
+                const m = p.lastMatches[i];
+                if (m.impact >= 115) performanceStreak++;
+                else break;
+            }
+
+            if (winStreak >= 2) {
+                this.insights.streaks[p.tag] = `${winStreak} VITÓRIAS SEGUIDAS`;
+            } else if (performanceStreak >= 2) {
+                this.insights.streaks[p.tag] = `${performanceStreak} MISSÕES ALTA PERF.`;
+            }
         });
 
-        console.log(`>>> [INTEL] Insights gerados: ${players.length} agentes processados.`);
+        console.log(`>>> [INTEL] Insights v4.2 gerados: ${players.length} agentes processados.`);
     }
 
     saveToCache() {
