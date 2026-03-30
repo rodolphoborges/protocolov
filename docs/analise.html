@@ -442,6 +442,10 @@
             }
         }
 
+        const protocoloUrl = window.ProtocolConfig.supabase.url;
+        const protocoloKey = window.ProtocolConfig.supabase.anonKey;
+        const protocoloClient = window.supabase.createClient(protocoloUrl, protocoloKey);
+
         async function runAnalysis() {
             const params = new URLSearchParams(window.location.search);
             const player = params.get('player');
