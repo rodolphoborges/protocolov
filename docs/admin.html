@@ -304,11 +304,9 @@
                 return 'http://localhost:3000';
             }
 
-            // Se for um domínio externo, substitui 'protocolo' por 'oraculo'
-            // protocolov.com → oraculo-v.com:3000
-            // Ou usa o IP externo: 191.180.122.186:3000
+            // Se for um domínio externo, forçamos HTTP para o Oráculo (evita erro de SSL com IP direto)
             const externalIp = '191.180.122.186';
-            return `${protocol}//${externalIp}:3000`;
+            return `http://${externalIp}:3000`;
         };
 
         const ORACULO_BASE = getOraculoBase();
