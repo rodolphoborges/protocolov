@@ -365,28 +365,40 @@
                     <span class="stat-value-term"><b id="agent-name">---</b></span>
                 </div>
                 <div class="stat-row-term">
+                    <span class="stat-label-term">MAPA TÁTICO</span>
+                    <span class="stat-value-term"><b id="map-name">---</b></span>
+                </div>
+                <div class="stat-row-term">
                     <span class="stat-label-term">ÍNDICE DE PERFORMANCE</span>
                     <span class="stat-value-term"><b id="perf-val">--</b> <span id="perf-status" style="font-size: 0.65rem; margin-left:10px;"></span></span>
+                </div>
+                <div class="stat-row-term">
+                    <span class="stat-label-term">NÍVEL TÉCNICO</span>
+                    <span class="stat-value-term"><b id="rank-val">ANALISANDO...</b></span>
                 </div>
                 <div class="stat-row-term">
                     <span class="stat-label-term">K/D RATIO</span>
                     <span class="stat-value-term"><b id="kd-val">--</b> <span class="divider">|</span> META: <span id="kd-meta">--</span></span>
                 </div>
                 <div class="stat-row-term">
-                    <span class="stat-label-term">DANOS POR RODADA (ADR)</span>
-                    <span class="stat-value-term"><b id="adr-val">--</b></span>
+                    <span class="stat-label-term">PONTUAÇÃO / DANO</span>
+                    <span class="stat-value-term"><b id="acs-val">--</b> / <b id="adr-val">--</b></span>
+                </div>
+                <div class="stat-row-term">
+                    <span class="stat-label-term">SOBREVIVÊNCIA (KAST)</span>
+                    <span class="stat-value-term"><b id="kast-val">--%</b></span>
                 </div>
                 <div class="stat-row-term">
                     <span class="stat-label-term">EFICIÊNCIA (HS%)</span>
                     <span class="stat-value-term"><b id="hs-val">--%</b></span>
                 </div>
                 <div class="stat-row-term">
-                    <span class="stat-label-term">├─ IMPACTO EM COMBATE</span>
-                    <span class="stat-value-term red-glow" id="impact-val">0.0</span>
+                    <span class="stat-label-term">FIRST BLOODS</span>
+                    <span class="stat-value-term"><b id="fb-val">--</b></span>
                 </div>
                 <div class="stat-row-term">
-                    <span class="stat-label-term">├─ ESTIMATIVA_RANK</span>
-                    <span class="stat-value-term" id="rank-val">ANALISANDO...</span>
+                    <span class="stat-label-term">├─ IMPACTO EM COMBATE</span>
+                    <span class="stat-value-term red-glow" id="impact-val">0.0</span>
                 </div>
                 
                 <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
@@ -531,10 +543,11 @@
 
                 // ── Metadata ─────────────────────────────────────
                 document.getElementById('agent-name').innerText = player.split('#')[0].toUpperCase();
-                
+                document.getElementById('map-name').innerText = report.map || report.mapName || '--';
+
                 // ── Stats ────────────────────────────────────────
                 document.getElementById('perf-val').innerText = report.performance_index || '--';
-                
+
                 const perfStatusEl = document.getElementById('perf-status');
                 const status = report.performance_status || (report.kd >= 1.15 ? 'ABOVE_BASELINE' : 'BELOW_BASELINE');
                 perfStatusEl.innerText = status === 'ABOVE_BASELINE' ? '[ DIFERENCIADO ]' : '[ EM EVOLUÇÃO ]';
@@ -544,16 +557,23 @@
                 const targetKd = (parseFloat(report.target_kd || report.meta_kd) || 1.15).toFixed(2);
                 document.getElementById('kd-val').innerText = `${kdVal.toFixed(2)} | META: ${targetKd}`;
                 document.getElementById('kd-meta').innerText = targetKd;
-                
-                document.getElementById('adr-val').innerText = Math.round(parseFloat(report.adr || 0));
-                
-                // HS% e Impact Score
+
+                const acsVal = parseFloat(report.acs || 0);
+                const adrVal = parseFloat(report.adr || 0);
+                document.getElementById('acs-val').innerText = Math.round(acsVal);
+                document.getElementById('adr-val').innerText = Math.round(adrVal);
+
+                // KAST e HS% e Impact Score
+                const kastVal = report.kast || 0;
                 const hsVal = report.hs_percent || report.headshot_percent || report.hsAccuracy || 0;
+                const fbVal = report.first_kills || report.first_bloods || report.firstBloods || 0;
                 const impactVal = report.impact_score || (report.conselho_kaio && report.conselho_kaio.nota_coach) || 0;
 
+                document.getElementById('kast-val').innerText = `${Math.round(kastVal)}%`;
                 document.getElementById('hs-val').innerText = `${Math.round(hsVal)}%`;
+                document.getElementById('fb-val').innerText = fbVal;
                 document.getElementById('impact-val').innerText = parseFloat(impactVal).toFixed(1);
-                document.getElementById('rank-val').innerText = report.player_rank || report.estimated_rank || 'ANALISANDO...';
+                document.getElementById('rank-val').innerText = report.technical_rank || report.player_rank || report.estimated_rank || 'ANALISANDO...';
 
                 // ── AI Coach (Resilient Extraction) ─────────────────
                 const strengthContainer = document.getElementById('strength-container');
