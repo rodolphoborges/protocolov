@@ -8,385 +8,470 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/24/smallicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link href="style.css" rel="stylesheet">
     <style>
+        /* ═══════════════════════════════════════════════════════════
+           ORACULO-V :: STYLESHEET v4.0 (Adapted for Protocolo-V)
+        ═══════════════════════════════════════════════════════════ */
+        :root {
+            --bg:          #0a0a0f;
+            --bg-card:     #0d0d14;
+            --red:         #ff4655;
+            --red-dim:     #7a1f26;
+            --red-lo:      #2a0a0d;
+            --white:       #ece8e1;
+            --grey:        #7b7b8f;
+            --grey-lo:     #2a2a3a;
+            --green-ok:    #00c36d;
+            --font: 'Share Tech Mono', 'Fira Code', monospace;
+        }
+
         body {
-            background-color: #050505 !important;
-            color: #00ff41 !important;
-            font-family: 'Courier New', Courier, monospace !important;
+            background: var(--bg) !important;
+            color: var(--white) !important;
+            font-family: var(--font) !important;
+            font-size: 13px;
+            line-height: 1.75;
             margin: 0;
-            padding: 0;
+            padding: 2.5rem 1rem;
             overflow-x: hidden;
             min-height: 100vh;
         }
 
-        /* Scanline and Flicker Effects (from style.css organic-mode) */
-        body::before {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 9999;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
+        @keyframes valve-glitch {
+            0%, 98% { opacity: 1; clip-path: none; transform: none; filter: none; }
+            98.5% { opacity: 0.9; clip-path: inset(35% 0 55% 0); transform: translateX(-2px); }
+            99% { opacity: 1; clip-path: none; transform: none; }
+            99.5% { opacity: 0.92; clip-path: inset(62% 0 22% 0); transform: translateX(1px); }
+            100% { opacity: 1; clip-path: none; transform: none; }
         }
 
-        .terminal-container {
+        .terminal {
             max-width: 900px;
-            margin: 40px auto;
+            margin: 0 auto;
             position: relative;
+            animation: valve-glitch 60s steps(1) infinite;
             z-index: 10;
-            padding: 20px;
         }
 
-        .terminal-screen {
-            background: rgba(0, 0, 0, 0.85);
-            border: 2px solid #00ff41;
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.15);
-            padding: 30px;
-            position: relative;
-            min-height: calc(100vh - 160px);
+        .scanline {
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent,
+                transparent 3px,
+                rgba(0,0,0,0.06) 3px,
+                rgba(0,0,0,0.06) 4px
+            );
+            pointer-events: none;
+            z-index: 999;
         }
 
-        .terminal-header {
-            border-bottom: 2px solid #00ff41;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
+        /* ── Header ─────────────────────────────────────────────── */
+        header {
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid var(--red-dim);
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
         }
 
-        .teko-font {
-            font-family: 'Teko', sans-serif;
+        .sys-info {
+            font-size: 0.68rem;
+            color: var(--grey);
+            letter-spacing: 1.5px;
             text-transform: uppercase;
         }
 
-        .text-info { color: #00ff41 !important; }
-        .text-success { color: #00ff41 !important; }
+        .val-header {
+            font-size: 1.7rem;
+            color: var(--white);
+            font-weight: 700;
+            letter-spacing: 6px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .val-header .highlight { color: var(--red); }
+
+        /* ── Dividers ───────────────────────────────────────────── */
+        .divider {
+            color: var(--grey-lo);
+            margin: 1rem 0;
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+            opacity: 0.9;
+            white-space: pre;
+        }
+
+        .terminal-header-box {
+            display: inline-block;
+            background: var(--red);
+            color: var(--bg);
+            padding: 1px 14px;
+            font-size: 0.82rem;
+            letter-spacing: 4px;
+            font-weight: bold;
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+        }
+
+        /* ── Stat rows ──────────────────────────────────────────── */
+        .stats-output {
+            padding: 0.3rem 0 0.6rem;
+            line-height: 2;
+        }
+
+        .stat-row-term {
+            display: flex;
+            align-items: baseline;
+            font-size: 0.78rem;
+            gap: 0;
+        }
+        .stat-row-term::before {
+            content: '├─ ';
+            color: var(--grey-lo);
+            white-space: pre;
+            flex-shrink: 0;
+        }
 
         .stat-label-term {
-            color: #00ff41;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            font-weight: 800;
-            opacity: 0.7;
-        }
-
-        .performance-value {
-            font-size: 5rem;
-            font-family: 'Teko', sans-serif;
-            line-height: 1;
-            color: #fff;
-            text-shadow: 0 0 10px #00ff41;
-        }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px dashed rgba(0, 255, 65, 0.3);
-            padding: 8px 0;
-            font-size: 0.9rem;
-        }
-
-        .analysis-box {
-            background-color: rgba(0, 40, 0, 0.2);
-            border-left: 4px solid #00ff41;
-            padding: 15px;
-            margin-bottom: 15px;
-            font-size: 1rem;
-            position: relative;
-            transition: all 0.2s ease-in-out;
-        }
-
-        .analysis-box.collapsible {
-            cursor: pointer;
-        }
-        .analysis-box.collapsible:hover {
-            background-color: rgba(0, 255, 65, 0.05);
-        }
-
-        .round-content {
-            display: block;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-
-        .analysis-box.collapsed .round-content {
-            display: none;
-        }
-
-        .toggle-icon {
-            font-size: 0.8rem;
-            transition: transform 0.2s;
-            display: inline-block;
-            margin-left: 10px;
-            color: #00ff41;
-            opacity: 0.5;
-        }
-
-        .analysis-box.collapsed .toggle-icon {
-            transform: rotate(-90deg);
-        }
-
-        .terminal-cursor {
-            display: inline-block;
-            width: 10px;
-            height: 1.2rem;
-            background-color: #00ff41;
-            animation: blink-cursor 1s step-end infinite;
-            vertical-align: middle;
-            margin-left: 5px;
-        }
-
-        @keyframes blink-cursor {
-            50% { opacity: 0; }
-        }
-
-        .round-number {
-            color: #eab308;
-            font-weight: 800;
-            font-size: 0.8rem;
-            margin-right: 10px;
-            font-family: 'Teko', sans-serif;
-            letter-spacing: 1px;
-        }
-
-        .btn-val-terminal {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background-color: transparent;
-            color: #00ff41;
-            border: 1px solid #00ff41;
-            font-family: 'Teko', sans-serif;
-            font-size: 1.2rem;
-            padding: 5px 30px;
-            text-decoration: none;
-            transition: 0.2s;
-            cursor: pointer;
-        }
-
-        .btn-val-terminal:hover {
-            background-color: #00ff41;
-            color: #000;
-            box-shadow: 0 0 15px #00ff41;
-        }
-
-        .blink-terminal {
-            animation: blinker 1s step-end infinite;
-        }
-
-        @keyframes blinker {
-            50% { opacity: 0; }
-        }
-
-        .badge-fb { border-color: #fbbf24 !important; color: #fbbf24 !important; }
-        .badge-fd { border-color: #ff4655 !important; color: #ff4655 !important; opacity: 0.8; }
-        .badge-plant { border-color: #f43f5e !important; color: #f43f5e !important; }
-        .badge-defuse { border-color: #0ea5e9 !important; color: #0ea5e9 !important; }
-
-        .performance-status {
+            color: var(--grey);
+            min-width: 170px;
+            letter-spacing: 1.5px;
             font-size: 0.7rem;
-            letter-spacing: 1px;
-            font-weight: 800;
-            margin-top: -5px;
+            text-transform: uppercase;
+        }
+
+        .stat-value-term {
+            color: var(--white);
+            flex: 1;
+        }
+        .stat-value-term b { color: var(--red); }
+
+        /* ── Diagnostic Blocks ────────────────────────────────── */
+        .diag-block {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid rgba(255, 70, 85, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .diag-header {
+            font-size: 0.9rem;
+            font-weight: bold;
             margin-bottom: 10px;
+            text-transform: uppercase;
         }
-        .status-above { color: #00ff41; }
-        .status-below { color: #ff4655; opacity: 0.8; }
 
-        /* Timeline Styles */
-        .timeline-list {
+        .strength .diag-header { color: var(--green-ok); }
+        .weakness .diag-header { color: var(--red); }
+
+        .diag-list {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 0.85rem;
+            line-height: 1.6;
             list-style: none;
-            padding-left: 25px;
-            margin-top: 15px;
-            border-left: 1px dashed rgba(0, 255, 65, 0.25);
-            position: relative;
-        }
-        .timeline-item {
-            position: relative;
-            margin-bottom: 12px;
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.9);
-        }
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -29.5px;
-            top: 6px;
-            width: 8px;
-            height: 8px;
-            background-color: #00ff41;
-            border-radius: 50%;
-            border: 2px solid #050505;
-            box-shadow: 0 0 5px #00ff41;
-        }
-        .timeline-time {
-            color: #00ff41;
-            font-weight: 800;
-            margin-right: 12px;
-            font-family: 'Teko', sans-serif;
-            font-size: 1rem;
-            display: inline-block;
-            min-width: 45px;
         }
 
-        /* NEW v3.0 Styles */
-        .kaio-box {
-            background: rgba(0, 255, 65, 0.05);
-            border: 1px double #00ff41;
-            padding: 20px;
-            margin-bottom: 25px;
+        .diag-list li {
+            margin-bottom: 5px;
             position: relative;
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.05);
         }
-        .kaio-box::before {
-            content: "DIRETRIZ TÁTICA K.A.I.O.";
-            position: absolute;
-            top: -10px;
-            left: 15px;
-            background: #050505;
-            padding: 0 10px;
-            font-family: 'Teko', sans-serif;
-            font-size: 0.9rem;
-            color: #00ff41;
+        .diag-list li::before {
+            content: "» ";
+            color: var(--grey-lo);
+        }
+
+        .strength { border-left: 3px solid var(--green-ok); }
+        .weakness { border-left: 3px solid var(--red); }
+
+        /* ── Advice Block ────────────────────────────────────────── */
+        .advice-block {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(255, 70, 85, 0.03);
+            border: 1px solid var(--red-dim);
+            position: relative;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
+        }
+
+        .advice-header {
+            font-size: 0.65rem;
+            color: var(--red);
             letter-spacing: 2px;
+            margin-bottom: 0.6rem;
+            font-weight: bold;
+            text-transform: uppercase;
         }
-        .trend-section {
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(0, 255, 65, 0.2);
+        .advice-header::before { content: '🚨 '; }
+
+        .advice-body {
+            font-size: 0.85rem;
+            color: var(--white);
+            line-height: 1.5;
+            letter-spacing: 0.5px;
+            border-left: 2px solid var(--red);
+            padding-left: 1rem;
         }
-        .trend-grid {
+
+        /* ── Round Timeline ──────────────────────────────────── */
+        .output-header {
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            color: var(--grey);
+            text-transform: uppercase;
+            margin-top: 2rem;
+        }
+
+        .round-item {
+            margin-bottom: 0.4rem;
+            border-left: 1px solid var(--grey-lo);
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+        .round-item:hover { background: rgba(255,255,255,0.02); }
+
+        .round-summary {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 8px 10px;
+            font-size: 0.72rem;
+            color: var(--grey);
+            letter-spacing: 1px;
+        }
+
+        .round-summary .rd-num {
+            color: var(--white);
+            font-weight: bold;
+            letter-spacing: 2px;
+            min-width: 80px;
+        }
+
+        .round-item.open { border-left-color: var(--red); background: rgba(255,70,85, 0.05); }
+
+        .round-detail {
+            display: none;
+            padding: 10px 10px 15px 20px;
+            border-top: 1px solid var(--grey-lo);
+        }
+        .round-item.open .round-detail { display: block; }
+
+        .feedback-line {
+            font-size: 0.78rem;
+            margin-bottom: 4px;
+            padding-left: 0.8rem;
+            position: relative;
+        }
+        .feedback-line::before { content: '│ '; color: var(--grey-lo); position: absolute; left: 0; }
+
+        .timeline-list-term {
+            list-style: none;
+            padding-left: 15px;
+            margin-top: 10px;
+            border-left: 1px dashed var(--grey-lo);
+        }
+        .timeline-item-term {
+            font-size: 0.7rem;
+            margin-bottom: 5px;
+            color: var(--grey);
+        }
+        .timeline-time-term {
+            color: var(--red);
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        /* ── Holt Trend ────────────────────────────────────────── */
+        .trend-grid-term {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 10px;
+            margin-top: 10px;
         }
-        .trend-item {
-            font-family: 'Teko', sans-serif;
-            text-transform: uppercase;
+        .trend-item-term {
+            border: 1px solid var(--grey-lo);
+            padding: 8px;
+            background: rgba(255,255,255,0.02);
         }
-        .trend-label {
-            font-size: 0.7rem;
-            opacity: 0.6;
+        .trend-label-term {
+            font-size: 0.6rem;
+            color: var(--grey);
             display: block;
+            margin-bottom: 2px;
         }
-        .trend-value {
-            font-size: 1.4rem;
-            color: #fff;
+        .trend-value-term {
+            font-size: 0.9rem;
+            color: var(--white);
+            font-weight: bold;
         }
-        .trend-up { color: #00ff41; }
-        .trend-down { color: #ff4655; }
-        .trend-stable { color: #eab308; }
+        .trend-up { color: var(--green-ok); }
+        .trend-down { color: var(--red); }
+
+        /* ── Utils ──────────────────────────────────────────────── */
+        .blink { animation: blinker 1s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+        .hidden { display: none !important; }
+        .text-red { color: var(--red); }
+        .text-green { color: var(--green-ok); }
+
+        .btn-terminal {
+            background: transparent;
+            border: 1px solid var(--red);
+            color: var(--red);
+            padding: 0.45rem 1.5rem;
+            cursor: pointer;
+            font-family: var(--font);
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            text-decoration: none;
+            transition: 0.15s;
+            display: inline-block;
+        }
+        .btn-terminal:hover {
+            background: var(--red);
+            color: var(--bg);
+        }
+
+        #loader {
+            margin-top: 30vh;
+            text-align: center;
+        }
 
     </style>
 </head>
 <body>
+    <div class="scanline"></div>
 
-    <div class="terminal-container">
+    <div class="terminal">
+        <header>
+            <div class="sys-info">SISTEMA ORÁCULO v4.0 // PROTOCOLO-V // SECURE_CHANNEL_92</div>
+            <h1 class="val-header">ORÁCULO <span class="highlight">V</span> // RELATÓRIO DE MISSÃO</h1>
+        </header>
 
-        <!-- Loader Section -->
-        <div id="loader" class="text-center py-5" style="margin-top: 20vh;">
-            <div class="custom-loader mb-4">
-                <div class="spinner-border text-success" role="status"></div>
+        <!-- ── Loader ────────────────────────────────────────────── -->
+        <div id="loader">
+            <div class="divider">┌────────────────────────────────────────────────────────────────┐</div>
+            <div style="text-align: center; padding: 2rem 0;">
+                <div class="blink" style="color: var(--red); font-size: 1.2rem; letter-spacing: 4px; font-weight: bold; margin-bottom: 0.5rem;">
+                    [ ACESSANDO VANGUARD_DB ]
+                </div>
+                <div style="color: var(--grey); font-size: 0.7rem; letter-spacing: 2px;">
+                    SINCRONIZANDO DADOS TÁTICOS...
+                </div>
             </div>
-            <div class="teko-font fs-2 text-success blink-terminal">
-                >>> SINCRONIZANDO COM O ORÁCULO V...
-            </div>
-            <div class="text-success small font-monospace mt-2 opacity-50">
-                LIMPANDO RÁDIO E ACEDENDO AO BANCO DE DADOS DA VANGUARD
+            <div class="divider">└────────────────────────────────────────────────────────────────┘</div>
+        </div>
+
+        <!-- ── Error ─────────────────────────────────────────────── -->
+        <div id="error" class="hidden">
+            <div class="diag-block weakness">
+                <div class="diag-header">FALHA DE CONEXÃO</div>
+                <div id="error-message" style="font-size: 0.8rem; opacity: 0.8;">
+                    Não foi possível recuperar os dados da partida.
+                </div>
+                <div style="margin-top: 15px;">
+                    <a href="index.html" class="btn-terminal">RETORNAR AO HUB</a>
+                </div>
             </div>
         </div>
 
-        <!-- Content Section (Hidden by default) -->
-        <div id="content" class="terminal-screen" style="display: none;">
-            <div class="terminal-header">
-                <div class="d-flex justify-content-between align-items-start w-100">
-                    <div>
-                        <div class="text-info fw-bold mb-1 teko-font" style="letter-spacing: 2px;">>>> SISTEMA ORÁCULO V // RELATÓRIO DE MISSÃO</div>
-                        <h1 class="text-white m-0 teko-font" style="font-size: 3.5rem;" id="agent-display">AGENTE: ---</h1>
-                    </div>
-                    <a href="javascript:void(0)" onclick="closeTerminal()" class="btn-val-terminal mt-2 px-4 py-2" style="font-size: 1.2rem;">FECHAR TERMINAL</a>
+        <!-- ── Results ───────────────────────────────────────────── -->
+        <div id="results" class="hidden">
+            
+            <div class="terminal-header-box">MISSION_OVERVIEW</div>
+            
+            <div class="stats-output">
+                <div class="stat-row-term">
+                    <span class="stat-label-term">AGENTE OPERACIONAL</span>
+                    <span class="stat-value-term"><b id="agent-name">---</b></span>
                 </div>
-                <div class="text-md-end opacity-50 small font-monospace mt-3 mt-md-0" style="font-size: 0.7rem; line-height: 1.4;">
-                    ID OPERAÇÃO: <span id="op-id">---</span><br>
-                    CARIMBO TEMPORAL: <span id="timestamp">---</span>
+                <div class="stat-row-term">
+                    <span class="stat-label-term">ÍNDICE DE PERFORMANCE</span>
+                    <span class="stat-value-term"><b id="perf-val">--</b> <span id="perf-status" style="font-size: 0.65rem; margin-left:10px;"></span></span>
+                </div>
+                <div class="stat-row-term">
+                    <span class="stat-label-term">K/D RATIO</span>
+                    <span class="stat-value-term"><b id="kd-val">--</b> <span class="divider">|</span> META: <span id="kd-meta">--</span></span>
+                </div>
+                <div class="stat-row-term">
+                    <span class="stat-label-term">DANOS POR RODADA (ADR)</span>
+                    <span class="stat-value-term"><b id="adr-val">--</b></span>
+                </div>
+                <div class="stat-row-term">
+                    <span class="stat-label-term">EFICIÊNCIA (HS%)</span>
+                    <span class="stat-value-term"><b id="hs-val">--%</b></span>
+                </div>
+                <div class="stat-row-term">
+                    <span class="stat-label-term">IMPACTO EM COMBATE</span>
+                    <span class="stat-value-term"><b id="impact-val">--</b></span>
+                </div>
+                <div class="stat-row-term">
+                    <span class="stat-label-term">RANK ESTIMADO</span>
+                    <span class="stat-value-term" id="rank-val">---</span>
                 </div>
             </div>
 
-            <div class="row g-5">
-                <!-- Data Sidebar -->
-                <div class="col-md-4">
-                    <div class="p-4 border border-success border-opacity-25 text-center mb-4">
-                        <div class="stat-label-term">Índice de Performance</div>
-                        <div class="performance-value" id="perf-val">--</div>
-                        <div id="perf-status" class="performance-status teko-font">---</div>
-                        <div class="small opacity-50 mt-2 teko-font" style="letter-spacing: 1px;">CÁLCULO HEURÍSTICO K.A.I.O.</div>
-                    </div>
+            <div class="divider">----------------------------------------------------------------</div>
 
-                    <div class="stat-row">
-                        <span class="stat-label-term">K/D | META</span>
-                        <span class="text-white fw-bold"><span id="kd-val">--</span> <span class="opacity-25">|</span> <span id="meta-kd-val" class="opacity-50">--</span></span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label-term">FK <span class="opacity-25">|</span> FD</span>
-                        <span class="text-warning fw-bold"><span id="fb-val">--</span> <span class="opacity-25">|</span> <span id="fd-val" class="text-danger opacity-75">--</span></span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label-term">ADR / ARMA</span>
-                        <span class="text-white fw-bold" id="adr-val">--</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label-term">RANK ESTIMADO</span>
-                        <span class="text-info fw-bold" id="rank-val">--</span>
-                    </div>
+            <!-- AI Coach Section -->
+            <div id="ai-coach-section">
+                <div id="strength-container"></div>
+                <div id="weakness-container"></div>
+            </div>
 
-                    <!-- Holt Trend Section -->
-                    <div id="trend-analysis" class="trend-section" style="display: none;">
-                        <div class="stat-label-term mb-3" style="font-size: 0.7rem;">_ TENDÊNCIA OPERACIONAL (HOLT-WINTERS)</div>
-                        <div class="trend-grid">
-                            <div class="trend-item">
-                                <span class="trend-label">Nível Atual</span>
-                                <span class="trend-value" id="trend-level">--</span>
-                            </div>
-                            <div class="trend-item">
-                                <span class="trend-label">Tendência</span>
-                                <span class="trend-value" id="trend-dir">--</span>
-                            </div>
-                            <div class="trend-item">
-                                <span class="trend-label">Próxima Partida</span>
-                                <span class="trend-value" id="trend-forecast">--</span>
-                            </div>
-                            <div class="trend-item">
-                                <span class="trend-label">Status Mira</span>
-                                <span class="trend-value" id="trend-aim">--</span>
-                            </div>
-                        </div>
+            <!-- K.A.I.O. Directive -->
+            <div id="kaio-advice-section" class="hidden">
+                <div class="advice-block">
+                    <div class="advice-header">DIRETRIZ TÁTICA K.A.I.O.</div>
+                    <div class="advice-body" id="kaio-advice-body">
+                        <!-- Populated by JS -->
                     </div>
                 </div>
+            </div>
 
-                <!-- Analysis Main -->
-                <div class="col-md-8 border-start border-success border-opacity-25 ps-md-4">
-                    <div class="mb-4">
-                        <div id="kaio-directive-container" style="display: none;">
-                            <div class="kaio-box terminal-text" id="kaio-text">
-                                <!-- K.A.I.O. Directive will be here -->
-                            </div>
-                        </div>
-
-                        <!-- A.I. Head Coach Container -->
-                        <div id="ai-insight-container"></div>
-
-                        <div class="text-info fw-bold mb-3 teko-font" style="letter-spacing: 1px;">_ ANÁLISE TÁTICA E EVENTOS DE COMBATE:</div>
-                        <div id="rounds-container">
-                            <!-- Rounds will be populated here -->
-                        </div>
+            <!-- Holt Trend Grid -->
+            <div id="holt-trend-section" class="hidden">
+                <div class="output-header">TENDÊNCIAS OPERACIONAIS (HOLT-WINTERS)</div>
+                <div class="trend-grid-term">
+                    <div class="trend-item-term">
+                        <span class="trend-label-term">NÍVEL ATUAL</span>
+                        <div class="trend-value-term" id="trend-level">--</div>
                     </div>
+                    <div class="trend-item-term">
+                        <span class="trend-label-term">TENDÊNCIA</span>
+                        <div class="trend-value-term" id="trend-dir">--</div>
+                    </div>
+                    <div class="trend-item-term">
+                        <span class="trend-label-term">PROJEÇÃO (PRÓX. PT)</span>
+                        <div class="trend-value-term" id="trend-forecast">--</div>
+                    </div>
+                    <div class="trend-item-term">
+                        <span class="trend-label-term">ESTADO COGNITIVO</span>
+                        <div class="trend-value-term" id="trend-state">---</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="output-header">LOGS DE COMBATE // POR RODADA</div>
+            
+            <div id="rounds-container" style="margin-top: 1rem;">
+                <!-- Rounds Populated HERE -->
+            </div>
+
+            <div style="margin-top: 3rem; text-align: center;">
+                <a href="javascript:void(0)" onclick="window.close();" class="btn-terminal">ENCERRAR SESSÃO</a>
+            </div>
+
+        </div>
+
+    </div>
 
                     <div class="row g-3">
                         <div class="col-6">
@@ -451,19 +536,19 @@
             const player = params.get('player');
             const matchId = params.get('matchId');
 
+            const loader = document.getElementById('loader');
+            const results = document.getElementById('results');
+            const errorSection = document.getElementById('error');
+            const errorMsg = document.getElementById('error-message');
+
             if (!player || !matchId) {
-                document.getElementById('loader').innerHTML = `
-                    <div class="alert alert-dark border-danger rounded-0 text-center py-4">
-                        <h2 class="teko-font text-danger">ERRO DE PARÂMETROS</h2>
-                        <p class="font-monospace text-muted">ID do Agente ou da Partida não detetados no radar.</p>
-                        <a href="index.html" class="btn-val-terminal mt-3">VOLTAR AO QG</a>
-                    </div>`;
+                loader.classList.add('hidden');
+                errorSection.classList.remove('hidden');
+                errorMsg.innerText = "PARÂMETROS INVÁLIDOS: ID do Agente ou da Partida ausentes.";
                 return;
             }
 
             try {
-                // Fetch all data from the LOCAL Protocolo-V ai_insights table
-                // This replaces the legacy dual-database fetch system.
                 const { data, error } = await protocoloClient
                     .from('ai_insights')
                     .select('insight_resumo, model_used, created_at, analysis_report')
@@ -471,303 +556,136 @@
                     .eq('match_id', matchId)
                     .single();
 
-                if (error) {
-                    console.error("🔍 [FRONTEND] Insight não detectado localmente:", error.message);
-                    throw new Error("A análise tática para este agente/missão ainda não foi sincronizada.");
-                }
+                if (error) throw new Error("A análise tática ainda não foi sincronizada ou não existe.");
+                if (!data || !data.analysis_report) throw new Error("Registro de análise incompleto.");
 
-                if (!data) throw new Error("Registro de análise não encontrado.");
+                const report = data.analysis_report;
+                const resumo = data.insight_resumo || {};
 
-                // Map data from the new local structure
-                const insightData = data;
-                const report = data.analysis_report || {};
+                // ── Metadata ─────────────────────────────────────
+                document.getElementById('agent-name').innerText = player.split('#')[0].toUpperCase();
                 
-                if (!report || Object.keys(report).length === 0) {
-                    document.getElementById('loader').innerHTML = `
-                        <div class="alert alert-dark border-warning rounded-0 text-center py-4">
-                            <h2 class="teko-font text-warning">RELATÓRIO PENDENTE</h2>
-                            <p class="font-monospace text-muted">A análise técnica foi iniciada, mas os detalhes ainda estão sendo processados.</p>
-                            <button onclick="window.location.reload()" class="btn-val-terminal mt-3">RECARREGAR</button>
-                            <a href="index.html" class="btn-val-terminal mt-3 ms-2">VOLTAR AO QG</a>
-                        </div>`;
-                    return;
-                }
-
-                // Populate metadata
-                document.getElementById('agent-display').innerText = `AGENTE: ${player.split('#')[0].toUpperCase()}`;
-                document.getElementById('op-id').innerText = matchId;
-                document.getElementById('timestamp').innerText = new Date(data.created_at).toLocaleString('pt-BR');
-
-                // SELF-HEALING: Calculate FK/FD if missing or zero from root
-                let calculatedFK = 0;
-                let calculatedFD = 0;
-                const roundsForCalc = report.rounds || report.events || (Array.isArray(report.analysis) ? report.analysis : []);
+                // ── Stats ────────────────────────────────────────
+                document.getElementById('perf-val').innerText = report.performance_index || '--';
                 
-                if (Array.isArray(roundsForCalc)) {
-                    roundsForCalc.forEach(r => {
-                        if (r.fb === true) calculatedFK++;
-                        if (r.fd === true) calculatedFD++;
-                        // Fallback: If flags are missing but tactical_events has it
-                        if (r.tactical_events && Array.isArray(r.tactical_events)) {
-                            const hasFBInEvents = r.tactical_events.some(ev => (typeof ev === 'string' ? ev : (ev.type || '')).includes('FIRST_BLOOD'));
-                            const hasFDInEvents = r.tactical_events.some(ev => (typeof ev === 'string' ? ev : (ev.type || '')).includes('FIRST_DEATH'));
-                            if (hasFBInEvents && r.fb !== false) r.fb = true; 
-                            if (hasFDInEvents && r.fd !== false) r.fd = true;
-                        }
-                    });
-                }
-
-                // Populate stats (with multi-source fallback)
-                document.getElementById('perf-val').innerText = report.performance_index || report.perf || '--';
-                
-                const statusEl = document.getElementById('perf-status');
+                const perfStatusEl = document.getElementById('perf-status');
                 const status = report.performance_status || (report.kd >= 1.15 ? 'ABOVE_BASELINE' : 'BELOW_BASELINE');
-                
-                let statusLabel = status.replace('_', ' ');
-                if (status === 'ABOVE_BASELINE') statusLabel = 'ESTADO: DIFERENCIADO';
-                if (status === 'BELOW_BASELINE') statusLabel = 'ABAIXO DO POTENCIAL';
-                
-                statusEl.innerText = statusLabel;
-                statusEl.className = `performance-status teko-font ${status === 'ABOVE_BASELINE' ? 'status-above' : 'status-below'}`;
+                perfStatusEl.innerText = status === 'ABOVE_BASELINE' ? '[ DIFERENCIADO ]' : '[ EM EVOLUÇÃO ]';
+                perfStatusEl.className = status === 'ABOVE_BASELINE' ? 'text-green' : 'text-red';
 
                 document.getElementById('kd-val').innerText = (parseFloat(report.kd) || 0).toFixed(2);
-                document.getElementById('meta-kd-val').innerText = (parseFloat(report.target_kd || report.meta_kd) || 1.15).toFixed(2);
+                document.getElementById('kd-meta').innerText = (parseFloat(report.target_kd || report.meta_kd) || 1.15).toFixed(2);
                 
-                const fkTotal = Math.max(calculatedFK, (report.first_bloods ?? report.first_kills ?? 0));
-                const fdTotal = Math.max(calculatedFD, (report.first_deaths ?? 0));
+                document.getElementById('adr-val').innerText = Math.round(parseFloat(report.adr) || 0);
+                document.getElementById('hs-val').innerText = `${Math.round(parseFloat(report.hs_percent || report.headshot_percent) || 0)}%`;
+                document.getElementById('impact-val').innerText = (parseFloat(report.impact_score || report.impact) || 0).toFixed(1);
+                document.getElementById('rank-val').innerText = report.estimated_rank || 'ESTIMANDO...';
+
+                // ── AI Coach (Strength/Weakness) ─────────────────
+                const strengthContainer = document.getElementById('strength-container');
+                const weaknessContainer = document.getElementById('weakness-container');
                 
-                document.getElementById('fb-val').innerText = fkTotal || (report.first_kills !== undefined ? report.first_kills : '--');
-                document.getElementById('fd-val').innerText = fdTotal || (report.first_deaths !== undefined ? report.first_deaths : (fdTotal === 0 ? '0' : '--'));
-                
-                document.getElementById('adr-val').innerText = Math.round(parseFloat(report.adr) || 135);
-                document.getElementById('rank-val').innerText = report.estimated_rank || report.rank || (report.killer_agent ? `VIA ${report.killer_agent}` : 'ESTIMANDO...');
-                
-                // NEW v3.0: K.A.I.O. Directive
+                if (resumo.diagnostico_principal) {
+                    // Logic to split or categorize points if available
+                    // For now, let's use the main diagnosis and evaluation
+                    strengthContainer.innerHTML = `
+                        <div class="diag-block strength">
+                            <div class="diag-header">PONTOS FORTES / DIAGNÓSTICO</div>
+                            <div class="diag-list">
+                                <li>${escapeHtml(resumo.diagnostico_principal)}</li>
+                                <li>${escapeHtml(resumo.tatico)}</li>
+                            </div>
+                        </div>`;
+                }
+
+                if (resumo.foco_treino && Array.isArray(resumo.foco_treino)) {
+                    weaknessContainer.innerHTML = `
+                        <div class="diag-block weakness">
+                            <div class="diag-header">ÁREAS DE MELHORIA / FOCO</div>
+                            <div class="diag-list">
+                                ${resumo.foco_treino.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+                            </div>
+                        </div>`;
+                }
+
+                // ── K.A.I.O. Advice ──────────────────────────────
                 const kaioText = report.conselho_kaio || report.advice;
                 if (kaioText) {
-                    document.getElementById('kaio-directive-container').style.display = 'block';
-                    document.getElementById('kaio-text').innerText = kaioText;
+                    document.getElementById('kaio-advice-section').classList.remove('hidden');
+                    document.getElementById('kaio-advice-body').innerText = kaioText;
                 }
 
-                // Render A.I. Head Coach Insights
-                const aiContainer = document.getElementById('ai-insight-container');
-                if (insightData && insightData.insight_resumo) {
-                    const resumo = insightData.insight_resumo;
-                    
-                    aiContainer.innerHTML = `
-                        <div class="p-4 mb-4" style="background: rgba(0, 0, 0, 0.6); border: 1px solid #00ff41; position: relative;">
-                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-success border-opacity-25 pb-2">
-                                <h3 class="teko-font text-info m-0" style="font-size: 1.5rem; letter-spacing: 1px;">🤖 ORÁCULO A.I. HEAD COACH</h3>
-                                <span class="badge bg-dark border border-success text-info">
-                                    Nota Final: ${escapeHtml(resumo.nota_coach)} / 10
-                                </span>
-                            </div>
-
-                            <div class="d-flex flex-column gap-3">
-                                <div>
-                                    <h4 class="stat-label-term mb-1" style="font-size: 0.7rem;">DIAGNÓSTICO PRINCIPAL</h4>
-                                    <p class="text-white small mb-0 opacity-75">${escapeHtml(resumo.diagnostico_principal)}</p>
-                                </div>
-
-                                <div class="p-3" style="background: rgba(0, 255, 65, 0.05); border-left: 2px solid #00ff41;">
-                                    <h4 class="stat-label-term text-info mb-2" style="font-size: 0.7rem;">AVALIAÇÃO TÁTICA</h4>
-                                    <p class="text-white small fst-italic mb-0 opacity-75">"${escapeHtml(resumo.tatico)}"</p>
-                                </div>
-
-                                ${(resumo.foco_treino && resumo.foco_treino.length > 0) ? `
-                                <div>
-                                    <h4 class="stat-label-term text-warning mb-2" style="font-size: 0.7rem;">FOCO DE TREINO REESCRITO</h4>
-                                    <ul class="list-unstyled text-white small opacity-75 mb-0" style="margin-left: 10px;">
-                                        ${resumo.foco_treino.map(dica => `
-                                            <li class="mb-1 d-flex align-items-start gap-2">
-                                                <span class="text-warning mt-1" style="font-size: 0.5rem;">▶</span>
-                                                ${escapeHtml(dica)}
-                                            </li>
-                                        `).join('')}
-                                    </ul>
-                                </div>
-                                ` : ''}
-                            </div>
-
-                            <div class="mt-4 pt-2 border-top border-success border-opacity-25 text-end">
-                                <span class="font-monospace text-muted" style="font-size: 0.6rem;">PROCESSADO POR: ${escapeHtml(insightData.model_used || 'DESCONHECIDO')}</span>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // NEW v3.2: Holt Trend
-                if (report.holt && (report.holt.performance_l !== null || report.holt.performance_L !== null)) {
+                // ── Holt Trends ──────────────────────────────────
+                if (report.holt) {
+                    document.getElementById('holt-trend-section').classList.remove('hidden');
                     const holt = report.holt;
-                    document.getElementById('trend-analysis').style.display = 'block';
                     
                     const lVal = holt.performance_l ?? holt.performance_L ?? 0;
                     document.getElementById('trend-level').innerText = lVal.toFixed(1);
                     
                     const tVal = holt.performance_t ?? holt.performance_T ?? 0;
                     const tDir = document.getElementById('trend-dir');
-                    tDir.innerText = `${tVal > 0 ? '↑' : (tVal < 0 ? '↓' : '→')} ${(Math.abs(tVal)).toFixed(2)}`;
-                    tDir.className = `trend-value ${tVal > 0 ? 'trend-up' : (tVal < 0 ? 'trend-down' : 'trend-stable')}`;
+                    tDir.innerText = `${tVal > 0 ? 'ALTA' : (tVal < 0 ? 'BAIXA' : 'FIXA')} (${(Math.abs(tVal)).toFixed(2)})`;
+                    tDir.className = `trend-value-term ${tVal > 0 ? 'trend-up' : (tVal < 0 ? 'trend-down' : '')}`;
                     
                     const fVal = holt.performance_forecast || 0;
-                    const fEl = document.getElementById('trend-forecast');
-                    fEl.innerText = Math.round(fVal);
-                    fEl.className = `trend-value ${fVal >= 100 ? 'trend-up' : 'trend-down'}`;
-
-                    // AIM/KD Trend
-                    const kd_t = holt.kd_t ?? holt.kd_T ?? 0;
-                    const aimEl = document.getElementById('trend-aim');
-                    aimEl.innerText = kd_t > 0.05 ? 'QUENTE' : (kd_t < -0.05 ? 'FRIA' : 'ESTÁVEL');
-                    aimEl.className = `trend-value ${kd_t > 0.05 ? 'trend-up' : (kd_t < -0.05 ? 'trend-down' : 'trend-stable')}`;
-                } else {
-                    // Mostrar que o sistema está ativo mas não há dados para esta partida antiga
-                    document.getElementById('trend-analysis').style.display = 'block';
-                    document.getElementById('trend-level').innerText = 'N/A';
-                    document.getElementById('trend-dir').innerText = '---';
-                    document.getElementById('trend-forecast').innerText = '---';
-                    document.getElementById('trend-aim').innerText = 'ESTÁVEL';
-                    document.getElementById('trend-analysis').querySelector('.stat-label-term').innerHTML += ' <span style="font-size:0.5rem; opacity:0.5;">(INDISPONÍVEL PARA ESTA MISSÃO)</span>';
-                }
-
-                // Refined Focus Point & Synergy (Valorant Lore / BR Vibe)
-                const adr = parseFloat(report.adr) || 0;
-                const kd = parseFloat(report.kd) || 1.0;
-                const fb = report.first_bloods || 0;
-
-                const getFocusPoint = () => {
-                    if (report.focus_point) return report.focus_point;
-                    if (adr > 165 && fb >= 3) return "DUELISTA NATO (ENTRY)";
-                    if (adr > 165) return "DANO BRUTO (AMASSANDO)";
-                    if (fb >= 3) return "PRESSÃO INICIAL (ENTRY)";
-                    if (kd > 1.6 && adr < 135) return "KDA PLAYER (BAITADOR?)";
-                    if (kd >= 1.0) return "JOGANDO O FINO";
-                    return "ABAIXO DO IMPACTO ESPERADO";
-                };
-
-                const getSynergy = () => {
-                    if (report.synergy_comment) return report.synergy_comment;
-                    if (kd > 1.2 && fb >= 2) return "DOMÍNIO DE MAPA / LIDERANÇA";
-                    if (kd < 0.85) return "JOGANDO NO ESCURO (SEM TRADE)";
-                    return "COOPERAÇÃO OPERACIONAL";
-                };
-
-                document.getElementById('focus-val').innerText = getFocusPoint();
-                document.getElementById('synergy-val').innerText = getSynergy();
-
-                // THE FIX: Populate multiple rounds/events
-                const roundsContainer = document.getElementById('rounds-container');
-                let roundsHtml = '';
-
-                // Possible round containers in different Oráculo V versions
-                const roundsList = report.rounds || report.events || (Array.isArray(report.analysis) ? report.analysis : null);
-
-                if (roundsList && Array.isArray(roundsList) && roundsList.length > 0) {
-                    roundsList.forEach((r, idx) => {
-                        const roundNum = r.round || (idx + 1);
-                        const comment = r.comment || r.conselho || (typeof r === 'string' ? r : 'Sem dados detalhados para este segmento.');
-                        const impacto = r.impacto || (r.kills > 0 ? 'Positivo' : (r.died ? 'Negativo' : 'Neutro'));
-                        
-                        // Render tactical events badges (Filter for relevant highlights)
-                        let eventsBadges = '';
-                        const hasFB = r.fb || (r.tactical_events && r.tactical_events.some(ev => (typeof ev === 'string' ? ev : (ev.type || '')).includes('FIRST_BLOOD')));
-                        const hasFD = r.fd || (r.tactical_events && r.tactical_events.some(ev => (typeof ev === 'string' ? ev : (ev.type || '')).includes('FIRST_DEATH')));
-                        
-                        if (hasFB) eventsBadges += `<span class="badge bg-dark border border-opacity-25 ms-2 badge-fb">FIRST BLOOD</span>`;
-                        if (hasFD) eventsBadges += `<span class="badge bg-dark border border-opacity-25 ms-2 badge-fd">FIRST DEATH</span>`;
-
-                        if (r.tactical_events && Array.isArray(r.tactical_events)) {
-                            r.tactical_events.forEach(ev => {
-                                let badgeClass = '';
-                                
-                                // SAFETY: Handle both string and object formats
-                                let type = typeof ev === 'string' ? ev : (ev.type || ev.text || '');
-                                
-                                // Skip generic or redundant types
-                                if (!type || ['kill', 'death', 'assist', 'round_start', 'round_end'].includes(type.toLowerCase())) return;
-                                
-                                // Skip if already added as FB/FD
-                                if (type.includes('FIRST_BLOOD') || type.includes('FIRST_DEATH')) return;
-                                
-                                let label = (typeof type === 'string') ? type.replace('_', ' ').toUpperCase() : 'EVENTO';
-                                
-                                if (type.includes('PLANT')) badgeClass = 'badge-plant';
-                                if (type.includes('DEFUSE')) badgeClass = 'badge-defuse';
-                                if (type.includes('CLUTCH')) badgeClass = 'badge-fb';
-                                
-                                eventsBadges += `<span class="badge bg-dark border border-opacity-25 ms-2 ${badgeClass}">${label}</span>`;
-                            });
-                        }
-
-                        roundsHtml += `
-                            <div class="analysis-box collapsible collapsed" onclick="toggleRound(this)" style="${impacto === 'Positivo' ? 'border-left-color: #00ff41;' : (impacto === 'Negativo' ? 'border-left-color: #ff4655;' : 'border-left-color: #888;')}">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div class="d-flex align-items-center">
-                                        <span class="round-number">[ROUND ${roundNum}]</span>
-                                        <span class="text-white opacity-50 small teko-font" style="letter-spacing:1px;">INTEL TÁTICO</span>
-                                        <span class="toggle-icon">▼</span>
-                                    </div>
-                                    <div class="text-end">
-                                        ${r.kills ? `<span class="badge bg-dark border border-success border-opacity-25 ms-1">${r.kills}K</span>` : ''}
-                                        ${eventsBadges}
-                                    </div>
-                                </div>
-                                
-                                <div class="round-content">
-                                    ${(() => {
-                                        const narrative = r.narrative || r.eventos || r.events_details || null;
-                                        if (Array.isArray(narrative) && narrative.length > 0) {
-                                            let nHtml = '<ul class="timeline-list">';
-                                            narrative.forEach(evItem => {
-                                                const time = evItem.time || evItem.timestamp || '';
-                                                // Support Portuguese fields (texto, tipo)
-                                                const txt = evItem.texto || evItem.text || evItem.event || '';
-                                                nHtml += `
-                                                    <li class="timeline-item">
-                                                        ${time ? `<span class="timeline-time">${time}</span>` : ''}
-                                                        <span>${txt}</span>
-                                                    </li>`;
-                                            });
-                                            nHtml += '</ul>';
-                                            return nHtml;
-                                        } else {
-                                            // Fallback to comment -> pos/neg as per guidance
-                                            const content = comment || r.pos || r.neg || 'Sem dados detalhados para este segmento.';
-                                            return `<span class="ps-2 opacity-75">${content}</span>`;
-                                        }
-                                    })()}
-                                </div>
-                            </div>`;
-                    });
-                } else {
-                    // Fallback to single comment structure (Legacy Logic)
-                    let singleComment = report.conselho_kaio || report.advice;
-                    if (!singleComment && report.killer_agent) {
-                        singleComment = `LOG DE COMBATE: Agente foi eliminado por ${report.killer_agent} usando ${report.weapon || 'armamento desconhecido'} aos ${report.time || '--'}.`;
-                    }
-                    if (!singleComment) singleComment = "Análise concluída pelo Oráculo V. Operação registrada com sucesso no banco de dados.";
+                    document.getElementById('trend-forecast').innerText = Math.round(fVal);
                     
-                    roundsHtml = `
-                        <div class="analysis-box">
-                            <span class="round-number">[EVENTO ÚNICO]</span>
-                            <span>"${singleComment}"</span>
-                            <span class="terminal-cursor"></span>
-                        </div>`;
+                    const kd_t = holt.kd_t ?? holt.kd_T ?? 0;
+                    document.getElementById('trend-state').innerText = kd_t > 0.05 ? 'FLUXO ATIVO' : (kd_t < -0.05 ? 'VULNERÁVEL' : 'ESTÁVEL');
+                    document.getElementById('trend-state').className = `trend-value-term ${kd_t > 0.05 ? 'trend-up' : (kd_t < -0.05 ? 'trend-down' : '')}`;
                 }
 
-                roundsContainer.innerHTML = roundsHtml;
+                // ── Rounds ───────────────────────────────────────
+                const roundsContainer = document.getElementById('rounds-container');
+                const roundsList = report.rounds || report.events || (Array.isArray(report.analysis) ? report.analysis : []);
+                
+                if (roundsList.length > 0) {
+                    roundsContainer.innerHTML = roundsList.map((r, idx) => {
+                        const roundNum = r.round || (idx + 1);
+                        const hasFB = r.fb || (r.tactical_events && r.tactical_events.some(ev => (typeof ev === 'string' ? ev : ev.type || '').includes('FIRST_BLOOD')));
+                        const hasFD = r.fd || (r.tactical_events && r.tactical_events.some(ev => (typeof ev === 'string' ? ev : ev.type || '').includes('FIRST_DEATH')));
+                        
+                        return `
+                            <div class="round-item" onclick="this.classList.toggle('open')">
+                                <div class="round-summary">
+                                    <span class="rd-num">RD ${String(roundNum).padStart(2, '0')}</span>
+                                    <span class="divider">|</span>
+                                    ${r.kills ? `<span class="text-white">${r.kills}K</span>` : '<span style="opacity:0.3">0K</span>'}
+                                    ${hasFB ? '<span class="text-green">[FB]</span>' : ''}
+                                    ${hasFD ? '<span class="text-red">[FD]</span>' : ''}
+                                    <span style="flex:1"></span>
+                                    <span class="divider">CLICK TO DECRYPT</span>
+                                </div>
+                                <div class="round-detail">
+                                    <div class="feedback-line">${r.comment || r.conselho || 'Sincronizando dados de campo...'}</div>
+                                    ${r.narrative ? `
+                                        <ul class="timeline-list-term">
+                                            ${r.narrative.map(ev => `
+                                                <li class="timeline-item-term">
+                                                    <span class="timeline-time-term">${ev.time || '--:--'}</span>
+                                                    ${ev.text || ev.texto}
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    roundsContainer.innerHTML = '<div class="divider">NENHUM LOG DE RODADA DISPONÍVEL</div>';
+                }
 
-                // Show Content
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
+                // ── Finalize ─────────────────────────────────────
+                loader.classList.add('hidden');
+                results.classList.remove('hidden');
 
             } catch (err) {
-                console.error("🔥 ERRO DE SISTEMA:", err);
-                document.getElementById('loader').innerHTML = `
-                    <div class="alert alert-dark border-danger rounded-0 text-center py-4">
-                        <h2 class="teko-font text-danger">ERRO CRÍTICO</h2>
-                        <p class="font-monospace text-muted">${err.message}</p>
-                        <a href="index.html" class="btn-val-terminal mt-3">VOLTAR AO QG</a>
-                    </div>`;
+                console.error(err);
+                loader.classList.add('hidden');
+                errorSection.classList.remove('hidden');
+                errorMsg.innerText = err.message;
             }
         }
 
