@@ -9,7 +9,7 @@ Plataforma avançada de recrutamento, análise de performance e gestão de esqua
 O Protocolo-V é a autoridade máxima e única fonte da verdade para o ecossistema. Suas responsabilidades incluem:
 
 - **Identidade de Agente**: Gestão de Riot IDs, Tags e metadados de perfil dos jogadores.
-- **Operações de Esquadrão**: Orquestração das squads (Alpha, Omega, Depósito de Torreta) e alocação de missões.
+- **Operações de Esquadrão**: Orquestração das squads e alocação de missões.
 - **Integridade Referencial**: Geração mandatória de `match_id` no formato **UUID**. Esta é a regra de ouro para a sincronização com serviços externos.
 
 ## 🚀 Stack & Resiliência
@@ -56,7 +56,7 @@ npm run sync
 O projeto utiliza **GitHub Actions** e o motor **Antigravity** para garantir a continuidade operacional:
 - **Update Workflow (`update.yml`)**: Sincronização de partidas a cada 30 minutos.
 - **Despacho de Briefing**: Ao detectar uma nova partida, o Protocolo-V gera o `match_id` (UUID) e despacha o briefing JSON para o Oráculo-V.
-- **Ingestão de Insights**: O sistema monitora o callback do Oráculo para atualizar o dashboard tático.
+- **Ingestão de Insights**: O Oráculo-V processa análises com Performance Index contextual por classe de agente e sincroniza resultados via Dual-Base para exibição imediata no dashboard tático.
 
 ## 📖 Documentação de Arquitetura
 Para detalhes técnicos sobre o ecossistema distribuído, consulte o [Arquivo de Arquitetura Principal](../ARCHITECTURE.md).

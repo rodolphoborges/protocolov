@@ -30,7 +30,7 @@ O **Protocolo V** é uma plataforma de gestão e análise tática para times de 
     - Calcula pontos de **Sinergia** e atualiza métricas de ADR/HS no Supabase.
 2.  **Análise Profunda (Oráculo V)**: Após a ingestão, o sistema enfileira automaticamente uma ordem `AUTO` na `match_analysis_queue`.
     - **Requisito**: As variáveis `ORACULO_SUPABASE_URL` e `ORACULO_SUPABASE_SERVICE_KEY` devem estar configuradas no ambiente (ou nos Secrets do GitHub).
-    - O **Worker do Oráculo** (integrado ao bot) processa essa ordem, varre a partida via API V4 para identificar todos os membros do Protocolo V presentes e gera relatórios individuais com Badges Táticas e Heurística K.A.I.O.
+    - O **Worker do Oráculo** (integrado ao bot) processa essa ordem, varre a partida via API V4 para identificar todos os membros do Protocolo V presentes e gera relatórios individuais com **Performance Index contextual** (Role-Aware), classificação em **três ranks técnicos** (Alpha/Omega/Depósito de Torreta) e Heurística K.A.I.O.
 
 3.  **Interface de Controle (Telegram)**: O `src/telegram-bot.js` atua como o HUB de comando, permitindo vincular rádios, convocar esquadrões (LFG) e disparar análises manuais.
 4.  **Exibição (Frontend)**: A pasta `docs/` contém o site que consome dados do Supabase e do Oráculo.
