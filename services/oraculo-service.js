@@ -150,11 +150,15 @@ class OraculoService {
                         }
                     }
                 }
+                }
             } catch (err) {
-                console.error(`   [❌] Falha ao processar análise para ${member.riotId}:`, err.response?.data?.error || err.message);
+                const errorDetail = err.response?.data?.error || err.response?.data || err.message || "Erro desconhecido";
+                console.error(`   [❌] Falha ao processar análise para ${member.riotId}:`, errorDetail);
+                if (err.response?.status) console.error(`       Status: ${err.response.status}`);
                 
                 // Resiliência: Enfileirar para depois se o Oráculo cair
-                if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
+                if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND' || (err.response && err.response.status >= 500)) {
+                    console.log(`       [⏳] Enfileirando para processamento posterior...`);
                     await this.enqueueForLater(op.id, member.riotId, briefing);
                 }
             }
