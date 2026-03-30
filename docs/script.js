@@ -579,8 +579,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     setInterval(fetchCachedData, 300000); // Mantém a atualização a cada 5 minutos
     
     // Inicia a Camada de Inteligência
-    if (window.IntelligenceLayer && window.oraculoClient) {
-        const intel = new IntelligenceLayer(window.oraculoClient);
+    if (window.IntelligenceLayer) {
+        // v4.1: ai_insights agora está no Protocolo-V (Dual-Base sync), não no Oráculo
+        const intel = new IntelligenceLayer(supabaseClient);
         const renderInsights = (insights) => {
             if (!insights) return;
             
@@ -644,6 +645,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Sempre busca novo para manter atualizado (background refresh)
         intel.refresh().then(insights => {
             renderInsights(insights);
+        }).catch(err => {
+            console.error("[INTEL] Falha no refresh:", err);
+            // Remove spinners mesmo em caso de erro
+            ['leader-synergy', 'leader-kda', 'leader-streaks'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.querySelector('.spinner-border')) {
+                    el.innerHTML = '<div class="text-muted small">Falha ao carregar dados.</div>';
+                }
+            });
         });
 
         setInterval(async () => {
