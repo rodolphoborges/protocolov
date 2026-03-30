@@ -294,7 +294,26 @@
     </div>
 
     <script>
-        const ORACULO_BASE = 'http://localhost:3000'; // Ajuste se Oráculo V rodar em outro host
+        // Detecta automaticamente o servidor Oráculo-V
+        const getOraculoBase = () => {
+            const protocol = window.location.protocol; // https: ou http:
+            const hostname = window.location.hostname;  // protocolov.com ou localhost
+
+            // Se for localhost, usa localhost:3000
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://localhost:3000';
+            }
+
+            // Se for um domínio externo, substitui 'protocolo' por 'oraculo'
+            // protocolov.com → oraculo-v.com:3000
+            // Ou usa o IP externo: 191.180.122.186:3000
+            const externalIp = '191.180.122.186';
+            return `${protocol}//${externalIp}:3000`;
+        };
+
+        const ORACULO_BASE = getOraculoBase();
+        console.log('🔗 Conectando ao Oráculo V em:', ORACULO_BASE);
+
         let allJobs = [];
         let currentFilter = 'all';
         let autoRefreshInterval = null;
