@@ -652,8 +652,8 @@
 
                 // Encontrar Ponto de Foco e Sinergia nos conselhos
                 const allConselhos = report.all_conselhos || [];
-                let focusPoint = "--";
-                let synergyPoint = "INDETERMINADO";
+                let focusPoint = report.focus_point || "--";
+                let synergyPoint = report.synergy_comment || "INDETERMINADO";
 
                 allConselhos.forEach(msg => {
                     if (msg.includes("SINERGIA OPERACIONAL:")) {
