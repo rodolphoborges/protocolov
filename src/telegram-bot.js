@@ -203,7 +203,13 @@ bot.onText(/^\/start(?:@[\w_]+)?(?:\s+(.*))?/, async (msg) => {
     }
 
     try {
-        const { data: existingUser } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
+        const { data: existingUser, error: dbError } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
+        
+        if (dbError) {
+            console.error('❌ [ERRO DB] Start Query:', dbError.message);
+            return bot.sendMessage(chatId, `⚠️ *[K.A.I.O.]*: Erro ao acessar o banco de dados.\n\nDetalhes: \`${dbError.message}\`\n\nPor favor, verifique se a tabela \`players\` existe no seu projeto Supabase.`, { parse_mode: 'Markdown' });
+        }
+
         const isLinked = existingUser && existingUser.length > 0;
 
         if (isLinked) {
@@ -247,6 +253,10 @@ bot.onText(/^\/vincular(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
     const riotId = match[1] ? match[1].trim() : null;
+
+    if (!supabase) {
+        return bot.sendMessage(chatId, UI.kaio("ERRO DE SISTEMA") + "\n\nO banco de dados não está conectado. Configure as variáveis de ambiente.", { parse_mode: 'Markdown' });
+    }
 
     if (!riotId) {
         return bot.sendMessage(chatId,
