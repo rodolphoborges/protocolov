@@ -96,11 +96,22 @@
 
         .match-id-cell {
             font-size: 0.65rem;
-            opacity: 0.6;
+            opacity: 0.8;
             max-width: 240px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .match-id-cell a {
+            color: #ece8e1;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s;
+        }
+        .match-id-cell a:hover {
+            color: #ff4655;
+            border-bottom-color: #ff4655;
+            opacity: 1;
         }
 
         .btn-refresh {
@@ -277,8 +288,8 @@
                         <th>Player</th>
                         <th>Match ID</th>
                         <th>Status</th>
-                        <th>Tentativas</th>
-                        <th>Criado em</th>
+                        <th>Data Partida</th>
+                        <th>Fila em</th>
                     </tr>
                 </thead>
                 <tbody id="jobsTableBody">
@@ -381,19 +392,25 @@
 
             tbody.innerHTML = filtered.map(job => {
                 const createdAt = job.created_at
-                    ? new Date(job.created_at).toLocaleString('pt-BR')
+                    ? new Date(job.created_at).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' })
                     : '—';
-                const retryHtml = job.retry_count
-                    ? `<span class="retry-count">${job.retry_count}x</span>`
-                    : '<span class="retry-count">—</span>';
+                const matchDate = job.match_date
+                    ? new Date(Number(job.match_date)).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+                    : '—';
                 const statusClass = job.status || 'pending';
+                const matchLink = `https://tracker.gg/valorant/match/${job.match_id}`;
+                
                 return `
                     <tr>
                         <td>${escapeHtml(job.agente_tag || job.player_tag || '—')}</td>
-                        <td class="match-id-cell" title="${escapeHtml(job.match_id || '')}">${escapeHtml(job.match_id || '—')}</td>
+                        <td class="match-id-cell">
+                            <a href="${matchLink}" target="_blank">
+                                ${escapeHtml(job.match_id || '—')}
+                            </a>
+                        </td>
                         <td><span class="badge-status ${statusClass}">${statusClass}</span></td>
-                        <td>${retryHtml}</td>
-                        <td style="white-space:nowrap; opacity:0.6;">${createdAt}</td>
+                        <td style="white-space:nowrap;">${matchDate}</td>
+                        <td style="white-space:nowrap; opacity:0.6; font-size:0.6rem;">${createdAt}</td>
                     </tr>
                 `;
             }).join('');
