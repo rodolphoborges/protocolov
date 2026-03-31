@@ -353,19 +353,18 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
         synergyBadge = `<span class="badge bg-secondary ms-2 rounded-0" title="Partidas jogadas em grupo">🤝 SN: ${synergyPoints}</span>`;
     }
 
-    // Mapeamento de Ícones de Classe (Valorant)
+    // Mapeamento de Ícones de Classe Oficiais (Valorant API)
     const roleIcons = {
-        'Duelista': 'https://media.valorant-api.com/roles/d0e85f41-41fb-3b77-8345-6677916158d6/displayicon.png',
-        'Iniciador': 'https://media.valorant-api.com/roles/01b79d20-4592-3a32-bc5d-896352046262/displayicon.png',
-        'Sentinela': 'https://media.valorant-api.com/roles/59806316-4b01-3861-5ee3-1126e7acd1e4/displayicon.png',
-        'Controlador': 'https://media.valorant-api.com/roles/4ee40330-ecdd-25fe-23d5-a745746e6ade/displayicon.png',
-        'Flex': 'https://static.wikia.nocookie.net/valorant/images/b/b1/Controlador_icon.png' // Fallback para Flex
+        'Duelista': 'https://media.valorant-api.com/agents/roles/dbe8757e-9e92-4ed4-b39f-9dfc589691d4/displayicon.png',
+        'Iniciador': 'https://media.valorant-api.com/agents/roles/1b47567f-8f7b-444b-aae3-b0c634622d10/displayicon.png',
+        'Sentinela': 'https://media.valorant-api.com/agents/roles/5fc02f99-4091-4486-a531-98459a3e95e9/displayicon.png',
+        'Controlador': 'https://media.valorant-api.com/agents/roles/4ee40330-ecdd-4f2f-98a8-eb1243428373/displayicon.png',
+        'Flex': 'https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png'
     };
     
-    // Fallback para ícone de Flex caso não encontre na lista
-    const roleIconUrl = roleIcons[player.role_raw] || 'https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png';
-    const roleBadge = `<span class="badge border border-secondary text-light ms-2 rounded-0 d-inline-flex align-items-center gap-1" style="background-color: rgba(255, 255, 255, 0.05); font-size: 0.65rem;" title="${player.role_raw}">
-        <img src="${roleIconUrl}" style="width: 12px; height: 12px;"> ${player.role_raw.toUpperCase()}
+    const roleIconUrl = roleIcons[player.role_raw] || roleIcons['Flex'];
+    const roleBadge = `<span class="badge border border-secondary text-light ms-2 rounded-0 d-inline-flex align-items-center gap-1" style="background-color: rgba(255, 255, 255, 0.1); font-size: 0.7rem; padding: 4px 8px;" title="Função: ${player.role_raw}">
+        <img src="${roleIconUrl}" style="width: 14px; height: 14px; margin-right: 2px;"> ${player.role_raw.toUpperCase()}
     </span>`;
 
     const wrapperStart = isWaiting ? '<div class="col-md-6">' : '<div>';
