@@ -643,8 +643,11 @@ bot.onText(/^\/papo (.*)/, async (msg, match) => {
             .limit(1)
             .maybeSingle();
 
-        // 3. Chamar API do Oráculo
+        // 3. Chamar API do Oráculo (com Timeout de 60s)
         const oraculoUrl = process.env.ORACULO_API_URL || 'http://localhost:3000';
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+
         const context = {
             player_id: player.riot_id,
             agent: lastInsight?.analysis_report?.agent || player.main_agent || 'Combatente',
@@ -658,13 +661,19 @@ bot.onText(/^\/papo (.*)/, async (msg, match) => {
                 'Content-Type': 'application/json',
                 'x-api-key': process.env.ORACULO_API_KEY || ''
             },
+            signal: controller.signal,
             body: JSON.stringify({
                 messages: [{ role: 'user', content: userText }],
                 context
             })
         });
 
-        if (!response.ok) throw new Error('Falha na ponte com o Oráculo-V.');
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
+        }
 
         const data = await response.json();
 
