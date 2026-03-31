@@ -1,6 +1,7 @@
 const supabaseUrl = window.ProtocolConfig.supabase.url;
 const supabaseAnonKey = window.ProtocolConfig.supabase.anonKey;
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+const supabaseClient = window.supabaseClient; 
 
 const oUrl = window.ProtocolConfig.oraculo ? window.ProtocolConfig.oraculo.url : '';
 const oKey = window.ProtocolConfig.oraculo ? window.ProtocolConfig.oraculo.anonKey : '';
@@ -358,13 +359,21 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
         'Duelista': 'https://media.valorant-api.com/agents/roles/dbe8757e-9e92-4ed4-b39f-9dfc589691d4/displayicon.png',
         'Iniciador': 'https://media.valorant-api.com/agents/roles/1b47567f-8f7b-444b-aae3-b0c634622d10/displayicon.png',
         'Sentinela': 'https://media.valorant-api.com/agents/roles/5fc02f99-4091-4486-a531-98459a3e95e9/displayicon.png',
-        'Controlador': 'https://media.valorant-api.com/agents/roles/4ee40330-ecdd-4f2f-98a8-eb1243428373/displayicon.png',
-        'Flex': 'https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png'
+        'Controlador': 'https://media.valorant-api.com/agents/roles/4ee40330-ecdd-4f2f-98a8-eb1243428373/displayicon.png'
     };
     
-    const roleIconUrl = roleIcons[player.role_raw] || roleIcons['Flex'];
-    const roleBadge = `<span class="badge border border-secondary text-light ms-2 rounded-0 d-inline-flex align-items-center gap-1" style="background-color: rgba(255, 255, 255, 0.1); font-size: 0.7rem; padding: 4px 8px;" title="Função: ${player.role_raw}">
-        <img src="${roleIconUrl}" style="width: 14px; height: 14px; margin-right: 2px;"> ${player.role_raw.toUpperCase()}
+    let roleIconUrl = roleIcons[player.role_raw];
+    let roleName = player.role_raw.toUpperCase();
+    let isFlex = player.role_raw.toLowerCase() === 'flex';
+
+    if (isFlex) {
+        // Ícone de Versatilidade (Flex) usando o ícone de 'Ação' ou fallback
+        roleIconUrl = 'https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/4/smallicon.png';
+        roleName = 'FLEX / MULTIFUNÇÃO';
+    }
+
+    const roleBadge = `<span class="badge border border-secondary text-light ms-2 rounded-0 d-inline-flex align-items-center gap-1" style="background-color: rgba(255, 255, 255, 0.1); font-size: 0.7rem; padding: 4px 8px;" title="${isFlex ? 'Agente Versátil: Domina múltiplas funções táticas' : 'Função: ' + player.role_raw}">
+        <img src="${roleIconUrl || roleIcons['Sentinela']}" style="width: 14px; height: 14px; margin-right: 2px;"> ${roleName}
     </span>`;
 
     const wrapperStart = isWaiting ? '<div class="col-md-6">' : '<div>';
