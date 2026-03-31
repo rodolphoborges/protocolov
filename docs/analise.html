@@ -665,6 +665,9 @@
                     }
                 });
 
+                if (focusPoint === "--" && report.performance_status) {
+                    focusPoint = `${report.performance_status} — K/D ${(parseFloat(report.kd)||0).toFixed(2)} | ADR ${Math.round(report.adr||0)} | KAST ${Math.round(report.kast||0)}%`;
+                }
                 document.getElementById('focus-val').innerText = focusPoint;
                 document.getElementById('synergy-val').innerText = synergyPoint;
 
