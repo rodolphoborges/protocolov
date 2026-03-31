@@ -1,0 +1,48 @@
+
+> protocolov-tracker@1.0.0 test
+> jest tests/bot.test.js
+
+FAIL tests/bot.test.js
+  K.A.I.O. Telegram Bot - Unit Tests
+    √ Deveria registrar o menu de comandos ao iniciar (2 ms)
+    × Comando /start deveria enviar a mensagem de boas-vindas correta (3 ms)
+    √ Comando /meu_id deveria identificar corretamente um administrador (1 ms)
+    √ Comando de Admin (/radar) deveria ser negado para usuários não autorizados
+    √ Callback Query "cvc_" (Convocação) deveria extrair nome do comandante do rádio corretamente (2 ms)
+    √ Callback Query "uni_" (Unidade) deveria processar transferência tática
+    √ Callback Query "uni_cancel" deveria abortar transferência tática
+    √ Callback Query "cvc_cancel" deveria abortar convocação (1 ms)
+
+  ● K.A.I.O. Telegram Bot - Unit Tests › Comando /start deveria enviar a mensagem de boas-vindas correta
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: 123, StringContaining "OLÁ, RECRUTA!", Any<Object>
+    Received: 123, "🤖 *[K.A.I.O. // BEM-VINDO DE VOLTA]*·
+    Olá, *Test*! É bom te ver aqui novamente.·
+    Como posso te ajudar hoje?·
+    🎮 `/convocar` — Chamar seus amigos pra jogar
+    📊 `/perfil` — Ver seu status e evolução
+    🏆 `/ranking` — Ver os melhores do grupo
+    🔍 `/analisar` — Pedir análise de uma partida·
+    > 💡 _Dica: Use /como_funciona para entender as métricas táticas._
+    ━━━━━━━━━━━━━━
+    _Protocolo V // Mentor Tático A.I._", {"parse_mode": "Markdown"}
+
+    Number of calls: 1
+
+    [0m [90m 120 |[39m         [36mawait[39m startHandler(msg)[33m;[39m
+     [90m 121 |[39m
+    [31m[1m>[22m[39m[90m 122 |[39m         expect(mockBotInstance[33m.[39msendMessage)[33m.[39mtoHaveBeenCalledWith(
+     [90m     |[39m                                             [31m[1m^[22m[39m
+     [90m 123 |[39m             [35m123[39m[33m,[39m 
+     [90m 124 |[39m             expect[33m.[39mstringContaining([32m'OLÁ, RECRUTA!'[39m)[33m,[39m 
+     [90m 125 |[39m             expect[33m.[39many([33mObject[39m)[0m
+
+      at Object.toHaveBeenCalledWith (tests/bot.test.js:122:45)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 7 passed, 8 total
+Snapshots:   0 total
+Time:        0.268 s, estimated 1 s
+Ran all test suites matching tests/bot.test.js.

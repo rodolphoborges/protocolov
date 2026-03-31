@@ -175,6 +175,7 @@ bot.on('callback_query', async (query) => {
 
 // --- COMANDO /START ---
 bot.onText(/\/start/, async (msg) => {
+    if (!msg.from) return;
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
     const firstName = msg.from.first_name || 'Agente';
@@ -215,6 +216,7 @@ bot.onText(/\/start/, async (msg) => {
 
 // --- COMANDO /VINCULAR ---
 bot.onText(/^\/vincular(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
+    if (!msg.from) return;
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
     const riotId = match[1] ? match[1].trim() : null;
@@ -268,6 +270,7 @@ bot.onText(/^\/vincular(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 
 // --- COMANDO /UNIDADE ---
 bot.onText(/^\/unidade(?:@[\w_]+)?(?:\s+(\w+))?/, async (msg, match) => {
+    if (!msg.from) return;
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
     const unidade = match[1] ? match[1].toUpperCase() : null;
@@ -355,6 +358,7 @@ bot.onText(/^\/ranking(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
 
 // --- COMANDO /PERFIL ---
 bot.onText(/^\/perfil(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
+    if (!msg.from) return;
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
     const argument = match[1] ? match[1].trim() : null;
@@ -421,6 +425,7 @@ bot.onText(/^\/perfil(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 
 // --- COMANDO /ANALISAR (Integração Oráculo V) ---
 bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
+    if (!msg.from) return;
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
     const matchId = match[1] ? match[1].trim() : null;
@@ -491,6 +496,7 @@ bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 
 // --- COMANDO /CONVOCAR ---
 bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
+    if (!msg.from) return;
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
 
@@ -615,6 +621,7 @@ bot.onText(/^\/site(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
 
 // --- COMANDO DE DIAGNÓSTICO ---
 bot.onText(/^\/meu_id(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
+    if (!msg.from) return;
     const chatId = msg.chat.id;
     const isAdmin = msg.from.id === ADMIN_ID;
     const rawVal = process.env.ADMIN_TELEGRAM_ID ? `"${process.env.ADMIN_TELEGRAM_ID}"` : 'undefined';
@@ -628,7 +635,7 @@ bot.onText(/^\/meu_id(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
 
 // --- COMANDOS SECRETOS DE ADMINISTRAÇÃO ---
 bot.onText(/^\/reciclar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
-    if (msg.from.id !== ADMIN_ID) return; 
+    if (!msg.from || msg.from.id !== ADMIN_ID) return; 
 
     const chatId = msg.chat.id;
     const matchId = match[1] ? match[1].trim() : null;
@@ -648,7 +655,7 @@ bot.onText(/^\/reciclar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 });
 
 bot.onText(/^\/reciclar_tudo(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
-    if (msg.from.id !== ADMIN_ID) return; 
+    if (!msg.from || msg.from.id !== ADMIN_ID) return; 
 
     const chatId = msg.chat.id;
     bot.sendMessage(chatId, "⏳ *[K.A.I.O.]*: Iniciando reciclagem global de dados... Aguarde confirmação.", { parse_mode: 'Markdown' });
@@ -667,7 +674,7 @@ bot.onText(/^\/reciclar_tudo(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
 });
 
 bot.onText(/^\/expurgar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
-    if (msg.from.id !== ADMIN_ID) return; 
+    if (!msg.from || msg.from.id !== ADMIN_ID) return; 
 
     const chatId = msg.chat.id;
     const riotId = match[1] ? match[1].trim() : null;
@@ -683,7 +690,7 @@ bot.onText(/^\/expurgar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 });
 
 bot.onText(/^\/alerta_vermelho(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
-    if (msg.from.id !== ADMIN_ID) return; 
+    if (!msg.from || msg.from.id !== ADMIN_ID) return; 
 
     const chatId = msg.chat.id;
     const mensagemAlert = match[1] ? match[1].trim() : null;
@@ -708,7 +715,7 @@ bot.onText(/^\/alerta_vermelho(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
 });
 
 bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
-    if (msg.from.id !== ADMIN_ID) return;
+    if (!msg.from || msg.from.id !== ADMIN_ID) return;
 
     const chatId = msg.chat.id;
     bot.sendMessage(chatId, "🤖 *[K.A.I.O.]*: Testando conexão com a API...", { parse_mode: 'Markdown' });
