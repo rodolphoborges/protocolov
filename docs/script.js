@@ -353,6 +353,21 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
         synergyBadge = `<span class="badge bg-secondary ms-2 rounded-0" title="Partidas jogadas em grupo">🤝 SN: ${synergyPoints}</span>`;
     }
 
+    // Mapeamento de Ícones de Classe (Valorant)
+    const roleIcons = {
+        'Duelista': 'https://media.valorant-api.com/roles/d0e85f41-41fb-3b77-8345-6677916158d6/displayicon.png',
+        'Iniciador': 'https://media.valorant-api.com/roles/01b79d20-4592-3a32-bc5d-896352046262/displayicon.png',
+        'Sentinela': 'https://media.valorant-api.com/roles/59806316-4b01-3861-5ee3-1126e7acd1e4/displayicon.png',
+        'Controlador': 'https://media.valorant-api.com/roles/4ee40330-ecdd-25fe-23d5-a745746e6ade/displayicon.png',
+        'Flex': 'https://static.wikia.nocookie.net/valorant/images/b/b1/Controlador_icon.png' // Fallback para Flex
+    };
+    
+    // Fallback para ícone de Flex caso não encontre na lista
+    const roleIconUrl = roleIcons[player.role_raw] || 'https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png';
+    const roleBadge = `<span class="badge border border-secondary text-light ms-2 rounded-0 d-inline-flex align-items-center gap-1" style="background-color: rgba(255, 255, 255, 0.05); font-size: 0.65rem;" title="${player.role_raw}">
+        <img src="${roleIconUrl}" style="width: 12px; height: 12px;"> ${player.role_raw.toUpperCase()}
+    </span>`;
+
     const wrapperStart = isWaiting ? '<div class="col-md-6">' : '<div>';
     const wrapperEnd = isWaiting ? '</div>' : '</div>';
 
@@ -366,6 +381,7 @@ function createPlayerCardHTML(player, isWaiting = false, themeClass = '') {
                             ${player.riotId} <span class="fs-6 text-muted" aria-hidden="true">📋</span>
                         </span>
                         <span class="badge bg-secondary ms-1 rounded-0" style="font-size: 0.6rem;">LVL ${player.level || '--'}</span>
+                        ${roleBadge}
                         ${unitBadge}
                         ${synergyBadge}
                         ${dmBadge}
