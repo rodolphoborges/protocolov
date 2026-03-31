@@ -1,85 +1,107 @@
 const { supabase } = require('./db');
 
 /**
- * PROTOCOLO-V: REUNIFICAÇÃO E ESCALONAMENTO DE ELITE (V2)
+ * PROTOCOLO-V: ESCALONAMENTO TÁTICO BALANCEADO (V3)
  * 
- * Este script garante que o contingente das unidades ALPHA e OMEGA esteja 
- * sempre completo (5 slots cada).
+ * Este script automatiza a realocação de agentes nos esquadrões ALPHA e OMEGA.
+ * O objetivo é formar um "Mixed Composition" (Composition Balanceada) em cada 
+ * união, priorizando a existência de uma peça de cada função (Duelista, 
+ * Iniciador, Controlador, Sentinela e Flex) baseada no Índice de Maturidade 
+ * Tática (IMT).
  * 
- * LÓGICA DE ESCORAGEM:
- * O escalonamento não considera apenas a skill individual (PI), mas também a 
- * MATURIDADE TÁTICA (Sinergia), valorizando quem joga junto e constrói o time.
- * 
- * Peso Sugerido: 60% Skill Individual (PI) | 40% Sinergia de Grupo
+ * Se uma função não possuir candidatos, a vaga é preenchida pelo melhor 
+ * jogador disponível, independentemente da role.
  */
 
 async function reunificar() {
-    console.log('🤖 [K.A.I.O. // REUNIFICAÇÃO E ESCALONAMENTO DE ELITE V2.0]');
-    console.log('📡 Calculando Índice de Maturidade Tática (IMT)...');
+    console.log('🤖 [K.A.I.O. // ESCALONAMENTO TÁTICO V3.0 - REFORMA POSICIONAL]');
+    console.log('📡 Analisando especializações para composição de esquadrão...');
 
     try {
         const { data: players, error } = await supabase
             .from('players')
-            .select('riot_id, performance_l, synergy_score, unit');
+            .select('riot_id, role_raw, performance_l, synergy_score, unit');
 
         if (error) throw error;
 
-        // 1. Calcular IMT e ordenar jogadores
-        const rankedPlayers = players.map(p => {
+        // 1. Cálculo de IMT (Individual 60% / Sinergia 40%)
+        const rankedPool = players.map(p => {
             const pi = p.performance_l || 0;
             const synergy = p.synergy_score || 0;
-            
-            // Fórmula: PI (Individual) + Bônus de Cooperação (Sinergia)
-            // Normalizando Sinergia (dividindo por 4 para equilibrar com PI médio de 100)
             const imt = (pi * 0.6) + ((synergy / 4) * 0.4);
-            
             return { ...p, imt };
         }).sort((a, b) => b.imt - a.imt);
 
-        console.log(`🔍 Total de agentes sob vigilância: ${rankedPlayers.length}`);
+        const available = [...rankedPool];
+        const alpha = [];
+        const omega = [];
+        const wingman = [];
 
-        const updates = [];
-        const roster = { alpha: [], omega: [], wingman: [] };
+        // Definição ideal de composição (5 slots)
+        const targetRoles = ['Duelista', 'Iniciador', 'Controlador', 'Sentinela', 'Flex'];
 
-        // 2. Alocação dinâmica por slots (Top 5: ALPHA, Próximos 5: OMEGA, Resto: WINGMAN)
-        for (let i = 0; i < rankedPlayers.length; i++) {
-            const p = rankedPlayers[i];
-            let targetUnit = 'WINGMAN';
-
-            if (i < 5) targetUnit = 'ALPHA';
-            else if (i < 10) targetUnit = 'OMEGA';
-            else targetUnit = 'WINGMAN';
-
-            if (targetUnit !== p.unit) {
-                console.log(`   [⚡] REARANJO: ${p.riot_id.split('#')[0]} | PI: ${p.performance_l?.toFixed(1) || 0} | SIN: ${p.synergy_score} | IMT: ${p.imt.toFixed(1)} -> ${targetUnit}`);
-                
-                updates.push(supabase.from('players').update({ 
-                    unit: targetUnit,
-                    updated_at: new Date().toISOString()
-                }).eq('riot_id', p.riot_id));
+        // --- 2. FORMAÇÃO DO ESQUADRÃO ALPHA ---
+        console.log('⚡ Compondo Esquadrão ALPHA...');
+        for (const role of targetRoles) {
+            const idx = available.findIndex(p => p.role_raw === role);
+            if (idx !== -1) {
+                alpha.push(available.splice(idx, 1)[0]);
             }
-
-            if (targetUnit === 'ALPHA') roster.alpha.push(`${p.riot_id.split('#')[0]} (IMT: ${p.imt.toFixed(1)})`);
-            else if (targetUnit === 'OMEGA') roster.omega.push(`${p.riot_id.split('#')[0]} (IMT: ${p.imt.toFixed(1)})`);
-            else roster.wingman.push(p.riot_id.split('#')[0]);
+        }
+        // Se ainda houver vagas no ALPHA (menos de 5), completa com o melhor disponível
+        while (alpha.length < 5 && available.length > 0) {
+            alpha.push(available.splice(0, 1)[0]);
         }
 
-        // 3. Execução das transferências
+        // --- 3. FORMAÇÃO DO ESQUADRÃO OMEGA ---
+        console.log('⚡ Compondo Esquadrão OMEGA...');
+        for (const role of targetRoles) {
+            const idx = available.findIndex(p => p.role_raw === role);
+            if (idx !== -1) {
+                omega.push(available.splice(idx, 1)[0]);
+            }
+        }
+        // Se ainda houver vagas no OMEGA, completa com o melhor disponível
+        while (omega.length < 5 && available.length > 0) {
+            omega.push(available.splice(0, 1)[0]);
+        }
+
+        // --- 4. DEPÓSITO DE TORRETAS ---
+        wingman.push(...available);
+
+        // --- 5. SINCRONIZAÇÃO E LOGS ---
+        const updates = [];
+        const processGroup = (group, unitName) => {
+            group.forEach(p => {
+                if (p.unit !== unitName) {
+                    console.log(`   [⚡] ${p.riot_id.split('#')[0]}: ${p.unit || 'NEW'} -> ${unitName} (${p.role_raw} | IMT: ${p.imt.toFixed(1)})`);
+                    updates.push(supabase.from('players').update({ 
+                        unit: unitName,
+                        updated_at: new Date().toISOString()
+                    }).eq('riot_id', p.riot_id));
+                }
+            });
+        };
+
+        processGroup(alpha, 'ALPHA');
+        processGroup(omega, 'OMEGA');
+        processGroup(wingman, 'WINGMAN');
+
         if (updates.length > 0) {
-            console.log(`\n⏳ Sincronizando ${updates.length} portarias táticas...`);
+            console.log(`\n⏳ Sincronizando portarias de escalonamento para 2 times completos...`);
             await Promise.all(updates);
-            console.log('✅ Reestruturação do Protocolo V CONCLUÍDA com foco em SINERGIA.');
+            console.log('✅ REESTRUTURAÇÃO CONCLUÍDA: Esquadrões balanceados por função.');
         } else {
-            console.log('\n✅ Formação atual condiz com os índices de maturidade tática.');
+            console.log('\n✅ Formação atual segue as diretrizes de especialização tática.');
         }
 
-        console.log(`\n🔹 ESCALAÇÃO ESTATÍSTICA:`);
-        console.log(`   🔴 [ALPHA ESCALADO]: ${roster.alpha.join(', ') || 'Vazio'}`);
-        console.log(`   🔵 [OMEGA ESCALADO]: ${roster.omega.join(', ') || 'Vazio'}`);
-        console.log(`   🛠️  [SUPORTE/RESERVA]: ${roster.wingman.length} agentes.`);
+        console.log(`\n🔹 ESCALAÇÃO FINAL:`);
+        console.log(`   🔴 ALPHA: ${alpha.map(p => `${p.riot_id.split('#')[0]} (${p.role_raw})`).join(', ')}`);
+        console.log(`   🔵 OMEGA: ${omega.map(p => `${p.riot_id.split('#')[0]} (${p.role_raw})`).join(', ')}`);
+        console.log(`   🛠️  RESERVA: ${wingman.length} agentes.`);
 
     } catch (err) {
-        console.error('🔥 [ERROR] Falha crítica na alocação sinérgica:', err.message);
+        console.error('🔥 [ERROR] Falha crítica na composição por roles:', err.message);
     }
 }
 
