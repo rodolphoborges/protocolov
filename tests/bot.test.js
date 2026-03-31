@@ -116,7 +116,7 @@ describe('K.A.I.O. Telegram Bot - Unit Tests', () => {
         const startHandler = botHandlers['/\\/start/'];
         expect(startHandler).toBeDefined();
 
-        const msg = { chat: { id: 123 } };
+        const msg = { chat: { id: 123 }, from: { id: 1104821838, first_name: 'Test' } };
         startHandler(msg);
 
         expect(mockBotInstance.sendMessage).toHaveBeenCalledWith(
