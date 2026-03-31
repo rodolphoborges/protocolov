@@ -176,6 +176,11 @@ async function run() {
             console.log('5. Integridade do Oráculo V garantida via REST Bridge.');
         }
 
+        // 6. Reunificação Tática Automática (Top 5 Alpha / Next 5 Omega)
+        console.log('\n6. Executando Portaria de Escalonamento de Elite...');
+        const { reunificar } = require('./auto-unidades');
+        await reunificar();
+
     } catch (error) {
         console.error('\n🔥 Erro fatal no Coordenador:', error);
         process.exit(1);
