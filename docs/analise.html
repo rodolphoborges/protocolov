@@ -361,8 +361,12 @@
             
             <div class="stats-output">
                 <div class="stat-row-term">
-                    <span class="stat-label-term">AGENTE OPERACIONAL</span>
+                    <span class="stat-label-term">PLAYER_ID</span>
                     <span class="stat-value-term"><b id="agent-name">---</b></span>
+                </div>
+                <div class="stat-row-term">
+                    <span class="stat-label-term">PERSONAGEM</span>
+                    <span class="stat-value-term"><b id="agent-char">---</b> <span id="agent-role" style="font-size:0.65rem; opacity:0.6;"></span></span>
                 </div>
                 <div class="stat-row-term">
                     <span class="stat-label-term">MAPA TÁTICO</span>
@@ -542,7 +546,9 @@
                 }
 
                 // ── Metadata ─────────────────────────────────────
-                document.getElementById('agent-name').innerText = player.split('#')[0].toUpperCase();
+                document.getElementById('agent-name').innerText = player.toUpperCase();
+                document.getElementById('agent-char').innerText = (report.agent || '--').toUpperCase();
+                document.getElementById('agent-role').innerText = report.role ? `[${report.role.toUpperCase()}]` : '';
                 document.getElementById('map-name').innerText = report.map || report.mapName || '--';
 
                 // ── Stats ────────────────────────────────────────
