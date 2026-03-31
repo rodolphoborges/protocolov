@@ -8,32 +8,50 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 const rawAdminId = process.env.ADMIN_TELEGRAM_ID ? process.env.ADMIN_TELEGRAM_ID.trim() : null;
 const ADMIN_ID = rawAdminId ? parseInt(rawAdminId, 10) : null; 
 
+// --- STARTUP VALIDATION ---
+if (!token) {
+    console.error('🔥 [ERROR] CRITICAL: TELEGRAM_BOT_TOKEN is missing!');
+    console.error('Check your Render Environment Variables.');
+}
+
 let bot;
-if (process.env.WEBHOOK_URL) {
-    bot = new TelegramBot(token);
-    bot.setWebHook(`${process.env.WEBHOOK_URL}/bot${token}`);
-} else {
-    // Iniciar sem polling imediato, limpar rastro de webhook e depois ativar polling
-    bot = new TelegramBot(token, { polling: false });
-    bot.deleteWebHook().then(() => {
-        bot.startPolling();
-        console.log("🌐 Terminal Avançado: POLLING ATIVO e rádio limpo.");
-    });
+try {
+    if (token) {
+        if (process.env.WEBHOOK_URL) {
+            bot = new TelegramBot(token);
+            bot.setWebHook(`${process.env.WEBHOOK_URL}/bot${token}`)
+               .catch(e => console.error('⚠️ [WARNING] Webhook setup failed:', e.message));
+        } else {
+            bot = new TelegramBot(token, { polling: false });
+            bot.deleteWebHook().then(() => {
+                bot.startPolling();
+                console.log("🌐 Terminal Avançado: POLLING ATIVO e rádio limpo.");
+            }).catch(e => console.error('⚠️ [WARNING] Polling initial setup failed:', e.message));
+        }
+    } else {
+        console.warn('⚠️ [WARNING] Bot running in STANDBY mode (no token).');
+    }
+} catch (e) {
+    console.error('🔥 [ERROR] Bot Initialization Failed:', e.message);
 }
 
 // Configuração do Menu de Comandos (PT-BR — Linguagem acessível)
-bot.setMyCommands([
-    { command: 'start', description: 'Começar — Seu primeiro passo no Protocolo V' },
-    { command: 'vincular', description: 'Conectar Conta — Ligar seu nick do Valorant' },
-    { command: 'convocar', description: 'Chamar Time — Avisar que quer jogar agora' },
-    { command: 'unidade', description: 'Trocar Time — Mudar de esquadrão' },
-    { command: 'perfil', description: 'Ver Perfil — Suas stats e evolução' },
-    { command: 'ranking', description: 'Ranking — Quem joga mais com o time' },
-    { command: 'analisar', description: 'Analisar Partida — Análise tática detalhada' },
-    { command: 'como_funciona', description: 'Como Funciona — Métricas, regras e tiers' },
-    { command: 'site', description: 'Abrir Site — Ir para protocolov.com' },
-    { command: 'ajuda', description: 'Ajuda — Lista de comandos' }
-]);
+if (bot) {
+    bot.setMyCommands([
+        { command: 'start', description: 'Começar — Seu primeiro passo no Protocolo V' },
+        { command: 'vincular', description: 'Conectar Conta — Ligar seu nick do Valorant' },
+        { command: 'convocar', description: 'Chamar Time — Avisar que quer jogar agora' },
+        { command: 'unidade', description: 'Trocar Time — Mudar de esquadrão' },
+        { command: 'perfil', description: 'Ver Perfil — Suas stats e evolução' },
+        { command: 'ranking', description: 'Ranking — Quem joga mais com o time' },
+        { command: 'analisar', description: 'Analisar Partida — Análise tática detalhada' },
+        { command: 'como_funciona', description: 'Como Funciona — Métricas, regras e tiers' },
+        { command: 'site', description: 'Abrir Site — Ir para protocolov.com' },
+        { command: 'ajuda', description: 'Ajuda — Lista de comandos' }
+    ]);
+} else {
+    console.warn('⚠️ [WARNING] Commands not set: Bot instance is missing.');
+}
 
 function escapeMarkdown(text) {
     if (!text) return '';
@@ -51,7 +69,8 @@ const UI = {
 };
 
 // --- LÓGICA DE BOTÕES (CALLBACK) ---
-bot.on('callback_query', async (query) => {
+if (bot) {
+    bot.on('callback_query', async (query) => {
     const chatId = query.message.chat.id;
     const messageId = query.message.message_id;
     const callbackData = query.data;
@@ -740,21 +759,26 @@ bot.onText(/^\/radar(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
     } catch (err) {
         bot.sendMessage(chatId, "🔴 *[K.A.I.O.]*: API Offline ou incontactável.", { parse_mode: 'Markdown' });
     }
-});
+    });
+} else {
+    console.warn('⚠️ [WARNING] Bot listeners not registered: Bot instance is missing.');
+}
 
 // --- SERVIDOR EXPRESS (Camuflado) ---
 const app = express();
 
 // Rota de Monitoramento para evitar o "sono" do Render (Keep-alive)
 app.get('/vanguard-health', (req, res) => {
-    console.log('📡 [RADAR] Pulso de vitalidade recebido. Sistema operando.');
-    res.send('✅ Sistema Vital do Protocolo V: ONLINE');
+    console.log('📡 [RADAR] Vitality pulse received.');
+    res.json({ status: 'online', service: 'protocolo-v', timestamp: new Date().toISOString() });
 });
 
-// Se alguém bater na raiz, não devolvemos nada (corta scanners)
-app.get('/', (req, res) => res.status(404).end());
+// Render Health Check default route
+app.get('/', (req, res) => {
+    res.status(200).json({ status: 'running', bot_info: token ? 'connected' : 'standby' });
+});
 
-if (process.env.WEBHOOK_URL) {
+if (bot && process.env.WEBHOOK_URL) {
     app.use(express.json());
     app.post(`/bot${token}`, (req, res) => {
         bot.processUpdate(req.body);
@@ -856,7 +880,7 @@ async function startQueueWorker() {
                             }).eq('id', currentJob.id);
                             
                             const chatIdToNotify = currentJob.chat_id || currentJob.metadata?.chat_id;
-                            if (chatIdToNotify) {
+                            if (chatIdToNotify && bot) {
                                 bot.sendMessage(chatIdToNotify, UI.kaio("VARREDURA CONCLUÍDA") + "\n\nNenhum agente do Protocolo V foi detectado nos logs desta missão." + UI.footer(), { parse_mode: 'Markdown' });
                             }
                         }
@@ -890,7 +914,7 @@ async function startQueueWorker() {
                         console.log(`✅ [ORÁCULO-V] Partida ${currentJob.id} processada com sucesso.`);
                         
                         const chatIdToNotify = currentJob.chat_id || currentJob.metadata?.chat_id;
-                        if (chatIdToNotify) {
+                        if (chatIdToNotify && bot) {
                             const msg = UI.oraculo("MISSÃO ANALISADA") + `\n\n` +
                                 `👤 *${targetTag.split('#')[0].toUpperCase()}*\n` +
                                 `📊 *Index:* \`${result.report.performance_index}/100\`\n\n` +
