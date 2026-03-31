@@ -611,6 +611,79 @@ async function exec_convocar(chatId, commanderName, codigoRaw) {
     }
 }
 
+// --- COMANDO: /papo (CHAT COM O ORÁCULO-V) ---
+bot.onText(/^\/papo (.*)/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const userText = match[1];
+
+    try {
+        const loadingMsg = await bot.sendMessage(chatId, UI.kaio("SESSÃO TÁTICA ATIVA") + "\n🔌 Conectando à rede neural... Aguarde.", { parse_mode: 'Markdown' });
+
+        // 1. Buscar contexto do jogador
+        const { data: player } = await supabase
+            .from('players')
+            .select('*')
+            .eq('telegram_id', msg.from.id)
+            .maybeSingle();
+
+        if (!player) {
+            return bot.editMessageText(UI.kaio("ERRO DE IDENTIDADE") + "\n\nVocê precisa estar registrado para usar o papo tático. Use `/vincular RiotID#Tag` primeiro.", {
+                chat_id: chatId,
+                message_id: loadingMsg.message_id,
+                parse_mode: 'Markdown'
+            });
+        }
+
+        // 2. Buscar último insight para contexto
+        const { data: lastInsight } = await supabase
+            .from('ai_insights')
+            .select('impact_score, classification, analysis_report')
+            .eq('player_id', player.riot_id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        // 3. Chamar API do Oráculo
+        const oraculoUrl = process.env.ORACULO_API_URL || 'http://localhost:3000';
+        const context = {
+            player_id: player.riot_id,
+            agent: lastInsight?.analysis_report?.agent || player.main_agent || 'Combatente',
+            impact_score: lastInsight?.impact_score || 0,
+            rank: lastInsight?.classification || 'Em Avaliação'
+        };
+
+        const response = await fetch(`${oraculoUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-api-key': process.env.ORACULO_API_KEY || ''
+            },
+            body: JSON.stringify({
+                messages: [{ role: 'user', content: userText }],
+                context
+            })
+        });
+
+        if (!response.ok) throw new Error('Falha na ponte com o Oráculo-V.');
+
+        const data = await response.json();
+
+        bot.editMessageText(UI.kaio("RESPOSTA DO MENTOR") + `\n\n${data.response}` + UI.footer(), {
+            chat_id: chatId,
+            message_id: loadingMsg.message_id,
+            parse_mode: 'Markdown'
+        });
+
+    } catch (err) {
+        console.error('❌ Erro no comando /papo:', err.message);
+        bot.sendMessage(chatId, UI.kaio("FALHA DE COMUNICAÇÃO") + "\n\nO motor de análise está offline ou instável no momento." + UI.footer(), { parse_mode: 'Markdown' });
+    }
+});
+
+bot.onText(/^\/papo$/, (msg) => {
+    bot.sendMessage(msg.chat.id, UI.kaio("DÚVIDA TÁTICA?") + "\n\nUse `/papo [sua dúvida]` para conversar com o Oráculo sobre suas partidas ou sobre o meta do Valorant.\n\n*Exemplo:* `/papo Por que meu impacto foi baixo na última partida?`", { parse_mode: 'Markdown' });
+});
+
 // --- NOVO: COMANDO /COMO_FUNCIONA ---
 bot.onText(/^\/como_funciona(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
     const chatId = msg.chat.id;
@@ -642,6 +715,7 @@ bot.onText(/^\/ajuda(?:@[\w_]+)?(?:\s+|$)/, (msg) => {
         `🔄 \`/unidade\` — Solicitar troca de esquadrão.\n` +
         `📊 \`/perfil\` — Ver seu status e tier atual.\n` +
         `🔍 \`/analisar\` — Pedir relatório de uma partida.\n` +
+        `💬 \`/papo\` — Conversar com o mentor Oráculo-V.\n` +
         `🏆 \`/ranking\` — Ver o ranking de sinergia.\n` +
         `📚 \`/como_funciona\` — Entender as métricas e regras.\n` +
         `🌐 \`/site\` — Acessar a plataforma web.\n\n` +
