@@ -139,15 +139,16 @@
             container.innerHTML = staticAchievements.map(buildBadgeHTML).join(' ');
         }
 
-        // Conquistas AI (requer Oráculo Supabase)
-        if (!window.oraculoClient) return;
+        // Conquistas AI (v4.1: Buscamos no Protocolo-V Main DB, onde o Oráculo sincroniza os dados)
+        const db = window.supabaseClient || window.oraculoClient; 
+        if (!db) return;
 
         try {
-            const normalizedId = riotId.replace('#', '%');
-            const { data: insights } = await window.oraculoClient
+            // Busca os últimos 10 insights do agente
+            const { data: insights } = await db
                 .from('ai_insights')
                 .select('impact_score, kd, hs_percent')
-                .ilike('player_id', normalizedId)
+                .eq('player_id', riotId) // Usa o ID exato (Nick#Tag)
                 .order('created_at', { ascending: false })
                 .limit(10);
 
