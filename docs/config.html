@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocolo V | Configurações Táticas</title>
+    <link rel="icon" type="image/png" href="https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/24/smallicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        .config-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 4px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .config-header {
+            font-family: 'Teko', sans-serif;
+            text-transform: uppercase;
+            font-size: 1.5rem;
+            color: #ff4655;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .config-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.4rem;
+        }
+        .config-input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #ece8e1;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .config-input:focus { border-color: #ff4655; }
+        
+        .role-tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: rgba(255,255,255,0.4);
+            padding: 10px 20px;
+            font-family: 'Teko', sans-serif;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .role-tab-btn.active {
+            color: #ff4655;
+            border-bottom-color: #ff4655;
+        }
+        
+        .btn-save {
+            background: #ff4655;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-family: 'Teko', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+        .btn-save:hover { opacity: 0.9; }
+
+        .global-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .global-info {
+            flex: 1;
+        }
+        .global-desc {
+            font-size: 0.75rem;
+            opacity: 0.4;
+            margin-top: 2px;
+        }
+        .global-input-wrapper {
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="val-bg-text-massive">CONFIG</div>
+    <script src="nav.js"></script>
+
+    <div class="container content-wrapper">
+        <div class="row pt-4">
+            <div class="col-12">
+                <h1 class="val-section-header">PARAMETRIZAÇÃO <span class="text-accent">TÁTICA</span></h1>
+                <p class="text-muted" style="font-size: 0.85rem;">Ajuste de pesos, thresholds e constantes do motor Oráculo V.</p>
+            </div>
+        </div>
+
+        <!-- Auth Row -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                    <input id="apiKeyInput" type="password" class="api-key-input" style="width: 260px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #ece8e1; padding: 6px 12px; font-family: 'Share Tech Mono';" placeholder="ADMIN_API_KEY">
+                    <button class="btn-refresh" id="btnLoad" style="border: 1px solid #ff4655; color: #ff4655; padding: 6px 18px; background: transparent; font-family: 'Share Tech Mono';" onclick="loadConfig()">▶ CARREGAR</button>
+                    <a href="admin.html" style="color:rgba(255,255,255,0.4); text-decoration:none; font-family:'Share Tech Mono'; font-size:0.75rem; margin-left:1rem;">← VOLTAR AO PAINEL</a>
+                </div>
+                <div id="statusMsg" style="font-family:'Share Tech Mono'; font-size:0.75rem; margin-top:0.5rem;"></div>
+            </div>
+        </div>
+
+        <div id="mainContent" style="display: none;">
+            <!-- Tabs for Roles -->
+            <div class="d-flex border-bottom border-secondary mb-4" id="roleTabs">
+                <!-- Dinamicamente gerado -->
+            </div>
+
+            <div id="roleFormContainer" class="config-card">
+                <div class="config-header">⚙️ CONFIGURAÇÃO DE <span id="currentRoleTitle">DUELISTA</span></div>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="config-label">ADR Alvo (Baseline)</div>
+                        <input type="number" id="f-adr_baseline" class="config-input" step="0.1">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="config-label">ADR Mínimo</div>
+                        <input type="number" id="f-adr_min" class="config-input">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="config-label">KAST Mínimo (%)</div>
+                        <input type="number" id="f-kast_min" class="config-input">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="config-label">Peso K/D (0-1)</div>
+                        <input type="number" id="f-kd_weight" class="config-input" step="0.05">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="config-label">Peso ADR (0-1)</div>
+                        <input type="number" id="f-adr_weight" class="config-input" step="0.05">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="config-label">Peso KAST (0-1)</div>
+                        <input type="number" id="f-kast_weight" class="config-input" step="0.05">
+                    </div>
+                    <div class="col-md-12">
+                        <div class="config-label">Artigos de Doutrina (K.A.I.O.)</div>
+                        <div class="mb-3">
+                            <label class="config-label" style="font-size:0.6rem; opacity:0.6;">Artigo 1 (Resumo Crítico)</label>
+                            <textarea id="f-artigo_1_texto" class="config-input" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="config-label" style="font-size:0.6rem; opacity:0.6;">Artigo 2 (Excelência)</label>
+                            <textarea id="f-artigo_2_texto" class="config-input" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="config-label" style="font-size:0.6rem; opacity:0.6;">KAST Memo (Violação)</label>
+                            <textarea id="f-artigo_kast_miss" class="config-input" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-12 text-end">
+                        <button class="btn-save" onclick="saveRoleConfig()">ATUALIZAR REGRA</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-card">
+                <div class="config-header">🌍 CONSTANTES GLOBAIS</div>
+                <div id="globalList">
+                    <!-- Dinamicamente gerado -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const getOraculoBase = () => {
+            const hostname = window.location.hostname;
+            if (hostname === 'localhost' || hostname === '127.0.0.1') return 'http://localhost:3000';
+            return 'http://191.180.122.186:3000';
+        };
+
+        const ORACULO_BASE = getOraculoBase();
+        let configData = null;
+        let activeRole = null;
+
+        async function loadConfig() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const statusMsg = document.getElementById('statusMsg');
+            
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (apiKey) headers['x-api-key'] = apiKey;
+
+                const res = await fetch(`${ORACULO_BASE}/api/admin/config`, { headers });
+                if (!res.ok) throw new Error(`Status ${res.status}`);
+
+                configData = await res.json();
+                renderTabs();
+                renderGlobals();
+                
+                document.getElementById('mainContent').style.display = 'block';
+                statusMsg.style.color = '#00c36d';
+                statusMsg.textContent = '✅ Configurações carregadas.';
+                
+                if (configData.roles.length > 0) {
+                    selectRole(configData.roles[0].role);
+                }
+            } catch (err) {
+                statusMsg.style.color = '#ff4655';
+                statusMsg.textContent = `❌ Erro: ${err.message}`;
+            }
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('roleTabs');
+            container.innerHTML = configData.roles.map(r => `
+                <button class="role-tab-btn ${activeRole === r.role ? 'active' : ''}" onclick="selectRole('${r.role}')">
+                    ${r.role}
+                </button>
+            `).join('');
+        }
+
+        function selectRole(roleName) {
+            activeRole = roleName;
+            document.querySelectorAll('.role-tab-btn').forEach(b => {
+                b.classList.toggle('active', b.textContent.trim() === roleName);
+            });
+
+            const role = configData.roles.find(r => r.role === roleName);
+            document.getElementById('currentRoleTitle').textContent = roleName;
+            
+            const fields = ['adr_baseline', 'adr_min', 'kast_min', 'kd_weight', 'adr_weight', 'kast_weight', 'artigo_1_texto', 'artigo_2_texto', 'artigo_kast_miss'];
+            fields.forEach(f => {
+                const el = document.getElementById(`f-${f}`);
+                if (el) el.value = role[f] || '';
+            });
+        }
+
+        async function saveRoleConfig() {
+            if (!confirm(`Deseja atualizar as regras para ${activeRole}?`)) return;
+            
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const updates = { role: activeRole };
+            const fields = ['adr_baseline', 'adr_min', 'kast_min', 'kd_weight', 'adr_weight', 'kast_weight', 'artigo_1_texto', 'artigo_2_texto', 'artigo_kast_miss'];
+            
+            fields.forEach(f => {
+                const el = document.getElementById(`f-${f}`);
+                if (el) updates[f] = el.type === 'number' ? parseFloat(el.value) : el.value;
+            });
+
+            try {
+                const res = await fetch(`${ORACULO_BASE}/api/admin/config/role`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey
+                    },
+                    body: JSON.stringify(updates)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Configurações salvas!');
+                    loadConfig(); // Refresh data
+                } else throw new Error(data.error);
+            } catch (err) {
+                alert(`Erro: ${err.message}`);
+            }
+        }
+
+        function renderGlobals() {
+            const container = document.getElementById('globalList');
+            container.innerHTML = configData.globals.map(g => `
+                <div class="global-item">
+                    <div class="global-info">
+                        <div class="config-label" style="color:#ece8e1;">${g.key}</div>
+                        <div class="global-desc">${g.description}</div>
+                    </div>
+                    <div class="global-input-wrapper">
+                        <input type="text" class="config-input" value='${typeof g.value === 'string' ? g.value : JSON.stringify(g.value)}' id="g-${g.key}" onblur="saveGlobalConfig('${g.key}')">
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function saveGlobalConfig(key) {
+            const val = document.getElementById(`g-${key}`).value;
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+
+            try {
+                let parsedVal = val;
+                try { parsedVal = JSON.parse(val); } catch(e) {}
+
+                await fetch(`${ORACULO_BASE}/api/admin/config/global`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey
+                    },
+                    body: JSON.stringify({ key, value: parsedVal })
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
