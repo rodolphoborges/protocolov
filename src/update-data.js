@@ -27,8 +27,19 @@ async function run() {
         const henrikKey = process.env.HENRIK_API_KEY;
         const matchesBatch = new Map();
 
-        // Fazemos a busca em paralelo (chunks de 5) para otimizar sem exceder limites severos
-        const scanAgent = async (agent) => {
+        // 🌱 Pre-seed com operações já processadas para evitar redundância extrema
+        const { data: recentOps } = await supabase
+            .from('operations')
+            .select('id')
+            .order('started_at', { ascending: false })
+            .limit(50);
+        
+        if (recentOps) {
+            recentOps.forEach(op => matchesBatch.set(op.id, { processed: true }));
+        }
+
+        // Sequential agent scanning to strictly respect HenrikDev API limits (10/min)
+        for (const agent of roster) {
             const [name, tag] = agent.riot_id.split('#');
             try {
                 const url = `https://api.henrikdev.xyz/valorant/v3/matches/br/${name}/${tag}`;
@@ -39,7 +50,7 @@ async function run() {
                     const matches = json.data || [];
                     let newOnes = 0;
                     matches.forEach(m => {
-                        if (!matchesBatch.has(m.metadata.matchid)) {
+                        if (m.metadata && !matchesBatch.has(m.metadata.matchid)) {
                             matchesBatch.set(m.metadata.matchid, m);
                             newOnes++;
                         }
@@ -51,15 +62,6 @@ async function run() {
             } catch (err) {
                 console.error(`   [⚠️] Falha ao consultar histórico de ${agent.riot_id}: ${err.message}`);
             }
-        };
-
-        const agentChunks = [];
-        for (let i = 0; i < roster.length; i += 5) {
-            agentChunks.push(roster.slice(i, i + 5));
-        }
-
-        for (const chunk of agentChunks) {
-            await Promise.all(chunk.map(scanAgent));
         }
 
         // 3. Processamento de Sinergia e Resultados

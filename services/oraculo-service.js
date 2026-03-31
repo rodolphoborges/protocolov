@@ -57,6 +57,18 @@ class OraculoService {
 
         console.log(`\n🧠 [ORÁCULO-V] Iniciando ponte tática | Match: ${op.id}`);
         
+        // 0. Deduplicar squad para evitar processamento redundante se houver duplicatas no raw
+        const uniqueMembers = [];
+        const seenIds = new Set();
+        for (const m of op.squad) {
+            const lowId = m.riotId.toLowerCase();
+            if (!seenIds.has(lowId)) {
+                seenIds.add(lowId);
+                uniqueMembers.push(m);
+            }
+        }
+        op.squad = uniqueMembers;
+
         const results = {
             successCount: 0,
             failureCount: 0,
