@@ -113,7 +113,7 @@ describe('K.A.I.O. Telegram Bot - Unit Tests', () => {
     });
 
     test('Comando /start deveria enviar a mensagem de boas-vindas correta', async () => {
-        const startHandler = botHandlers['/\\/start/'];
+        const startHandler = botHandlers['/^\\/start(?:@[\\w_]+)?(?:\\s+(.*))?/'];
         expect(startHandler).toBeDefined();
 
         const msg = { chat: { id: 123 }, from: { id: 1104821838, first_name: 'Test' } };
