@@ -112,16 +112,16 @@ describe('K.A.I.O. Telegram Bot - Unit Tests', () => {
         expect(mockBotInstance.setMyCommands).toHaveBeenCalled();
     });
 
-    test('Comando /start deveria enviar a mensagem de boas-vindas correta', () => {
+    test('Comando /start deveria enviar a mensagem de boas-vindas correta', async () => {
         const startHandler = botHandlers['/\\/start/'];
         expect(startHandler).toBeDefined();
 
         const msg = { chat: { id: 123 }, from: { id: 1104821838, first_name: 'Test' } };
-        startHandler(msg);
+        await startHandler(msg);
 
         expect(mockBotInstance.sendMessage).toHaveBeenCalledWith(
             123, 
-            expect.stringContaining('SISTEMA ONLINE'), 
+            expect.stringContaining('BEM-VINDO DE VOLTA'), 
             expect.any(Object)
         );
     });
@@ -165,7 +165,7 @@ describe('K.A.I.O. Telegram Bot - Unit Tests', () => {
 
         // Deve tentar editar a mensagem para indicar início da convocação
         expect(mockBotInstance.editMessageText).toHaveBeenCalledWith(
-            expect.stringContaining('Iniciando convocação sem código'),
+            expect.stringContaining('Iniciando chamada pública para o time'),
             expect.objectContaining({ chat_id: 456, message_id: 789 })
         );
     });
@@ -184,7 +184,7 @@ describe('K.A.I.O. Telegram Bot - Unit Tests', () => {
         // Deve enviar mensagem de confirmação de transferência
         expect(mockBotInstance.sendMessage).toHaveBeenCalledWith(
             456,
-            expect.stringContaining('Designado para o esquadrão *ALPHA*'),
+            expect.stringContaining('Você agora faz parte do Esquadrão *ALPHA*'),
             expect.any(Object)
         );
     });
@@ -201,7 +201,7 @@ describe('K.A.I.O. Telegram Bot - Unit Tests', () => {
         await callbackHandler(query);
 
         expect(mockBotInstance.editMessageText).toHaveBeenCalledWith(
-            expect.stringContaining('Operação de transferência abortada'),
+            expect.stringContaining('mantivemos sua equipe atual'),
             expect.any(Object)
         );
     });
@@ -218,7 +218,7 @@ describe('K.A.I.O. Telegram Bot - Unit Tests', () => {
         await callbackHandler(query);
 
         expect(mockBotInstance.editMessageText).toHaveBeenCalledWith(
-            expect.stringContaining('Protocolo de convocação cancelado'),
+            expect.stringContaining('Cancelado. Estou por aqui'),
             expect.any(Object)
         );
     });

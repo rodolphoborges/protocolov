@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manual K.A.I.O | Protocolo V</title>
+    <title>Guia do Recruta | Protocolo V</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/24/smallicon.png">
@@ -75,7 +75,7 @@
         <div class="d-flex align-items-center mb-4">
             <h1 class="val-section-header kayo-section-header m-0 text-white" id="page-title">
                 <span class="kayo-decor-square d-none d-md-inline-block"></span>
-                MANUAL DE <span class="text-kayo">OPERADOR</span>
+                GUIA DO <span class="text-kayo">RECRUTA</span>
             </h1>
         </div>
         
@@ -85,10 +85,10 @@
                 <div class="sidebar-review">
                     <h5 class="text-kayo small mb-3 letter-spacing-2">MÓDULOS</h5>
                     <nav>
-                        <a href="#step1" class="nav-link-kayo active" onclick="scrollToSection('step1')">01. STATUS</a>
-                        <a href="#step2" class="nav-link-kayo" onclick="scrollToSection('step2')">02. UNIDADES</a>
+                        <a href="#step1" class="nav-link-kayo active" onclick="scrollToSection('step1')">01. INÍCIO</a>
+                        <a href="#step2" class="nav-link-kayo" onclick="scrollToSection('step2')">02. ESQUADRÕES</a>
                         <a href="#step3" class="nav-link-kayo" onclick="scrollToSection('step3')">03. SINERGIA</a>
-                        <a href="#step4" class="nav-link-kayo" onclick="scrollToSection('step4')">04. RADIO</a>
+                        <a href="#step4" class="nav-link-kayo" onclick="scrollToSection('step4')">04. BOT</a>
                         <a href="#finalStep" class="nav-link-kayo" onclick="scrollToSection('finalStep')">05. CONCLUSÃO</a>
                     </nav>
                 </div>
@@ -96,7 +96,7 @@
 
             <div class="col-lg-12" id="mainContentCol">
                 <div id="commandPalette" class="command-palette d-none mb-4">
-                    <h5 class="text-kayo small mb-3 letter-spacing-2">RADIO CHEAT SHEET</h5>
+                    <h5 class="text-kayo small mb-3 letter-spacing-2">GUIA RÁPIDO DO BOT</h5>
                     <div class="row g-2">
                         <div class="col-6 col-md-3"><button class="btn btn-outline-info btn-sm w-100 font-monospace" onclick="copyToClipboard('/convocar', this)" style="font-size: 0.65rem;">/convocar</button></div>
                         <div class="col-6 col-md-3"><button class="btn btn-outline-info btn-sm w-100 font-monospace" onclick="copyToClipboard('/ranking', this)" style="font-size: 0.65rem;">/ranking</button></div>
@@ -105,7 +105,7 @@
                     </div>
                 </div>
 
-                    <div class="sync-status-label" id="syncStatus">SINCROIZAÇÃO DE DADOS: OPERACIONAL</div>
+                    <div class="sync-status-label" id="syncStatus">SISTEMAS PRONTOS: BEM-VINDO AGENTE</div>
                     <div class="sync-bar-container" id="syncContainer">
                         <div class="sync-bar-fill" id="syncBar"></div>
                     </div>
@@ -113,14 +113,14 @@
                     <div class="module-step" id="step1">
                         <div class="expand-container expanded" id="expand1">
                             <div class="expand-content">
-                                <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">1. STATUS: DEPÓSITO DE TORRETAS</h2>
+                                <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">1. SEJA BEM-VINDO, AGENTE!</h2>
                                 <p class="lore-text">
-                                    "Processamento de alistamento concluído com sucesso. Sua entrada na base de dados foi autorizada. Por enquanto, você foi alocado no <span class="text-kayo fw-bold">Depósito de Torretas</span>."
+                                    "Fico feliz em ver que você deu o primeiro passo no Protocolo V. Eu sou o <span class="text-kayo fw-bold">K.A.I.O.</span>, seu mentor tático. Minha missão é ajudar você e seu time a alcançarem o próximo nível."
                                 </p>
                                 <p class="lore-text">
-                                    "Meus sensores já estão monitorando seu desempenho na <strong>Sala de Treino</strong> (Mata-Mata). Cada abate é registrado no meu log. Antes de solicitar transferência para uma unidade de elite, neutralize seus alvos com precisão máxima."
+                                    "Para começar, já iniciei o monitoramento do seu progresso. No começo, você estará no nível de suporte, mas com treino e dedicação, logo estará pronto para os esquadrões de elite. Vamos evoluir juntos?"
                                 </p>
-                                <button class="btn-kayo mt-3 onboarding-only" onclick="nextStep(2)">Entendido, K.A.I.O.</button>
+                                <button class="btn-kayo mt-3 onboarding-only" onclick="nextStep(2)">Conte-me sobre os esquadrões</button>
                             </div>
                         </div>
                     </div>
@@ -128,20 +128,20 @@
                     <div class="module-step" id="step2">
                         <div class="expand-container" id="expand2">
                             <div class="expand-content">
-                                <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">2. UNIDADES DE ELITE: VENENOSA E CACHORRO VELHO</h2>
+                                <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">2. NOSSOS ESQUADRÕES: ALPHA E ÔMEGA</h2>
                                 <p class="lore-text">
-                                    "As Unidades <strong class="text-white">Alpha</strong> (Venenosa) e <strong class="text-white">Ômega</strong> (Cachorro Velho) são os pilares da nossa operação. Elas possuem <span class="text-danger fw-bold">vagas limitadas por função</span>. Apenas os agentes mais letais ocupam estas posições."
+                                    "O Protocolo V se organiza em dois grandes times: <strong class="text-white">Alpha</strong> e <strong class="text-white">Ômega</strong>. Cada um tem seu papel e sua importância na nossa comunidade. As vagas são competitivas, mas sempre há espaço para quem demonstra empenho."
                                 </p>
                                 <p class="lore-text">
-                                    "Para ser transferido e entrar na linha de frente, use o rádio via Telegram e envie o comando de transferência:"
+                                    "Para pedir uma transferência e mostrar que está pronto para o desafio, basta falar comigo no Telegram usando estes comandos:"
                                 </p>
                                 <div class="cmd-box d-flex justify-content-between align-items-center" onclick="copyToClipboard('/unidade ALPHA', this)">
-                                    <span>> /unidade ALPHA <span class="text-muted opacity-50" style="font-size: 0.9rem;">nick#exemplo</span></span>
+                                    <span>> /unidade ALPHA</span>
                                 </div>
                                 <div class="cmd-box d-flex justify-content-between align-items-center" onclick="copyToClipboard('/unidade OMEGA', this)">
-                                    <span>> /unidade OMEGA <span class="text-muted opacity-50" style="font-size: 0.9rem;">nick#exemplo</span></span>
+                                    <span>> /unidade OMEGA</span>
                                 </div>
-                                <button class="btn-kayo mt-3 onboarding-only" onclick="nextStep(3)">Quais os requisitos?</button>
+                                <button class="btn-kayo mt-3 onboarding-only" onclick="nextStep(3)">E como eu subo de nível?</button>
                             </div>
                         </div>
                     </div>
@@ -149,14 +149,14 @@
                     <div class="module-step" id="step3">
                         <div class="expand-container" id="expand3">
                             <div class="expand-content">
-                                <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">3. PROTOCOLO DE SINERGIA (SN)</h2>
+                                <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">3. O PODER DA SINERGIA (SN)</h2>
                                 <p class="lore-text">
-                                    "Minha diretriz é clara: a eficiência do grupo precede a glória individual. Avalio sua prontidão através da <span class="text-kayo fw-bold">Sinergia (SN)</span>."
+                                    "No Valorant, ninguém vence sozinho. Por isso, criei o <span class="text-kayo fw-bold">Coeficiente de Sinergia (SN)</span>. Ele mede o quanto você joga e contribui para o sucesso do nosso time como um todo."
                                 </p>
                                 <p class="lore-text">
-                                    "A Sinergia é acumulada <strong class="text-white">exclusivamente ao jogar Ranqueadas com o grupo</strong>. Se seu log de Sinergia for superior ao do titular da vaga, a transferência é executada automaticamente. Sozinho você é um alvo; em equipe, somos o protocolo."
+                                    "Você ganha pontos de Sinergia ao participar de partidas com outros membros do grupo. No ranking, quem tem mais sinergia garante sua vaga como titular. Valorize seus companheiros, e o reconhecimento virá naturalmente."
                                 </p>
-                                <button class="btn-kayo mt-3 onboarding-only" onclick="nextStep(4)">Quais os comandos de rádio?</button>
+                                <button class="btn-kayo mt-3 onboarding-only" onclick="nextStep(4)">Como falo com você?</button>
                             </div>
                         </div>
                     </div>
@@ -164,23 +164,23 @@
                     <div class="module-step" id="step4">
                         <div class="expand-container" id="expand4">
                             <div class="expand-content">
-                                <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">4. TERMINAL TÁTICO (TELEGRAM)</h2>
+                                <h2 class="mb-4 text-kayo" style="font-family: 'Teko', sans-serif; font-size: 2.2rem; line-height: 1;">4. INTERAGINDO COM O MENTOR (TELEGRAM)</h2>
                                 <p class="lore-text">
-                                    "Acesse o rádio via Telegram para gerenciar suas missões. Siga as instruções para evitar falhas táticas:"
+                                    "Nosso principal canal de comunicação é o Telegram. Lá, eu organizo as partidas, mostro seu perfil e ajudo o time a se conectar. Use estes comandos para interagir comigo:"
                                 </p>
                                 <div class="cmd-box" onclick="copyToClipboard('/convocar', this)">
-                                    <span class="text-kayo fw-bold">📢 /convocar</span> - Sinal de reforço imediato.
-                                </div>
-                                <div class="cmd-box" onclick="copyToClipboard('/unidade', this)">
-                                    <span class="text-kayo fw-bold">🔄 /unidade [SQUAD] [NICK#TAG]</span>
+                                    <span class="text-kayo fw-bold">📢 /convocar</span> - Chamar os amigos para jogar agora.
                                 </div>
                                 <div class="cmd-box" onclick="copyToClipboard('/perfil', this)">
-                                    <span class="text-kayo fw-bold">👤 /perfil [NICK#TAG]</span>
+                                    <span class="text-kayo fw-bold">📊 /perfil</span> - Ver seu status e evolução.
                                 </div>
                                 <div class="cmd-box" onclick="copyToClipboard('/ranking', this)">
-                                    <span class="text-kayo fw-bold">🏆 /ranking</span> - Status de Sinergia.
+                                    <span class="text-kayo fw-bold">🏆 /ranking</span> - Ver quem são os destaques do time.
                                 </div>
-                                <button class="btn-kayo mt-3 onboarding-only" onclick="nextStep(5)">Encerrar Briefing.</button>
+                                <div class="cmd-box" onclick="copyToClipboard('/como_funciona', this)">
+                                    <span class="text-kayo fw-bold">📚 /como_funciona</span> - Entender nossas métricas.
+                                </div>
+                                <button class="btn-kayo mt-3 onboarding-only" onclick="nextStep(5)">Tudo pronto!</button>
                             </div>
                         </div>
                     </div>
@@ -190,14 +190,14 @@
                             <div class="expand-content">
                                 <div class="card mt-4 p-5" style="background-color: rgba(0, 0, 0, 0.4); border: none; border-left: 4px solid var(--val-blue); clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%, 0 15px);">
                                     <div class="card-body text-center p-0">
-                                        <h2 class="text-kayo mb-3" style="font-size: 4.5rem; font-family: 'Teko', sans-serif; line-height: 0.9;">"OBJETIVO ADQUIRIDO."</h2>
-                                        <p class="lore-text my-5">Memória atualizada. Você está operacional. Acesse o terminal tático no Telegram para gerenciar seu esquadrão e iniciar a caçada.</p>
+                                        <h2 class="text-kayo mb-3" style="font-size: 4.5rem; font-family: 'Teko', sans-serif; line-height: 0.9;">"VAMOS EVOLUIR?"</h2>
+                                        <p class="lore-text my-5">Briefing concluído com sucesso. Agora você faz parte da nossa elite tática. Acesse o nosso bot no Telegram para começar sua jornada oficial.</p>
                                         
                                         <a href="https://t.me/ProtocoloV_Intel_Bot" target="_blank" class="btn-kayo mb-4" style="background-color: var(--val-blue); color: var(--val-dark); border: none;">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="me-2 mb-1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.62-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
-                                            ACESSAR TERMINAL TÁTICO
+                                            INICIAR CONVERSA COM K.A.I.O.
                                         </a><br>
-                                        <a href="index.html" class="text-white small text-decoration-none" style="opacity: 0.6; transition: opacity 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">[Desconectar e voltar ao QG Principal]</a>
+                                        <a href="index.html" class="text-white small text-decoration-none" style="opacity: 0.6; transition: opacity 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">[Voltar ao Painel Principal]</a>
                                     </div>
                                 </div>
                             </div>
@@ -221,11 +221,11 @@
         const isReview = urlParams.get('mode') === 'review';
 
         const stepStatuses = {
-            1: "SINCRONIZAÇÃO DE DADOS: OPERACIONAL",
-            2: "MAPEANDO HIERARQUIA DE COMANDO...",
-            3: "ANALISANDO PROTOCOLOS DE EQUIPE...",
-            4: "ESTABELECENDO CANAL DE RÁDIO SEGURO...",
-            5: "DADOS ADQUIRIDOS. VOCÊ ESTÁ OPERACIONAL."
+            1: "SISTEMAS PRONTOS: BEM-VINDO AGENTE",
+            2: "APRESENTANDO NOSSOS ESQUADRÕES...",
+            3: "CULTIVANDO A SINERGIA DE EQUIPE...",
+            4: "CONECTANDO AO MENTOR TÁTICO...",
+            5: "TUDO PRONTO. VAMOS EVOLUIR JUNTOS!"
         };
 
         function scrollToSection(id) {
@@ -240,7 +240,7 @@
         }
 
         if (isReview) {
-            document.getElementById('page-title').innerHTML = '<span class="kayo-decor-square d-none d-md-inline-block"></span> VAZAMENTO DE <span class="text-kayo">DADOS</span>';
+            document.getElementById('page-title').innerHTML = '<span class="kayo-decor-square d-none d-md-inline-block"></span> CONHECIMENTO <span class="text-kayo">COMPARTILHADO</span>';
             document.getElementById('syncContainer').style.display = 'none';
             document.getElementById('syncStatus').style.display = 'none';
             
