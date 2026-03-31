@@ -193,44 +193,52 @@ if (bot) {
 });
 
 // --- COMANDO /START ---
-bot.onText(/\/start/, async (msg) => {
+bot.onText(/^\/start(?:@[\w_]+)?(?:\s+(.*))?/, async (msg) => {
     if (!msg.from) return;
     const chatId = msg.chat.id;
     const telegramId = msg.from.id;
-    const firstName = msg.from.first_name || 'Agente';
 
-    const { data: existingUser } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
-    const isLinked = existingUser && existingUser.length > 0;
-
-    if (isLinked) {
-        const nick = existingUser[0].riot_id.split('#')[0];
-        const returnMsg = UI.kaio("BEM-VINDO DE VOLTA") + `\n\n` +
-            `Olá, *${escapeMarkdown(nick)}*! É bom te ver aqui novamente.\n\n` +
-            `Como posso te ajudar hoje?\n\n` +
-            `🎮 \`/convocar\` — Chamar seus amigos pra jogar\n` +
-            `📊 \`/perfil\` — Ver seu status e evolução\n` +
-            `🏆 \`/ranking\` — Ver os melhores do grupo\n` +
-            `🔍 \`/analisar\` — Pedir análise de uma partida\n\n` +
-            UI.info("Dica: Use /como_funciona para entender as métricas táticas.") +
-            UI.footer();
-        return bot.sendMessage(chatId, returnMsg, { parse_mode: 'Markdown' });
+    if (!supabase) {
+        return bot.sendMessage(chatId, UI.kaio("ERRO DE SISTEMA") + "\n\nO banco de dados não está conectado. Verifique as variáveis de ambiente SUPABASE_URL e SUPABASE_SERVICE_KEY no Render.", { parse_mode: 'Markdown' });
     }
 
-    const welcomeMsg = UI.kaio("OLÁ, RECRUTA!") + `\n\n` +
-        `Eu sou o *K.A.I.O.*, seu mentor tático no Protocolo V. Meu objetivo é guiar sua evolução no Valorant e organizar nosso time de forma inteligente.\n\n` +
-        `Para começar sua jornada, siga estes passos:\n\n` +
-        `📍 *PASSO 1: O SITE*\n` +
-        `Cadastre-se na nossa plataforma para que eu possa acompanhar seus dados:\n` +
-        `🔗 [protocolov.com](https://protocolov.com)\n\n` +
-        `📍 *PASSO 2: A CONEXÃO*\n` +
-        `Agora, conecte sua conta do Valorant a este chat com o comando:\n` +
-        `   \`/vincular SeuNick#000\`\n\n` +
-        `📍 *PASSO 3: O CONHECIMENTO*\n` +
-        `Entenda como medimos ADR, KAST e o seu Performance Index em:\n` +
-        `   \`/como_funciona\`\n\n` +
-        UI.info("Qualquer dúvida, digite /ajuda para ver todos os comandos.") +
-        UI.footer();
-    bot.sendMessage(chatId, welcomeMsg, { parse_mode: 'Markdown', disable_web_page_preview: true });
+    try {
+        const { data: existingUser } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
+        const isLinked = existingUser && existingUser.length > 0;
+
+        if (isLinked) {
+            const nick = existingUser[0].riot_id.split('#')[0];
+            const returnMsg = UI.kaio("BEM-VINDO DE VOLTA") + `\n\n` +
+                `Olá, *${escapeMarkdown(nick)}*! É bom te ver aqui novamente.\n\n` +
+                `Como posso te ajudar hoje?\n\n` +
+                `🎮 \`/convocar\` — Chamar seus amigos pra jogar\n` +
+                `📊 \`/perfil\` — Ver seu status e evolução\n` +
+                `🏆 \`/ranking\` — Ver os melhores do grupo\n` +
+                `🔍 \`/analisar\` — Pedir análise de uma partida\n\n` +
+                UI.info("Dica: Use /como_funciona para entender as métricas táticas.") +
+                UI.footer();
+            return bot.sendMessage(chatId, returnMsg, { parse_mode: 'Markdown' });
+        }
+
+        const welcomeMsg = UI.kaio("OLÁ, RECRUTA!") + `\n\n` +
+            `Eu sou o *K.A.I.O.*, seu mentor tático no Protocolo V. Meu objetivo é guiar sua evolução no Valorant e organizar nosso time de forma inteligente.\n\n` +
+            `Para começar sua jornada, siga estes passos:\n\n` +
+            `📍 *PASSO 1: O SITE*\n` +
+            `Cadastre-se na nossa plataforma para que eu possa acompanhar seus dados:\n` +
+            `🔗 [protocolov.com](https://protocolov.com)\n\n` +
+            `📍 *PASSO 2: A CONEXÃO*\n` +
+            `Agora, conecte sua conta do Valorant a este chat com o comando:\n` +
+            `   \`/vincular SeuNick#000\`\n\n` +
+            `📍 *PASSO 3: O CONHECIMENTO*\n` +
+            `Entenda como medimos ADR, KAST e o seu Performance Index em:\n` +
+            `   \`/como_funciona\`\n\n` +
+            UI.info("Qualquer dúvida, digite /ajuda para ver todos os comandos.") +
+            UI.footer();
+        bot.sendMessage(chatId, welcomeMsg, { parse_mode: 'Markdown', disable_web_page_preview: true });
+    } catch (e) {
+        console.error('Erro no /start:', e.message);
+        bot.sendMessage(chatId, "❌ Houve uma falha ao processar o início. Tente novamente em breve.", { parse_mode: 'Markdown' });
+    }
 });
 
 // --- COMANDO /VINCULAR ---
