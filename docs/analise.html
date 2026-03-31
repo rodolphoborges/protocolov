@@ -661,7 +661,7 @@
                     } else if (msg.includes("Destaque do jogo:")) {
                         focusPoint = msg.replace("Destaque do jogo:", "").trim();
                     } else if (msg.length > 5 && focusPoint === "--") {
-                        if (!msg.includes("ANALISANDO") && msg !== kaioText) focusPoint = msg;
+                        if (!msg.includes("ANALISANDO")) focusPoint = msg;
                     }
                 });
 
