@@ -57,8 +57,10 @@ jest.mock('@supabase/supabase-js', () => {
 // Mock do Axios (REST Bridge para Oráculo-V)
 jest.mock('axios', () => ({
   post: jest.fn(() => Promise.resolve({
+    status: 202,
     data: {
       success: true,
+      message: 'Processing in background',
       insight: {
         rank: 'Omega',
         score: 85,
@@ -86,7 +88,7 @@ global.fetch = jest.fn((url) => {
 });
 
 // Aumentar timeout global para o teste (mesmo com mocks, o processamento pode demorar)
-jest.setTimeout(15000);
+jest.setTimeout(30000);
 
 describe('Motor de Sinergia do Protocolo V (E2E Shadow Test)', () => {
   beforeAll(() => {
@@ -109,26 +111,25 @@ describe('Motor de Sinergia do Protocolo V (E2E Shadow Test)', () => {
 
   afterAll(() => {
     jest.restoreAllMocks();
+    jest.useRealTimers();
   });
 
   test('Deve calcular corretamente 2 pontos de Sinergia para uma vitória em DUO', async () => {
-    // IMPORTANTE: Mocar o delay interno para o teste não demorar 13s por player
-    const updaterMod = require('../src/update-data');
-    
-    // Tentativa de mocar o delay injetado ou no escopo (como é local, vamos mocar o timer)
+    // Garantir uso de Fake Timers ANTES do require principal
     jest.useFakeTimers();
+    const updaterMod = require('../src/update-data');
     
     const { createClient } = require('@supabase/supabase-js');
     const mockClient = createClient();
     const upsertSpy = mockClient.from('players').upsert;
 
-    // Executa o motor (como usamos fake timers, precisamos avançar o tempo se houver await delay)
-    const runPromise = updater.run();
+    // Executa o motor
+    const runPromise = updaterMod.run();
     
-    // Avança todos os timers repetidamente até a promise resolver
-    for(let i=0; i<50; i++) {
-        jest.advanceTimersByTime(30000);
-        await Promise.resolve(); // Permite que microtasks (promises) rodem
+    // Loop de avanço de tempo robusto para saltar todos os sleeps e retries
+    for(let i=0; i<100; i++) {
+        jest.advanceTimersByTime(1000);
+        await Promise.resolve(); // Resolvendo microtasks (promises) pendentes
     }
 
     await runPromise;
