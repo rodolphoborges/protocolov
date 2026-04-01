@@ -145,7 +145,7 @@ class OraculoService {
                 // O Oráculo agora registra na fila e processa em background, retornando 202 imediatamente.
                 const response = await axios.post(`${this.apiUrl}/api/queue`, briefing, {
                     headers: { 'Content-Type': 'application/json', 'x-api-key': this.apiKey },
-                    timeout: 30000 // Timeout menor para enfileiramento
+                    timeout: 60000 // Aumento para 60s p/ maior resiliência em picos
                 });
 
                 if (response.status === 202 || (response.data && response.data.message)) {
@@ -208,8 +208,10 @@ class OraculoService {
             }
         };
 
-        // Processamento paralelo dos membros da squad
-        await Promise.all(op.squad.map(member => analyzeMember(member)));
+        // Processamento SEQUENCIAL dos membros da squad para evitar picos de timeout (Traffic Shaping)
+        for (const member of op.squad) {
+            await analyzeMember(member);
+        }
         return results;
     }
 

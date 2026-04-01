@@ -68,8 +68,7 @@ class SynergyEngine {
                     rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, ''))
                 );
 
-                if (squadMembers.length >= 1) {
-                    const isSolo = squadMembers.length === 1;
+                if (squadMembers.length >= 2) {
                     const teamId = squadMembers[0].team;
                     const teamKey = teamId ? teamId.toLowerCase() : null;
                     const teamData = (match.teams && teamKey) ? match.teams[teamKey] : null;
@@ -83,15 +82,12 @@ class SynergyEngine {
                         else if (teamData && (teamData.has_won || teamData.won)) finalResult = 'VITÓRIA';
                     }
 
-                    // Sinergia apenas para Squad (2+)
-                    const earnedPoints = isSolo ? 0 : this.calculateSynergyPoints(squadMembers.length, finalResult);
+                    const earnedPoints = this.calculateSynergyPoints(squadMembers.length, finalResult);
 
-                    if (!isSolo) {
-                        squadMembers.forEach(m => {
-                            const nId = `${m.name}#${m.tag}`.toLowerCase().replace(/\s/g, '');
-                            newSynergyPoints[nId] = (newSynergyPoints[nId] || 0) + earnedPoints;
-                        });
-                    }
+                    squadMembers.forEach(m => {
+                        const nId = `${m.name}#${m.tag}`.toLowerCase().replace(/\s/g, '');
+                        newSynergyPoints[nId] = (newSynergyPoints[nId] || 0) + earnedPoints;
+                    });
 
                     const startTime = match.metadata.game_start ? match.metadata.game_start * 1000 : new Date(match.metadata.started_at).getTime();
                     const blueScore = match.teams.blue.rounds_won ?? match.teams.blue.score ?? 0;
@@ -99,7 +95,6 @@ class SynergyEngine {
 
                     operations.push({
                         id: matchId, map: mapName, mode: 'Competitive',
-                        isSolo: isSolo, // Flag para o log informativo
                         started_at: startTime,
                         score: `${blueScore}-${redScore}`,
                         result: finalResult, team_color: teamId,
