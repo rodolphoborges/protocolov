@@ -76,9 +76,11 @@ async function run() {
                         }
                     });
 
-                    if (newOnes > 0) {
-                        console.log(`   [📡] ${agent.riot_id}: ${newOnes} novas operações (${soloDetail} Solo / ${squadDetail} Grupo).`);
-                        // Guardar o ID da partida mais recente para atualizar o cache depois
+                    if (squadDetail > 0) {
+                        console.log(`   [📡] ${agent.riot_id}: ${squadDetail} novas missões de esquadrão encontradas.`);
+                        playersToSync.push({ riot_id: agent.riot_id, last_match_id: matches[0].metadata.matchid });
+                    } else if (newOnes > 0) {
+                        console.log(`   [💤] ${agent.riot_id}: Sem novas missões (apenas SoloQ detectado).`);
                         playersToSync.push({ riot_id: agent.riot_id, last_match_id: matches[0].metadata.matchid });
                     }
                 }
@@ -93,11 +95,10 @@ async function run() {
 
         // 4. Persistência de Dados (Upsert de Players e Insert de Operações)
         if (operations.length > 0) {
-            const soloCount = operations.filter(op => op.isSolo).length;
-            const squadCount = operations.filter(op => !op.isSolo && op.mode !== 'Deathmatch').length;
+            const squadCount = operations.filter(op => op.mode !== 'Deathmatch').length;
             const dmCount = operations.filter(op => op.mode === 'Deathmatch').length;
 
-            console.log(`   [⚡] Detectadas: ${soloCount} Solo / ${squadCount} Grupo / ${dmCount} Treino.`);
+            console.log(`   [⚡] Missões de Esquadrão: ${squadCount} | Treinos (DM): ${dmCount}.`);
             console.log(`   [⚡] Sincronizando registros no Banco Central...`);
             
             // ... (players update)
@@ -189,8 +190,8 @@ async function run() {
             };
 
             const opChunks = [];
-            for (let i = 0; i < operations.length; i += 10) {
-                opChunks.push(operations.slice(i, i + 10));
+            for (let i = 0; i < operations.length; i += 3) {
+                opChunks.push(operations.slice(i, i + 3));
             }
 
             for (const chunk of opChunks) {
