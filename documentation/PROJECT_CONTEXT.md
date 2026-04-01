@@ -5,7 +5,7 @@ O **Protocolo V** é uma plataforma de gestão e análise tática para times de 
 
 ### Stack Tecnológica
 - **Backend**: Node.js (Express) executando scripts de sincronização e o Bot do Telegram.
-- **Frontend**: SPA em HTML5/Vanilla JS e CSS3 customizado.
+- **Frontend**: Single Page Application (SPA) desenvolvida em React 19, utilizando Vite 8 e React Router 7.
 - **Banco de Dados**: Supabase (PostgreSQL).
 - **Arquitetura de Serviços**: O sistema utiliza uma estrutura modular e resiliente:
     - `services/api-client.js`: Abstração de rede, headers e tratamento de rate-limiting (429).
@@ -16,12 +16,12 @@ O **Protocolo V** é uma plataforma de gestão e análise tática para times de 
 ### Estrutura de Diretórios
 - `src/`: Core Engine (`telegram-bot.js`, `update-data.js`, `db.js`).
 - `update-data.js`: Wrapper de compatibilidade na raiz que delega para `src/`.
-- `docs/`: Portal Frontend (HTML, CSS, JS) - GitHub Pages.
-
+- `frontend/`: Nova interface administrativa e de monitoramento (React 19).
+- `docs/`: Portal estático para visualização rápida (GitHub Pages).
 - `scripts/`: Utilitários (Maintenance, API Probe, Debug).
 - `services/`: Módulos de lógica desacoplada (Engine, Notifier, Workers).
 - `tests/`: Suíte de testes automatizados (Jest).
-- `documentation/`: Documentação técnica.
+- `documentation/`: Documentação técnica do sistema.
 - **Protocolo Fantasma**: Camada de integridade que valida e expurga agentes inexistentes.
 
 ## 2. Fluxo de Dados

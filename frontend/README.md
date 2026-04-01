@@ -1,16 +1,37 @@
-# React + Vite
+# Protocolo V // Frontend (Admin Dashboard)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este é o Painel de Controle administrativo do **Protocolo V**, desenvolvido em **React 19** com **Vite 8**. Ele fornece visibilidade operacional sobre squads, histórico de partidas e insights táticos gerados pelo Oráculo V.
 
-Currently, two official plugins are available:
+## Stack Técnica
+- **Core**: React 19.0.0
+- **Build Tool**: Vite 8.0.0
+- **Routing**: React Router 7.13
+- **Icons**: Lucide React
+- **Design**: Vanilla CSS (Cyberpunk/Terminal Aesthetic)
+- **Data Source**: Supabase
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Setup Local
 
-## React Compiler
+1. Instale as dependências:
+   ```bash
+   npm install
+   ```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+2. Configure o ambiente:
+   - Crie um arquivo `.env` na raiz desta pasta.
+   - Adicione as chaves:
+     ```env
+     VITE_SUPABASE_URL=sua_url
+     VITE_SUPABASE_ANON_KEY=sua_chave
+     ```
 
-## Expanding the ESLint configuration
+3. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Estrutura
+- `src/components`: Componentes reutilizáveis (Cards, Tabelas, Gráficos).
+- `src/pages`: Páginas da aplicação (Dashboard, Profile, Analysis).
+- `src/services`: Clientes de API e integração com Supabase.
+- `src/styles`: Tokens de design e CSS global.
