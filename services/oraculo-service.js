@@ -10,7 +10,7 @@ const { smartFetch } = require('./api-client');
  */
 class OraculoService {
     constructor() {
-        this.apiUrl = process.env.ORACULO_API_URL || 'http://localhost:3000';
+        this.apiUrl = process.env.ORACULO_API_URL || 'http://localhost:3001';
         this.apiKey = process.env.ORACULO_API_KEY;
         this.henrikKey = process.env.HENRIK_API_KEY;
         

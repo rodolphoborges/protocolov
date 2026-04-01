@@ -644,7 +644,7 @@ bot.onText(/^\/papo (.*)/, async (msg, match) => {
             .maybeSingle();
 
         // 3. Chamar API do Oráculo (com Timeout de 60s)
-        const oraculoUrl = process.env.ORACULO_API_URL || 'http://localhost:3000';
+        const oraculoUrl = process.env.ORACULO_API_URL || 'http://localhost:3001';
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 60000);
 
@@ -904,6 +904,11 @@ app.listen(process.env.PORT || 3000, () => {
 const { analyzeMatch } = require('./oraculo');
 
 async function startQueueWorker() {
+    // Jitter tático: Atraso aleatório inicial para evitar concorrência com tarefas agendadas em picos de 30min
+    const jitter = Math.floor(Math.random() * 60000);
+    console.log(`🧠 [ORÁCULO-V] Sincronizando pulso tático... (Iniciando em ${Math.ceil(jitter/1000)}s)`);
+    await new Promise(r => setTimeout(r, jitter));
+
     // Loop infinito para processar a fila
     while (true) {
         try {
