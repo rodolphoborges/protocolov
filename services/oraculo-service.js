@@ -208,9 +208,12 @@ class OraculoService {
             }
         };
 
-        // Processamento SEQUENCIAL dos membros da squad para evitar picos de timeout (Traffic Shaping)
+        // Processamento SEQUENCIAL dos membros da squad com pequeno delay (Traffic Shaping)
+        const sleep = ms => new Promise(res => setTimeout(res, ms));
+        
         for (const member of op.squad) {
             await analyzeMember(member);
+            await sleep(200); // 200ms de respiro entre jogadores
         }
         return results;
     }
