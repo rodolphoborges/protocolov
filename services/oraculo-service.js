@@ -55,7 +55,7 @@ class OraculoService {
     async processMatchAnalysis(op) {
         if (!op || !op.id || !op.squad) return;
 
-        console.log(`\n🧠 [ORÁCULO-V] Iniciando ponte tática | Match: ${op.id}`);
+        // console.log(`\n🧠 [ORÁCULO-V] Iniciando ponte tática | Match: ${op.id}`);
         
         // 0. Deduplicar squad para evitar processamento redundante se houver duplicatas no raw
         const uniqueMembers = [];
@@ -86,7 +86,7 @@ class OraculoService {
         const analyzeMember = async (member) => {
             // Se já existe no banco, pular completamente (Idempotência)
             if (alreadyAnalyzed.has(member.riotId.toLowerCase())) {
-                console.log(`   [⏩] Análise já existe para ${member.riotId}. Pulando.`);
+                // console.log(`   [⏩] Análise já existe para ${member.riotId}. Pulando.`);
                 results.successCount++;
                 return;
             }

@@ -14,7 +14,7 @@ async function run() {
         // ... (existing roster fetch)
         const { data: roster, error: rosterErr } = await supabase
             .from('players')
-            .select('*');
+            .select('*, last_match_id');
         
         if (rosterErr) throw rosterErr;
         const rosterIds = roster.map(p => p.riot_id);
@@ -39,6 +39,8 @@ async function run() {
         }
 
         // Sequential agent scanning to strictly respect HenrikDev API limits (10/min)
+        const playersToSync = [];
+
         for (const agent of roster) {
             const [name, tag] = agent.riot_id.split('#');
             try {
@@ -48,15 +50,36 @@ async function run() {
                 if (res.status === 200) {
                     const json = await res.json();
                     const matches = json.data || [];
+
+                    if (matches.length > 0 && agent.last_match_id === matches[0].metadata.matchid) {
+                        console.log(`   [💤] ${agent.riot_id}: Sem novas operações.`);
+                        continue;
+                    }
+
                     let newOnes = 0;
+                    let soloDetail = 0;
+                    let squadDetail = 0;
+
                     matches.forEach(m => {
                         if (m.metadata && !matchesBatch.has(m.metadata.matchid)) {
                             matchesBatch.set(m.metadata.matchid, m);
                             newOnes++;
+
+                            // Identificação rápida de Solo/Squad para o log
+                            const players = m.players?.all_players || m.players || [];
+                            const pVCount = players.filter(p => 
+                                rosterMap.has(`${p.name}#${p.tag}`.toLowerCase().replace(/\s/g, ''))
+                            ).length;
+                            
+                            if (pVCount > 1) squadDetail++;
+                            else soloDetail++;
                         }
                     });
+
                     if (newOnes > 0) {
-                        console.log(`   [📡] ${agent.riot_id}: ${newOnes} novas operações encontradas.`);
+                        console.log(`   [📡] ${agent.riot_id}: ${newOnes} novas operações (${soloDetail} Solo / ${squadDetail} Grupo).`);
+                        // Guardar o ID da partida mais recente para atualizar o cache depois
+                        playersToSync.push({ riot_id: agent.riot_id, last_match_id: matches[0].metadata.matchid });
                     }
                 }
             } catch (err) {
@@ -70,7 +93,12 @@ async function run() {
 
         // 4. Persistência de Dados (Upsert de Players e Insert de Operações)
         if (operations.length > 0) {
-            console.log(`   [⚡] Sincronizando ${operations.length} novas operações...`);
+            const soloCount = operations.filter(op => op.isSolo).length;
+            const squadCount = operations.filter(op => !op.isSolo && op.mode !== 'Deathmatch').length;
+            const dmCount = operations.filter(op => op.mode === 'Deathmatch').length;
+
+            console.log(`   [⚡] Detectadas: ${soloCount} Solo / ${squadCount} Grupo / ${dmCount} Treino.`);
+            console.log(`   [⚡] Sincronizando registros no Banco Central...`);
             
             // ... (players update)
             const playersToUpdate = [];
@@ -93,6 +121,16 @@ async function run() {
             if (playersToUpdate.length > 0) {
                 const { error: upsertErr } = await supabase.from('players').upsert(playersToUpdate);
                 if (upsertErr) console.error(`   [❌] Erro ao atualizar scores: ${upsertErr.message}`);
+            }
+
+            // Atualizar Cache de Last Match
+            if (playersToSync.length > 0) {
+                for (const p of playersToSync) {
+                    await supabase.from('players').update({ 
+                        last_match_id: p.last_match_id,
+                        last_scan_at: new Date().toISOString()
+                    }).eq('riot_id', p.riot_id);
+                }
             }
 
             // Registro das operações e gatilho do Oráculo (Processamento em Paralelo de 2 em 2)
