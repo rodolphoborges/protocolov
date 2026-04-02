@@ -87,6 +87,18 @@ const UI = {
     footer: () => `\n${UI.divider}\n_Protocolo V // Mentor Tático A.I._`
 };
 
+// --- HELPER: busca jogador pelo telegram_id (compatível com bigint e text) ---
+async function findPlayerByTelegramId(telegramId, fields = 'riot_id') {
+    const numId = parseInt(telegramId, 10);
+    // Tenta como número (bigint)
+    const { data: byNum, error: e1 } = await supabase.from('players').select(fields).eq('telegram_id', numId).limit(1);
+    if (e1) return { data: null, error: e1 };
+    if (byNum && byNum.length > 0) return { data: byNum, error: null };
+    // Fallback: tenta como string (registros legados)
+    const { data: byStr, error: e2 } = await supabase.from('players').select(fields).eq('telegram_id', String(telegramId)).limit(1);
+    return { data: byStr, error: e2 };
+}
+
 // --- LÓGICA DE BOTÕES (CALLBACK) ---
 if (bot) {
     bot.on('callback_query', async (query) => {
@@ -222,12 +234,7 @@ bot.onText(/^\/start(?:@[\w_]+)?(?:\s+(.*))?/, async (msg) => {
     }
 
     try {
-        // Busca por string e número para cobrir registros antigos com tipos inconsistentes
-        const { data: existingUser, error: dbError } = await supabase
-            .from('players')
-            .select('riot_id')
-            .or(`telegram_id.eq.${telegramId},telegram_id.eq."${telegramId}"`)
-            .limit(1);
+        const { data: existingUser, error: dbError } = await findPlayerByTelegramId(telegramId, 'riot_id');
 
         if (dbError) {
             console.error('❌ [ERRO DB] Start Query:', dbError.message);
@@ -382,7 +389,7 @@ bot.onText(/^\/unidade(?:@[\w_]+)?(?:\s+(\w+))?/, async (msg, match) => {
     const unidade = match[1] ? match[1].toUpperCase() : null;
     const validas = ['ALPHA', 'OMEGA', 'WINGMAN'];
 
-    const { data: userRecord } = await supabase.from('players').select('*').or(`telegram_id.eq.${telegramId},telegram_id.eq."${telegramId}"`).limit(1);
+    const { data: userRecord } = await findPlayerByTelegramId(telegramId, '*');
 
     if (!userRecord || userRecord.length === 0) {
         return bot.sendMessage(chatId, `Você precisa conectar sua conta primeiro para gerenciar sua equipe. Use: \`/vincular\``, { parse_mode: 'Markdown' });
@@ -472,9 +479,7 @@ bot.onText(/^\/perfil(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     let targetNick = argument;
 
     if (!targetNick) {
-        const { data: self } = await supabase.from('players').select('riot_id')
-            .or(`telegram_id.eq.${telegramId},telegram_id.eq."${telegramId}"`)
-            .limit(1);
+        const { data: self } = await findPlayerByTelegramId(telegramId, 'riot_id');
         if (self && self.length > 0) {
             targetNick = self[0].riot_id.split('#')[0];
         } else {
@@ -539,7 +544,7 @@ bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const matchId = match[1] ? match[1].trim() : null;
 
     try {
-        const { data: user } = await supabase.from('players').select('riot_id').or(`telegram_id.eq.${telegramId},telegram_id.eq."${telegramId}"`).limit(1);
+        const { data: user } = await findPlayerByTelegramId(telegramId, 'riot_id');
         if (!user || user.length === 0) {
             return bot.sendMessage(chatId, `Você precisa conectar sua conta primeiro para pedir análises. Use: \`/vincular\``, { parse_mode: 'Markdown' });
         }
@@ -611,7 +616,7 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const rawMatch = match[1] ? match[1].trim() : null;
 
     try {
-        const { data: user } = await supabase.from('players').select('riot_id').or(`telegram_id.eq.${telegramId},telegram_id.eq."${telegramId}"`).limit(1);
+        const { data: user } = await findPlayerByTelegramId(telegramId, 'riot_id');
         if (!user || user.length === 0) {
             return bot.sendMessage(chatId, `Você precisa conectar sua conta primeiro para chamar o time. Use: \`/vincular\``, { parse_mode: 'Markdown' });
         }
@@ -691,11 +696,8 @@ bot.onText(/^\/papo (.*)/, async (msg, match) => {
         const loadingMsg = await bot.sendMessage(chatId, UI.kaio("SESSÃO TÁTICA ATIVA") + "\n🔌 Conectando à rede neural... Aguarde.", { parse_mode: 'Markdown' });
 
         // 1. Buscar contexto do jogador
-        const { data: player } = await supabase
-            .from('players')
-            .select('*')
-            .or(`telegram_id.eq.${msg.from.id},telegram_id.eq."${msg.from.id}"`)
-            .maybeSingle();
+        const { data: playerArr } = await findPlayerByTelegramId(msg.from.id, '*');
+        const player = playerArr && playerArr.length > 0 ? playerArr[0] : null;
 
         if (!player) {
             return bot.editMessageText(UI.kaio("ERRO DE IDENTIDADE") + "\n\nVocê precisa estar registrado para usar o papo tático. Use `/vincular RiotID#Tag` primeiro.", {
