@@ -27,7 +27,8 @@ update-data.js (GitHub Actions, a cada 30min)
       |-- SynergyEngine: calcula pontos de sinergia do squad
       |-- Upsert: players, operations, operation_squads
       |
-      |-- [Competitivas] POST /api/queue -> Oraculo V
+      |-- [Competitivas] fire-and-forget POST /api/queue -> Oraculo V (timeout 3s)
+      |                  se offline: enfileira em match_analysis_queue para retry
       |
       v
 telegram-bot.js (Express + Telegram Bot)
@@ -85,8 +86,8 @@ cp .env.example .env
 | `TELEGRAM_BOT_TOKEN` | Sim | Token do bot Telegram |
 | `TELEGRAM_CHAT_ID` | Sim | ID do chat para notificacoes |
 | `ADMIN_TELEGRAM_ID` | Sim | Seu user ID para comandos admin |
-| `ORACULO_SUPABASE_URL` | Nao | URL do Supabase do Oraculo (para fila de analise) |
-| `ORACULO_SUPABASE_SERVICE_KEY` | Nao | Chave do Oraculo (para fila de analise) |
+| `ORACULO_API_URL` | Nao | URL da API do Oraculo V (ex: http://localhost:3001) |
+| `ORACULO_API_KEY` | Nao | Chave de autenticacao do Oraculo V |
 | `PORT` | Nao | Porta do Express (default: 3000) |
 
 ### Execucao
@@ -134,6 +135,8 @@ Pontos calculados por partida baseados no tamanho do squad e resultado:
 
 **DM Score**: Kills + bonus por posicao no ranking (Top 1: +15, Top 2: +10, Top 3: +5).
 
+> **Regra de esquadrao**: tanto partidas Competitivas quanto Deathmatch so sao registradas se houver **2 ou mais membros do roster** na mesma partida. Partidas solo nao geram operacoes.
+
 ---
 
 ## Integracao com Oraculo V
@@ -152,7 +155,11 @@ O Protocolo V despacha briefings de combate para o Oraculo V via REST ou fila co
 }
 ```
 
-Se o Oraculo estiver offline, o briefing e enfileirado para retry automatico. O sistema degrada graciosamente — dados de partida persistem mesmo sem analise.
+**Comportamento de resiliencia:**
+- O Protocolo V chama `/api/queue` com timeout de **3 segundos** (fire-and-forget)
+- Se o Oraculo nao responder, o briefing e salvo em `match_analysis_queue` no Supabase
+- O Oraculo consome essa fila de forma autonoma no proximo ciclo (backoff: 5min → 15min → 60min, max 3 tentativas)
+- Falhas na analise **nao afetam** o resultado do sync — `npm run sync` sempre termina com `exit(0)` se os dados foram persistidos com sucesso
 
 ---
 
@@ -174,10 +181,21 @@ protocolov/
     match-briefing.js  # Empacotamento de dados de partida
     achievements.js    # Milestones de performance
   frontend/            # React SPA (Vite)
-  docs/                # Portal GitHub Pages
+  docs/                # Portal GitHub Pages (GitHub Pages)
+    index.html         #   Dashboard principal
+    historico.html     #   Historico completo com filtros (jogador, mapa, personagem, data, etc.)
+    treino.html        #   Leaderboard Mata-Mata
+    analise.html       #   Analise de partida individual
+    briefing.html      #   Briefing tatico
+    nav.js             #   Navegacao global injetada em todas as paginas
+    footer.js          #   Rodape com links sociais (controlado via config.js)
+    config.js          #   Config frontend: Supabase keys, redes sociais, UI params
   documentation/       # Docs tecnicos (API.md, PROJECT_CONTEXT.md)
   tests/               # Suite Jest
-  scripts/             # Utilitarios de manutencao
+  scripts/
+    maintenance/
+      reset-dm.js        # Reset semanal/mensal de DM score
+      clean-solo-ops.js  # Remove operacoes solo do banco (< 2 membros do roster)
   .github/workflows/   # GitHub Actions
 ```
 

@@ -28,9 +28,12 @@ O **Protocolo V** é uma plataforma de gestão e análise tática para times de 
 1.  **Ingestão de Dados**: O arquivo `src/update-data.js` (ou o wrapper na raiz) é executado via GitHub Actions a cada 30 minutos.
     - Ele consome a API da HenrikDev para buscar as últimas partidas dos jogadores cadastrados.
     - Calcula pontos de **Sinergia** e atualiza métricas de ADR/HS no Supabase.
-2.  **Análise Profunda (Oráculo V)**: Após a ingestão, o sistema enfileira automaticamente uma ordem `AUTO` na `match_analysis_queue`.
-    - **Requisito**: As variáveis `ORACULO_SUPABASE_URL` e `ORACULO_SUPABASE_SERVICE_KEY` devem estar configuradas no ambiente (ou nos Secrets do GitHub).
-    - O **Worker do Oráculo** (integrado ao bot) processa essa ordem, varre a partida via API V4 para identificar todos os membros do Protocolo V presentes e gera relatórios individuais com **Performance Index contextual** (Role-Aware), classificação em **três ranks técnicos** (Alpha/Omega/Depósito de Torreta) e Heurística K.A.I.O.
+2.  **Análise Profunda (Oráculo V)**: Após a ingestão, o sistema despacha briefings de combate para o Oráculo V via REST.
+    - **Requisito**: As variáveis `ORACULO_API_URL` e `ORACULO_API_KEY` devem estar configuradas no ambiente.
+    - A chamada é **fire-and-forget** com timeout de 3 segundos — o endpoint `/api/queue` retorna 202 imediatamente e o Oráculo processa em background de forma autônoma.
+    - Se o Oráculo estiver offline, o briefing é salvo localmente em `match_analysis_queue` para retry automático (backoff: 5min → 15min → 60min, máx 3 tentativas).
+    - Falhas na análise **não afetam** o resultado do sync — o Protocolo V sempre termina com sucesso se os dados de partida foram persistidos.
+    - O **Worker do Oráculo** (processo separado) processa a fila e gera relatórios individuais com **Performance Index contextual** (Role-Aware), classificação em **três ranks técnicos** (Alpha/Omega/Depósito de Torreta) e Heurística K.A.I.O.
 
 3.  **Interface de Controle (Telegram)**: O `src/telegram-bot.js` atua como o HUB de comando, permitindo vincular rádios, convocar esquadrões (LFG) e disparar análises manuais.
 4.  **Exibição (Frontend)**: A pasta `docs/` contém o site que consome dados do Supabase e do Oráculo.
