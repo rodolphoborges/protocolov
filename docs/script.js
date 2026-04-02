@@ -769,13 +769,51 @@ document.addEventListener('DOMContentLoaded', async () => {
                     throw error;
                 }
                 
-                // Feedback rápido e redirecionamento para o Briefing
-                feedback.innerHTML = `<span class="text-success">Criptografia aceita. Redirecionando para o QG...</span>`;
+                // Substituir o formulário pelo painel de boas-vindas
                 form.reset();
-                
-                setTimeout(() => { 
-                    window.location.href = 'briefing.html'; 
-                }, 1500);
+                const agentName = riotId.split('#')[0].toUpperCase();
+                const telegramUrl = (window.ProtocolConfig.social && window.ProtocolConfig.social.telegram) || '#';
+                const vincularCmd = `/vincular ${riotId}`;
+                document.getElementById('recrutamento-section').innerHTML = `
+                    <div class="mx-auto text-start" style="max-width: 520px;">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="decor-square"></div>
+                            <span class="text-uppercase fw-bold text-muted" style="letter-spacing:2px;font-size:0.75rem;">ALISTAMENTO CONFIRMADO</span>
+                        </div>
+                        <h2 class="val-section-header border-0 mb-1" style="font-size:2.5rem;">BEM-VINDO, <span class="text-accent">${agentName}</span></h2>
+                        <p class="manifesto-text mb-4">Seu registro foi aceito. Agora complete sua integração em 2 passos rápidos.</p>
+
+                        <div class="d-flex flex-column gap-3">
+                            <div class="p-3" style="border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.02);">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span style="font-family:'Teko',sans-serif;font-size:1.4rem;color:var(--val-red);letter-spacing:1px;">01</span>
+                                    <span class="fw-bold text-uppercase" style="letter-spacing:2px;font-size:0.8rem;">Acesse o Bot Telegram</span>
+                                </div>
+                                <p class="manifesto-text mb-2" style="font-size:0.85rem;">O K.A.I.O. é seu terminal de comando — convocações, ranking e análises táticas.</p>
+                                <a href="${telegramUrl}" target="_blank" class="btn-val d-inline-block" style="font-size:0.9rem;padding:8px 20px;">ABRIR TERMINAL K.A.I.O.</a>
+                            </div>
+
+                            <div class="p-3" style="border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.02);">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span style="font-family:'Teko',sans-serif;font-size:1.4rem;color:var(--val-red);letter-spacing:1px;">02</span>
+                                    <span class="fw-bold text-uppercase" style="letter-spacing:2px;font-size:0.8rem;">Vincule sua conta no bot</span>
+                                </div>
+                                <p class="manifesto-text mb-2" style="font-size:0.85rem;">No Telegram, envie o comando abaixo para conectar seu Valorant ao sistema:</p>
+                                <div class="font-monospace p-2 d-flex align-items-center justify-content-between"
+                                     style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,70,85,0.2);font-size:0.9rem;cursor:pointer;"
+                                     onclick="navigator.clipboard.writeText('${vincularCmd}').then(()=>{this.querySelector('.copy-hint').textContent='COPIADO ✓';setTimeout(()=>{this.querySelector('.copy-hint').textContent='COPIAR'},2000)})"
+                                     title="Clique para copiar">
+                                    <span class="text-accent">${vincularCmd}</span>
+                                    <span class="copy-hint text-muted" style="font-size:0.65rem;letter-spacing:1px;">COPIAR</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-muted mt-4" style="font-size:0.72rem;letter-spacing:1px;">
+                            Seus dados serão sincronizados automaticamente na próxima varredura (a cada 30 minutos).
+                        </p>
+                    </div>
+                `;
 
             } catch (err) {
                 feedback.innerHTML = `<span class="text-danger">Erro: ${err.message}</span>`;
