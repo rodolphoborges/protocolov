@@ -222,11 +222,16 @@ bot.onText(/^\/start(?:@[\w_]+)?(?:\s+(.*))?/, async (msg) => {
     }
 
     try {
-        const { data: existingUser, error: dbError } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
-        
+        // Busca por string e número para cobrir registros antigos com tipos inconsistentes
+        const { data: existingUser, error: dbError } = await supabase
+            .from('players')
+            .select('riot_id')
+            .or(`telegram_id.eq.${telegramId},telegram_id.eq."${telegramId}"`)
+            .limit(1);
+
         if (dbError) {
             console.error('❌ [ERRO DB] Start Query:', dbError.message);
-            return bot.sendMessage(chatId, `⚠️ *[K.A.I.O.]*: Erro ao acessar o banco de dados.\n\nDetalhes: \`${dbError.message}\`\n\nPor favor, verifique se a tabela \`players\` existe no seu projeto Supabase.`, { parse_mode: 'Markdown' });
+            return bot.sendMessage(chatId, `⚠️ *[K.A.I.O.]*: Erro ao acessar o banco de dados.\n\nDetalhes: \`${dbError.message}\``, { parse_mode: 'Markdown' });
         }
 
         const isLinked = existingUser && existingUser.length > 0;
@@ -377,7 +382,7 @@ bot.onText(/^\/unidade(?:@[\w_]+)?(?:\s+(\w+))?/, async (msg, match) => {
     const unidade = match[1] ? match[1].toUpperCase() : null;
     const validas = ['ALPHA', 'OMEGA', 'WINGMAN'];
 
-    const { data: userRecord } = await supabase.from('players').select('*').eq('telegram_id', telegramId).limit(1);
+    const { data: userRecord } = await supabase.from('players').select('*').or(`telegram_id.eq.${telegramId},telegram_id.eq."${telegramId}"`).limit(1);
 
     if (!userRecord || userRecord.length === 0) {
         return bot.sendMessage(chatId, `Você precisa conectar sua conta primeiro para gerenciar sua equipe. Use: \`/vincular\``, { parse_mode: 'Markdown' });
@@ -452,7 +457,7 @@ bot.onText(/^\/ranking(?:@[\w_]+)?(?:\s+|$)/, async (msg) => {
         rankMsg += `\n` + UI.info("Quer ganhar mais pontos? Chame o time com /convocar") + UI.footer();
         bot.sendMessage(chatId, rankMsg, { parse_mode: 'Markdown' });
     } catch (err) {
-        rankMsg += `\n` + UI.info("Dica: Use /como_funciona para ver todas as métricas.") + UI.footer();
+        console.error('❌ [RANKING]', err.message);
         bot.sendMessage(chatId, "❌ Não consegui acessar os dados do ranking agora.", { parse_mode: 'Markdown' });
     }
 });
@@ -467,7 +472,9 @@ bot.onText(/^\/perfil(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     let targetNick = argument;
 
     if (!targetNick) {
-        const { data: self } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
+        const { data: self } = await supabase.from('players').select('riot_id')
+            .or(`telegram_id.eq.${telegramId},telegram_id.eq."${telegramId}"`)
+            .limit(1);
         if (self && self.length > 0) {
             targetNick = self[0].riot_id.split('#')[0];
         } else {
@@ -532,7 +539,7 @@ bot.onText(/^\/analisar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const matchId = match[1] ? match[1].trim() : null;
 
     try {
-        const { data: user } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
+        const { data: user } = await supabase.from('players').select('riot_id').or(`telegram_id.eq.${telegramId},telegram_id.eq."${telegramId}"`).limit(1);
         if (!user || user.length === 0) {
             return bot.sendMessage(chatId, `Você precisa conectar sua conta primeiro para pedir análises. Use: \`/vincular\``, { parse_mode: 'Markdown' });
         }
@@ -604,7 +611,7 @@ bot.onText(/^\/convocar(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
     const rawMatch = match[1] ? match[1].trim() : null;
 
     try {
-        const { data: user } = await supabase.from('players').select('riot_id').eq('telegram_id', telegramId).limit(1);
+        const { data: user } = await supabase.from('players').select('riot_id').or(`telegram_id.eq.${telegramId},telegram_id.eq."${telegramId}"`).limit(1);
         if (!user || user.length === 0) {
             return bot.sendMessage(chatId, `Você precisa conectar sua conta primeiro para chamar o time. Use: \`/vincular\``, { parse_mode: 'Markdown' });
         }
@@ -687,7 +694,7 @@ bot.onText(/^\/papo (.*)/, async (msg, match) => {
         const { data: player } = await supabase
             .from('players')
             .select('*')
-            .eq('telegram_id', msg.from.id)
+            .or(`telegram_id.eq.${msg.from.id},telegram_id.eq."${msg.from.id}"`)
             .maybeSingle();
 
         if (!player) {
