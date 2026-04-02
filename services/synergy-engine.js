@@ -44,11 +44,11 @@ class SynergyEngine {
             const mapName = (typeof match.metadata.map === 'object') ? match.metadata.map.name : match.metadata.map;
 
             if (mode === 'deathmatch') {
-                const myPlayersInDm = playersArray.filter(player => 
+                const myPlayersInDm = playersArray.filter(player =>
                     rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, ''))
                 );
 
-                if (myPlayersInDm.length > 0) {
+                if (myPlayersInDm.length >= 2) {
                     myPlayersInDm.forEach(m => {
                         const nId = `${m.name}#${m.tag}`.toLowerCase().replace(/\s/g, '');
                         newDmPoints[nId] = (newDmPoints[nId] || 0) + this.calculateDmPoints(playersArray, m);
