@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocolo V | Histórico de Operações</title>
+    <meta name="theme-color" content="#ff4655">
+    <link rel="icon" type="image/png" href="https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/24/smallicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        /* ── Filtros ─────────────────────────────────────── */
+        .filter-panel {
+            background: rgba(5,5,5,0.85);
+            border: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+        }
+        .filter-label {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            color: var(--val-gray);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .filter-input {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--val-light);
+            border-radius: 0;
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--val-red);
+            background: rgba(255,70,85,0.05);
+            color: var(--val-light);
+        }
+        .filter-input option {
+            background: #0f1923;
+            color: var(--val-light);
+        }
+        .btn-filter-apply {
+            background: var(--val-red);
+            border: none;
+            color: #fff;
+            font-family: 'Teko', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            padding: 8px 28px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            border-radius: 0;
+        }
+        .btn-filter-apply:hover { opacity: 0.85; }
+        .btn-filter-clear {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--val-gray);
+            font-family: 'Teko', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            padding: 8px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 0;
+        }
+        .btn-filter-clear:hover {
+            border-color: var(--val-red);
+            color: var(--val-red);
+        }
+        .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 28px;
+        }
+        .filter-tag {
+            background: rgba(255,70,85,0.12);
+            border: 1px solid rgba(255,70,85,0.3);
+            color: var(--val-red);
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+            padding: 3px 10px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-tag-remove {
+            cursor: pointer;
+            opacity: 0.6;
+            font-size: 0.85rem;
+            line-height: 1;
+        }
+        .filter-tag-remove:hover { opacity: 1; }
+
+        /* ── Stats bar ───────────────────────────────────── */
+        .stats-bar {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .stat-chip {
+            font-size: 0.78rem;
+            letter-spacing: 1px;
+            color: var(--val-gray);
+            text-transform: uppercase;
+        }
+        .stat-chip strong {
+            color: var(--val-light);
+            font-family: 'Teko', sans-serif;
+            font-size: 1.1rem;
+            margin-right: 3px;
+        }
+
+        /* ── Paginação ───────────────────────────────────── */
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .btn-page {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--val-gray);
+            font-family: 'Teko', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            padding: 6px 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 0;
+        }
+        .btn-page:hover:not(:disabled) {
+            border-color: var(--val-red);
+            color: var(--val-red);
+        }
+        .btn-page:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+        .page-info {
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            color: var(--val-gray);
+            text-transform: uppercase;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        /* ── Loading skeleton ────────────────────────────── */
+        .skeleton-row {
+            height: 90px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ── Responsivo filtros ──────────────────────────── */
+        @media (max-width: 768px) {
+            .filter-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 480px) {
+            .filter-grid { grid-template-columns: 1fr !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="val-bg-text-massive">HISTÓRICO</div>
+
+    <script src="nav.js"></script>
+
+    <div class="container content-wrapper">
+
+        <!-- Cabeçalho -->
+        <div class="pt-5 pb-4 fade-in-section">
+            <div class="d-flex align-items-center mb-3">
+                <div class="decor-square"></div>
+                <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px;">ARQUIVO DE CAMPO</span>
+            </div>
+            <h1 class="val-section-header" style="font-size: 3.5rem; border: none; margin-bottom: 0;">
+                HISTÓRICO DE <span class="text-accent">OPERAÇÕES</span>
+            </h1>
+            <p class="manifesto-text mt-2">Registro completo de partidas conjuntas (2+ agentes). Use os filtros para localizar missões específicas.</p>
+        </div>
+
+        <!-- Painel de filtros -->
+        <div class="filter-panel p-4 mb-4 fade-in-section">
+            <div class="d-flex align-items-center mb-3">
+                <div class="decor-square"></div>
+                <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 2px; font-size: 0.75rem;">FILTROS DE INTELIGÊNCIA</span>
+            </div>
+
+            <div class="filter-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+
+                <!-- Agente (jogador) -->
+                <div>
+                    <div class="filter-label">Agente</div>
+                    <select class="filter-input" id="filter-player">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+
+                <!-- Mapa -->
+                <div>
+                    <div class="filter-label">Mapa</div>
+                    <select class="filter-input" id="filter-map">
+                        <option value="">Todos</option>
+                        <option value="Ascent">Ascent</option>
+                        <option value="Bind">Bind</option>
+                        <option value="Haven">Haven</option>
+                        <option value="Split">Split</option>
+                        <option value="Icebox">Icebox</option>
+                        <option value="Breeze">Breeze</option>
+                        <option value="Fracture">Fracture</option>
+                        <option value="Pearl">Pearl</option>
+                        <option value="Lotus">Lotus</option>
+                        <option value="Sunset">Sunset</option>
+                        <option value="Abyss">Abyss</option>
+                    </select>
+                </div>
+
+                <!-- Resultado -->
+                <div>
+                    <div class="filter-label">Resultado</div>
+                    <select class="filter-input" id="filter-result">
+                        <option value="">Todos</option>
+                        <option value="VITÓRIA">Vitória</option>
+                        <option value="DERROTA">Derrota</option>
+                        <option value="EMPATE">Empate</option>
+                    </select>
+                </div>
+
+                <!-- Personagem -->
+                <div>
+                    <div class="filter-label">Personagem</div>
+                    <select class="filter-input" id="filter-agent">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+
+                <!-- Data início -->
+                <div>
+                    <div class="filter-label">Data início</div>
+                    <input type="date" class="filter-input" id="filter-date-from">
+                </div>
+
+                <!-- Data fim -->
+                <div>
+                    <div class="filter-label">Data fim</div>
+                    <input type="date" class="filter-input" id="filter-date-to">
+                </div>
+
+                <!-- Análise disponível -->
+                <div>
+                    <div class="filter-label">Intel IA</div>
+                    <select class="filter-input" id="filter-intel">
+                        <option value="">Todas</option>
+                        <option value="1">Com análise</option>
+                        <option value="0">Sem análise</option>
+                    </select>
+                </div>
+
+                <!-- Tamanho do esquadrão -->
+                <div>
+                    <div class="filter-label">Esquadrão</div>
+                    <select class="filter-input" id="filter-squad-size">
+                        <option value="">Qualquer</option>
+                        <option value="2">Duo (2)</option>
+                        <option value="3">Trio (3)</option>
+                        <option value="4">Squad (4)</option>
+                        <option value="5">Full (5)</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="d-flex align-items-center gap-3 mt-4">
+                <button class="btn-filter-apply" onclick="applyFilters()">APLICAR FILTROS</button>
+                <button class="btn-filter-clear" onclick="clearFilters()">LIMPAR</button>
+            </div>
+
+            <!-- Tags de filtros ativos -->
+            <div class="active-filters mt-3" id="active-filter-tags"></div>
+        </div>
+
+        <!-- Barra de estatísticas -->
+        <div class="stats-bar d-flex flex-wrap gap-4 py-3 mb-4 fade-in-section" id="stats-bar">
+            <span class="stat-chip"><strong id="stat-total">--</strong> operações</span>
+            <span class="stat-chip"><strong id="stat-wins">--</strong> vitórias</span>
+            <span class="stat-chip"><strong id="stat-losses">--</strong> derrotas</span>
+            <span class="stat-chip"><strong id="stat-wr">--%</strong> winrate</span>
+        </div>
+
+        <!-- Lista de operações -->
+        <div id="ops-list" class="d-flex flex-column gap-3 mb-4"></div>
+
+        <!-- Paginação -->
+        <div class="pagination-bar mb-5 fade-in-section" id="pagination-bar" style="display: none !important;">
+            <button class="btn-page" id="btn-prev" onclick="changePage(-1)" disabled>← ANTERIOR</button>
+            <span class="page-info" id="page-info">PÁG 1</span>
+            <button class="btn-page" id="btn-next" onclick="changePage(1)">PRÓXIMA →</button>
+        </div>
+
+    </div><!-- /container -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script>
+    // ── Setup ──────────────────────────────────────────────────────────────
+    const supabaseClient = window.supabase.createClient(
+        window.ProtocolConfig.supabase.url,
+        window.ProtocolConfig.supabase.anonKey
+    );
+
+    const MAP_IMAGES = {
+        'ASCENT':   'https://media.valorant-api.com/maps/7eaecc1b-4337-bbf6-6ab9-04b8f06b3319/splash.png',
+        'BIND':     'https://media.valorant-api.com/maps/2c9d57ec-4431-9c5e-2939-8f9ef6dd5cba/splash.png',
+        'HAVEN':    'https://media.valorant-api.com/maps/2bee0dc9-4ffe-519b-1cbd-7fbe763a6047/splash.png',
+        'SPLIT':    'https://media.valorant-api.com/maps/d960549e-485c-e861-8d71-aa9d1aed12a2/splash.png',
+        'ICEBOX':   'https://media.valorant-api.com/maps/e2ad5c54-4114-a870-9641-8ea21279579a/splash.png',
+        'BREEZE':   'https://media.valorant-api.com/maps/2fb9a4fd-47b8-4e7d-a969-74b4046ebd53/splash.png',
+        'FRACTURE': 'https://media.valorant-api.com/maps/b529448b-4d60-346e-e89e-00a4c527a405/splash.png',
+        'PEARL':    'https://media.valorant-api.com/maps/fd267378-4d1d-484f-ff52-77821ed10dc2/splash.png',
+        'LOTUS':    'https://media.valorant-api.com/maps/2fe4ed3a-450a-948b-6d6b-e89a78e680a9/splash.png',
+        'SUNSET':   'https://media.valorant-api.com/maps/92584fbe-486a-b1b2-9faa-39b0f486b498/splash.png',
+        'ABYSS':    'https://media.valorant-api.com/maps/224b0a95-48b9-f703-1bd8-67aca101a61f/splash.png'
+    };
+
+    const PER_PAGE = 20;
+    let currentPage = 0;
+    let totalCount = 0;
+    let activeFilters = {};
+    let allPlayers = [];   // lista de riot_ids do roster
+    let agentsCache = [];  // agentes únicos vistos nas operações
+
+    // ── Init ───────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadPlayers();
+        await loadAgentOptions();
+        await fetchPage();
+    });
+
+    // Carrega jogadores do roster para popular o select
+    async function loadPlayers() {
+        const { data } = await supabaseClient
+            .from('players')
+            .select('riot_id')
+            .order('riot_id', { ascending: true });
+
+        if (!data) return;
+        allPlayers = data.map(p => p.riot_id);
+
+        const sel = document.getElementById('filter-player');
+        allPlayers.forEach(id => {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = id.split('#')[0];
+            sel.appendChild(opt);
+        });
+    }
+
+    // Carrega agentes únicos já registrados nas operation_squads
+    async function loadAgentOptions() {
+        const { data } = await supabaseClient
+            .from('operation_squads')
+            .select('agent')
+            .order('agent', { ascending: true });
+
+        if (!data) return;
+        const unique = [...new Set(data.map(r => r.agent).filter(Boolean))].sort();
+        agentsCache = unique;
+
+        const sel = document.getElementById('filter-agent');
+        unique.forEach(agent => {
+            const opt = document.createElement('option');
+            opt.value = agent;
+            opt.textContent = agent;
+            sel.appendChild(opt);
+        });
+    }
+
+    // ── Filtros ────────────────────────────────────────────────────────────
+    function applyFilters() {
+        activeFilters = {
+            player:    document.getElementById('filter-player').value,
+            map:       document.getElementById('filter-map').value,
+            result:    document.getElementById('filter-result').value,
+            agent:     document.getElementById('filter-agent').value,
+            dateFrom:  document.getElementById('filter-date-from').value,
+            dateTo:    document.getElementById('filter-date-to').value,
+            intel:     document.getElementById('filter-intel').value,
+            squadSize: document.getElementById('filter-squad-size').value,
+        };
+        currentPage = 0;
+        renderFilterTags();
+        fetchPage();
+    }
+
+    function clearFilters() {
+        ['filter-player','filter-map','filter-result','filter-agent',
+         'filter-date-from','filter-date-to','filter-intel','filter-squad-size']
+            .forEach(id => {
+                const el = document.getElementById(id);
+                el.value = '';
+            });
+        activeFilters = {};
+        currentPage = 0;
+        renderFilterTags();
+        fetchPage();
+    }
+
+    function renderFilterTags() {
+        const labels = {
+            player: 'Agente', map: 'Mapa', result: 'Resultado',
+            agent: 'Personagem', dateFrom: 'De', dateTo: 'Até',
+            intel: 'Intel', squadSize: 'Esquadrão'
+        };
+        const container = document.getElementById('active-filter-tags');
+        const tags = Object.entries(activeFilters)
+            .filter(([, v]) => v)
+            .map(([k, v]) => {
+                let display = v;
+                if (k === 'player') display = v.split('#')[0];
+                if (k === 'intel') display = v === '1' ? 'Com análise' : 'Sem análise';
+                if (k === 'squadSize') display = `Squad ${v}`;
+                return `<span class="filter-tag">${labels[k]}: ${display}
+                    <span class="filter-tag-remove" onclick="removeFilter('${k}')">✕</span>
+                </span>`;
+            }).join('');
+        container.innerHTML = tags || '<span style="font-size:0.75rem;color:var(--val-gray);letter-spacing:1px;">NENHUM FILTRO ATIVO</span>';
+    }
+
+    function removeFilter(key) {
+        activeFilters[key] = '';
+        document.getElementById({
+            player:'filter-player', map:'filter-map', result:'filter-result',
+            agent:'filter-agent', dateFrom:'filter-date-from', dateTo:'filter-date-to',
+            intel:'filter-intel', squadSize:'filter-squad-size'
+        }[key]).value = '';
+        currentPage = 0;
+        renderFilterTags();
+        fetchPage();
+    }
+
+    // ── Fetch ──────────────────────────────────────────────────────────────
+    async function fetchPage() {
+        showSkeleton();
+
+        try {
+            // Filtro por jogador ou agente exige join via operation_squads
+            // Estratégia: buscar IDs de operações que atendam ao filtro,
+            // depois buscar as operações completas.
+            let matchingOpIds = null;
+
+            if (activeFilters.player || activeFilters.agent || activeFilters.squadSize) {
+                let sq = supabaseClient
+                    .from('operation_squads')
+                    .select('operation_id, riot_id, agent');
+
+                if (activeFilters.player) {
+                    sq = sq.ilike('riot_id', `%${activeFilters.player.split('#')[0]}%`);
+                }
+                if (activeFilters.agent) {
+                    sq = sq.ilike('agent', activeFilters.agent);
+                }
+
+                const { data: squadRows } = await sq;
+                if (!squadRows || squadRows.length === 0) {
+                    renderOps([], {});
+                    updateStats(0, 0, 0);
+                    updatePagination(0);
+                    return;
+                }
+
+                // Agrupa por operation_id para validar tamanho do esquadrão
+                let opIdCounts = {};
+                squadRows.forEach(r => {
+                    opIdCounts[r.operation_id] = (opIdCounts[r.operation_id] || 0) + 1;
+                });
+
+                if (activeFilters.squadSize) {
+                    const size = parseInt(activeFilters.squadSize);
+                    opIdCounts = Object.fromEntries(
+                        Object.entries(opIdCounts).filter(([, c]) => c === size)
+                    );
+                }
+
+                matchingOpIds = Object.keys(opIdCounts);
+                if (matchingOpIds.length === 0) {
+                    renderOps([], {});
+                    updateStats(0, 0, 0);
+                    updatePagination(0);
+                    return;
+                }
+            }
+
+            // Query principal
+            let query = supabaseClient
+                .from('operations')
+                .select('*, operation_squads(riot_id, agent, agent_img, kda, hs_percent)', { count: 'exact' })
+                .neq('mode', 'Deathmatch')
+                .order('started_at', { ascending: false });
+
+            if (matchingOpIds) query = query.in('id', matchingOpIds);
+            if (activeFilters.map) query = query.ilike('map_name', activeFilters.map);
+            if (activeFilters.result) query = query.eq('result', activeFilters.result);
+            if (activeFilters.dateFrom) query = query.gte('started_at', activeFilters.dateFrom + 'T00:00:00');
+            if (activeFilters.dateTo)   query = query.lte('started_at', activeFilters.dateTo + 'T23:59:59');
+
+            // Paginação
+            query = query.range(currentPage * PER_PAGE, (currentPage + 1) * PER_PAGE - 1);
+
+            const { data, count, error } = await query;
+            if (error) throw error;
+
+            totalCount = count || 0;
+
+            // Intel (análises IA disponíveis)
+            let completedMap = {};
+            if (data && data.length > 0) {
+                const ids = data.map(op => op.id);
+                const { data: insights } = await supabaseClient
+                    .from('ai_insights')
+                    .select('match_id, player_id')
+                    .in('match_id', ids);
+
+                (insights || []).forEach(a => {
+                    if (!completedMap[a.match_id]) completedMap[a.match_id] = new Set();
+                    completedMap[a.match_id].add((a.player_id || '').toLowerCase());
+                });
+            }
+
+            // Filtro client-side: intel
+            let ops = data || [];
+            if (activeFilters.intel === '1') {
+                ops = ops.filter(op => completedMap[op.id] && completedMap[op.id].size > 0);
+            } else if (activeFilters.intel === '0') {
+                ops = ops.filter(op => !completedMap[op.id] || completedMap[op.id].size === 0);
+            }
+
+            const wins   = ops.filter(o => o.result === 'VITÓRIA').length;
+            const losses = ops.filter(o => o.result === 'DERROTA').length;
+            updateStats(totalCount, wins, losses);
+            updatePagination(totalCount);
+            renderOps(ops, completedMap);
+
+        } catch (err) {
+            console.error('Erro ao buscar operações:', err);
+            document.getElementById('ops-list').innerHTML =
+                `<div class="text-center py-5" style="color:var(--val-gray);letter-spacing:2px;font-size:0.85rem;">FALHA NA CONEXÃO COM O SERVIDOR</div>`;
+        }
+    }
+
+    // ── Paginação ──────────────────────────────────────────────────────────
+    function changePage(dir) {
+        currentPage += dir;
+        fetchPage();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updatePagination(total) {
+        const totalPages = Math.ceil(total / PER_PAGE);
+        const bar = document.getElementById('pagination-bar');
+        bar.style.display = totalPages <= 1 ? 'none' : 'flex';
+        bar.style.setProperty('display', totalPages <= 1 ? 'none' : 'flex', 'important');
+        document.getElementById('page-info').textContent = `PÁG ${currentPage + 1} / ${Math.max(1, totalPages)}`;
+        document.getElementById('btn-prev').disabled = currentPage === 0;
+        document.getElementById('btn-next').disabled = currentPage >= totalPages - 1;
+    }
+
+    // ── Stats ──────────────────────────────────────────────────────────────
+    function updateStats(total, wins, losses) {
+        const wr = total > 0 ? Math.round((wins / (wins + losses || 1)) * 100) : 0;
+        document.getElementById('stat-total').textContent  = total;
+        document.getElementById('stat-wins').textContent   = wins;
+        document.getElementById('stat-losses').textContent = losses;
+        document.getElementById('stat-wr').textContent     = wr + '%';
+    }
+
+    // ── Skeleton ───────────────────────────────────────────────────────────
+    function showSkeleton() {
+        const list = document.getElementById('ops-list');
+        list.innerHTML = Array.from({length: 5}, () =>
+            `<div class="skeleton-row"></div>`
+        ).join('');
+    }
+
+    // ── Render ─────────────────────────────────────────────────────────────
+    function renderOps(ops, completedMap) {
+        const list = document.getElementById('ops-list');
+
+        if (!ops.length) {
+            list.innerHTML = `<div class="text-center py-5" style="color:var(--val-gray);letter-spacing:2px;font-size:0.85rem;text-transform:uppercase;">
+                Nenhuma operação encontrada com os filtros atuais.
+            </div>`;
+            return;
+        }
+
+        list.innerHTML = ops.map(op => {
+            const squad = (op.operation_squads || [])
+                .map(s => ({ ...s, riotId: s.riot_id, agentImg: s.agent_img, hs: s.hs_percent }))
+                .sort((a, b) => {
+                    const [k1,d1] = a.kda.split('/').map(Number);
+                    const [k2,d2] = b.kda.split('/').map(Number);
+                    return k2 !== k1 ? k2 - k1 : d1 - d2;
+                });
+
+            let resultClass = 'mission-loss';
+            let resultColor = 'text-danger';
+            if (op.result === 'VITÓRIA') { resultClass = 'mission-win'; resultColor = 'text-success'; }
+            else if (op.result === 'EMPATE') { resultClass = 'mission-draw'; resultColor = 'text-warning'; }
+
+            const date = new Date(op.started_at).toLocaleDateString('pt-BR', {
+                day: '2-digit', month: '2-digit', year: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            const mapKey = (op.map_name || '').toUpperCase();
+            const mapUrl = MAP_IMAGES[mapKey] || '';
+
+            const seen = new Set();
+            const squadHTML = squad.map(m => {
+                const key = (m.riotId || '').toLowerCase();
+                if (seen.has(key)) return '';
+                seen.add(key);
+
+                const [kills, deaths, assists] = (m.kda || '0/0/0').split('/');
+                const hasIntel = completedMap[op.id] && completedMap[op.id].has(key);
+                const intelBtn = hasIntel
+                    ? `<a href="analise.html?player=${encodeURIComponent(m.riotId)}&matchId=${op.id}" onclick="event.stopPropagation()" class="intel-mini-link" title="Análise de Missão Disponível"></a>`
+                    : '';
+
+                return `
+                    <div class="d-flex align-items-center justify-content-between py-2 border-bottom border-secondary border-opacity-10">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden flex-grow-1">
+                            <img src="${m.agentImg || ''}" class="flex-shrink-0 border border-secondary"
+                                style="width:28px;height:28px;object-fit:cover;"
+                                onerror="this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png'">
+                            <span class="fw-bold text-light text-truncate text-uppercase"
+                                style="max-width:clamp(60px,15vw,120px);font-size:0.82rem;letter-spacing:1px;">
+                                ${escHtml(m.riotId ? m.riotId.split('#')[0] : '?')}
+                            </span>
+                            <span style="font-size:0.65rem;color:var(--val-gray);letter-spacing:0.5px;">${escHtml(m.agent || '')}</span>
+                            ${intelBtn}
+                        </div>
+                        <div class="d-flex align-items-center gap-2 font-monospace text-nowrap" style="font-size:0.85rem;">
+                            <div class="bg-dark px-2 py-1 border border-secondary border-opacity-25">
+                                <span class="text-secondary small">K</span><span class="text-white fw-bold mx-1">${kills}</span>
+                                <span class="text-secondary small">D</span><span class="text-danger fw-bold mx-1">${deaths}</span>
+                                <span class="text-secondary small">A</span><span class="text-info fw-bold ms-1">${assists}</span>
+                            </div>
+                            <div style="width:46px;text-align:right;">
+                                <span class="text-light">${m.hs}%</span>
+                                <span style="font-size:0.6rem;color:var(--val-gray);"> HS</span>
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            return `
+                <div onclick="window.open('https://tracker.gg/valorant/match/${op.id}','_blank')"
+                     class="mission-row ${resultClass} p-3 p-md-4 d-flex flex-column flex-md-row align-items-md-start justify-content-between gap-3"
+                     style="cursor:pointer; background-image:url('${mapUrl}');">
+                    <div class="mission-bg-overlay" style="background-image:url('${mapUrl}');"></div>
+
+                    <!-- Score + mapa -->
+                    <div class="d-flex align-items-center gap-4" style="min-width:200px;">
+                        <div class="text-center" style="min-width:70px;">
+                            <div class="fs-1 fw-bold ${resultColor} lh-1"
+                                style="font-family:'Teko',sans-serif;letter-spacing:1px;">${escHtml(op.score)}</div>
+                            <div class="${resultColor} text-uppercase fw-bold mt-1"
+                                style="font-size:0.8rem;letter-spacing:2px;">${escHtml(op.result)}</div>
+                        </div>
+                        <div class="border-start border-secondary border-opacity-50 ps-3">
+                            <div class="fs-5 fw-bold text-white text-uppercase lh-1 mb-1"
+                                style="letter-spacing:1px;">${escHtml(op.map_name)}</div>
+                            <div class="d-flex align-items-center gap-1" style="font-size:0.78rem;color:#adb5bd;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                                </svg>
+                                ${date}
+                            </div>
+                            <div style="font-size:0.72rem;color:var(--val-gray);margin-top:4px;letter-spacing:1px;">
+                                ${squad.length} AGENTE${squad.length !== 1 ? 'S' : ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Squad -->
+                    <div class="d-flex flex-column flex-grow-1" style="max-width:480px;">
+                        ${squadHTML}
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g,'&amp;')
+            .replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;');
+    }
+    </script>
+</body>
+</html>

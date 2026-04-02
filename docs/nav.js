@@ -86,6 +86,7 @@ function injectNavigation() {
                 <nav class="main-nav">
                     <a href="index.html" class="nav-link ${isActive('index.html')}">DASHBOARD</a>
                     <a href="treino.html" class="nav-link ${isActive('treino.html')}">SALA DE TREINO</a>
+                    <a href="historico.html" class="nav-link ${isActive('historico.html')}">HISTÓRICO</a>
                     <a href="briefing.html" class="nav-link ${isActive('briefing.html')}">BRIEFING</a>
                     <a href="admin.html" class="nav-link ${isActive('admin.html')}">ADMIN</a>
                 </nav>
