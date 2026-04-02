@@ -16,6 +16,17 @@ window.ProtocolConfig = {
         anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuZXV1bWRrdGF2d3pkd3ZjdWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODAyMzEsImV4cCI6MjA4OTU1NjIzMX0.aZDhgRqlvvmiGi_Zw5Q0_xFSDX-9VTYXBmAYCOfdahc'
     },
 
+    // Redes Sociais e Contato
+    // Deixe a string vazia "" para ocultar automaticamente o link
+    social: {
+        telegram:  'https://t.me/+t74UD9N3wiE0NTkx',
+        youtube:   '',
+        instagram: '',
+        tiktok:    '',
+        twitter:   '',
+        email:     '',
+    },
+
     // Configurações do Painel de Operações
     ui: {
         opsPerPage: 5, // Número de operações a carregar por vez
