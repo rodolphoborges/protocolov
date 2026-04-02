@@ -141,71 +141,23 @@ class OraculoService {
 
                 console.log(`   [→] Despachando análise para ${member.riotId} (Fila)...`);
 
-                // 2. Chamada ASSÍNCRONA à API do Oráculo-V (/api/queue)
-                // O Oráculo agora registra na fila e processa em background, retornando 202 imediatamente.
-                const response = await axios.post(`${this.apiUrl}/api/queue`, briefing, {
-                    headers: { 'Content-Type': 'application/json', 'x-api-key': this.apiKey },
-                    timeout: 60000 // Aumento para 60s p/ maior resiliência em picos
-                });
-
-                if (response.status === 202 || (response.data && response.data.message)) {
-                    console.log(`   [⌛] Briefing aceito pelo Oráculo. Análise em background iniciada.`);
+                // 2. Fire-and-forget com timeout curto (3s).
+                // O /api/queue retorna 202 instantaneamente — o Oráculo processa em background de forma autônoma.
+                // O Protocolo-V não deve bloquear aguardando análise de IA.
+                try {
+                    await axios.post(`${this.apiUrl}/api/queue`, briefing, {
+                        headers: { 'Content-Type': 'application/json', 'x-api-key': this.apiKey },
+                        timeout: 3000
+                    });
+                    console.log(`   [✓] Briefing enfileirado para ${member.riotId}.`);
                     results.successCount++;
-                } else if (response.data && response.data.insight) {
-                    // Fallback para caso o endpoint ainda retorne o insight direto (compatibilidade)
-                    const { insight, technical_data } = response.data;
-                    console.log(`   [←] Insight recebido: ${member.riotId} | Rank ${insight.rank || 'N/A'}`);
-
-                    // 3. Persistência Local (ai_insights) - Resiliente a falta de constraint
-                    const { data: existingInsight } = await supabase
-                        .from('ai_insights')
-                        .select('id')
-                        .eq('match_id', op.id)
-                        .eq('player_id', member.riotId)
-                        .limit(1);
-
-                    const insightData = {
-                        match_id: op.id,
-                        player_id: member.riotId,
-                        insight_resumo: insight.resumo,
-                        classification: insight.rank,
-                        impact_score: insight.score,
-                        model_used: insight.model_used,
-                        analysis_report: technical_data 
-                    };
-
-                    if (existingInsight && existingInsight.length > 0) {
-                        await supabase.from('ai_insights').update(insightData).eq('id', existingInsight[0].id);
-                    } else {
-                        await supabase.from('ai_insights').insert([insightData]);
-                    }
-
-                    // 4. Atualização de Performance (Holt Level & Sinergia)
-                    await this.updatePlayerPerformance(member.riotId, insight);
-
-                    // 5. Notificações Telegram
-                    if (process.env.TELEGRAM_BOT_TOKEN) {
-                        if (insight.rank === 'Depósito de Torreta') {
-                            await this.sendTelegramNotification(member.riotId, insight, true);
-                        } else if (insight.rank === 'Alpha') {
-                            await this.sendTelegramNotification(member.riotId, insight, false);
-                        }
-                    }
-                    results.successCount++;
-                }
-            } catch (err) {
-                const errorDetail = err.response?.data?.error || err.message || "Erro desconhecido";
-                console.error(`   [❌] Falha ao processar análise para ${member.riotId}: ${errorDetail}`);
-                
-                // Resiliência: Enfileirar para depois se o Oráculo cair
-                if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND' || (err.response && err.response.status >= 500) || err.code === 'ETIMEDOUT') {
-                    console.log(`       [⏳] Enfileirando para processamento posterior...`);
+                } catch (err) {
+                    // Oráculo offline ou lento — registrar no banco local para retry posterior
+                    console.log(`   [⏳] Oráculo indisponível para ${member.riotId}. Enfileirando localmente...`);
                     await this.enqueueForLater(op.id, member.riotId, briefing);
+                    // Não conta como falha do Protocolo-V — o Oráculo processará quando disponível
+                    results.successCount++;
                 }
-
-                results.failureCount++;
-                results.errors.push({ player: member.riotId, error: errorDetail });
-            }
         };
 
         // Processamento SEQUENCIAL dos membros da squad com pequeno delay (Traffic Shaping)
