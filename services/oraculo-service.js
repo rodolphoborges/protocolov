@@ -158,6 +158,10 @@ class OraculoService {
                     // Não conta como falha do Protocolo-V — o Oráculo processará quando disponível
                     results.successCount++;
                 }
+            } catch (err) {
+                console.error(`   [❌] Erro ao montar briefing para ${member.riotId}: ${err.message}`);
+                results.failureCount++;
+            }
         };
 
         // Processamento SEQUENCIAL dos membros da squad com pequeno delay (Traffic Shaping)
