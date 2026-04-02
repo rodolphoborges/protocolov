@@ -23,10 +23,29 @@ try {
                .catch(e => console.error('⚠️ [WARNING] Webhook setup failed:', e.message));
         } else {
             bot = new TelegramBot(token, { polling: false });
-            bot.deleteWebHook().then(() => {
-                bot.startPolling();
-                console.log("🌐 Terminal Avançado: POLLING ATIVO e rádio limpo.");
-            }).catch(e => console.error('⚠️ [WARNING] Polling initial setup failed:', e.message));
+            bot.deleteWebHook()
+                .then(() => {
+                    bot.startPolling({ restart: true });
+                    console.log("🌐 Terminal Avançado: POLLING ATIVO e rádio limpo.");
+                })
+                .catch(e => {
+                    console.error('⚠️ [WARNING] deleteWebHook falhou, iniciando polling mesmo assim:', e.message);
+                    bot.startPolling({ restart: true });
+                });
+
+            // Captura erros de polling para evitar morte silenciosa do bot
+            bot.on('polling_error', (err) => {
+                // 409 = conflito (outra instância rodando) — logar e aguardar
+                if (err.code === 'ETELEGRAM' && err.message.includes('409')) {
+                    console.warn('⚠️ [POLLING] Conflito 409 detectado — outra instância ativa. Aguardando...');
+                } else {
+                    console.error('❌ [POLLING] Erro:', err.message);
+                }
+            });
+
+            bot.on('error', (err) => {
+                console.error('❌ [BOT] Erro geral:', err.message);
+            });
         }
     } else {
         console.warn('⚠️ [WARNING] Bot running in STANDBY mode (no token).');
@@ -227,18 +246,17 @@ bot.onText(/^\/start(?:@[\w_]+)?(?:\s+(.*))?/, async (msg) => {
         }
 
         const welcomeMsg = UI.kaio("OLÁ, RECRUTA!") + `\n\n` +
-            `Eu sou o *K.A.I.O.*, seu mentor tático no Protocolo V. Meu objetivo é guiar sua evolução no Valorant e organizar nosso time de forma inteligente.\n\n` +
-            `Para começar sua jornada, siga estes passos:\n\n` +
-            `📍 *PASSO 1: O SITE*\n` +
-            `Cadastre-se na nossa plataforma para que eu possa acompanhar seus dados:\n` +
+            `Eu sou o *K.A.I.O.*, mentor tático do Protocolo V. Meu objetivo é organizar o time e acompanhar sua evolução no Valorant.\n\n` +
+            `Para entrar no sistema, só preciso de um comando:\n\n` +
+            `📍 *PASSO 1: CONECTAR*\n` +
+            `Envie seu Riot ID para eu te cadastrar:\n` +
+            `   \`/vincular SeuNick#TAG\`\n\n` +
+            `📍 *PASSO 2: JOGAR EM GRUPO*\n` +
+            `Use \`/convocar\` para avisar o time que você quer jogar agora.\n\n` +
+            `📍 *PASSO 3: ACOMPANHAR*\n` +
+            `Veja sua evolução, rank e análises táticas em:\n` +
             `🔗 [protocolov.com](https://protocolov.com)\n\n` +
-            `📍 *PASSO 2: A CONEXÃO*\n` +
-            `Agora, conecte sua conta do Valorant a este chat com o comando:\n` +
-            `   \`/vincular SeuNick#000\`\n\n` +
-            `📍 *PASSO 3: O CONHECIMENTO*\n` +
-            `Entenda como medimos ADR, KAST e o seu Performance Index em:\n` +
-            `   \`/como_funciona\`\n\n` +
-            UI.info("Qualquer dúvida, digite /ajuda para ver todos os comandos.") +
+            UI.info("Missão inicial: jogue 1 partida em squad para sair do DEPÓSITO DE TORRETAS.") +
             UI.footer();
         bot.sendMessage(chatId, welcomeMsg, { parse_mode: 'Markdown', disable_web_page_preview: true });
     } catch (e) {
@@ -272,13 +290,59 @@ bot.onText(/^\/vincular(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
         const { data: players } = await supabase.from('players').select('*').ilike('riot_id', `%${riotId}%`).limit(1);
 
         if (!players || players.length === 0) {
+            // Agente não está no banco — tentar cadastrar via HenrikDev
+            bot.sendMessage(chatId,
+                UI.kaio("VERIFICANDO IDENTIDADE") + `\n\n` +
+                `Agente *${escapeMarkdown(riotId)}* não está nos registros.\n` +
+                `Consultando os servidores da Riot para validar sua identidade...`,
+                { parse_mode: 'Markdown' });
+
+            const [name, tag] = riotId.split('#');
+            let accountData = null;
+            try {
+                const verifyRes = await fetch(
+                    `https://api.henrikdev.xyz/valorant/v1/account/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
+                    { headers: { 'Authorization': process.env.HENRIK_API_KEY } }
+                );
+                if (verifyRes.status === 200) {
+                    const json = await verifyRes.json();
+                    accountData = json.data;
+                } else if (verifyRes.status === 404) {
+                    return bot.sendMessage(chatId,
+                        `❌ *Nick não encontrado na Riot.*\n\n` +
+                        `Verifique se "${escapeMarkdown(riotId)}" está correto (Ex: \`Jett#BR1\`).`,
+                        { parse_mode: 'Markdown' });
+                }
+            } catch (_) { /* prossegue mesmo sem validação */ }
+
+            const { error: insertErr } = await supabase.from('players').insert([{
+                riot_id: riotId,
+                role_raw: 'Flex',
+                unit: 'UNIDADE DE APOIO',
+                current_rank: accountData?.currenttierpatched || 'Processando...',
+                level: accountData?.account_level || null,
+                card_url: accountData?.card?.small || null,
+                telegram_id: telegramId,
+                synergy_score: 0
+            }]);
+
+            if (insertErr) {
+                if (insertErr.code === '23505') {
+                    return bot.sendMessage(chatId, `⚠️ Este Riot ID já existe no sistema. Tente \`/vincular\` novamente.`, { parse_mode: 'Markdown' });
+                }
+                return bot.sendMessage(chatId, `❌ Erro ao criar cadastro: \`${insertErr.message}\``, { parse_mode: 'Markdown' });
+            }
+
             return bot.sendMessage(chatId,
-                `❌ *Agente não encontrado no sistema.*\n\n` +
-                `Não consegui localizar "${escapeMarkdown(riotId)}" nos meus registros. Por favor, verifique:\n\n` +
-                `1. Se você já se cadastrou em [protocolov.com](https://protocolov.com)\n` +
-                `2. Se o Nick e a Tag estão corretos (ex: Jett#123)\n\n` +
-                UI.info("A sincronização entre o site e o bot pode levar alguns minutos."),
-                { parse_mode: 'Markdown', disable_web_page_preview: true });
+                UI.kaio("RECRUTAMENTO APROVADO!") + `\n\n` +
+                `*${escapeMarkdown(name)}*, você foi alistado e já está conectado ao sistema.\n\n` +
+                `Seus dados de partida serão sincronizados automaticamente. Enquanto isso:\n\n` +
+                `📊 \`/perfil\` — Ver seu status\n` +
+                `🏆 \`/ranking\` — Ver os melhores do grupo\n` +
+                `🎮 \`/convocar\` — Chamar o time para jogar\n\n` +
+                UI.info("Missão inicial: jogue 1 partida em squad para sair do DEPÓSITO DE TORRETAS.") +
+                UI.footer(),
+                { parse_mode: 'Markdown' });
         }
 
         const player = players[0];
