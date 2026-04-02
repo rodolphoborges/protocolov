@@ -9,6 +9,7 @@ jest.mock('@supabase/supabase-js', () => {
         _isUpdate: false,
         select: jest.fn(function() { return this; }),
         eq: jest.fn(function() { return this; }),
+        or: jest.fn(function() { return this; }),
         neq: jest.fn(function() { return this; }),
         ilike: jest.fn(function() { return this; }),
         limit: jest.fn(function() { return this; }),
