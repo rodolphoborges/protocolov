@@ -166,6 +166,12 @@
             100% { background-position: -200% 0; }
         }
 
+        /* Sem IntersectionObserver nesta página — forçar visibilidade */
+        .fade-in-section {
+            opacity: 1 !important;
+            transform: none !important;
+        }
+
         /* ── Responsivo filtros ──────────────────────────── */
         @media (max-width: 768px) {
             .filter-grid { grid-template-columns: 1fr 1fr !important; }
