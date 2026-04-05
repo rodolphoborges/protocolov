@@ -952,13 +952,91 @@ app.get('/', (req, res) => {
     res.status(200).json({ status: 'running', bot_info: token ? 'connected' : 'standby' });
 });
 
+app.use(express.json({ limit: '50mb' }));
+
 if (bot && process.env.WEBHOOK_URL) {
-    app.use(express.json());
     app.post(`/bot${token}`, (req, res) => {
         bot.processUpdate(req.body);
         res.sendStatus(200);
     });
 }
+
+// --- ENDPOINT DE CALLBACK DO ORÁCULO-V ---
+app.post('/api/insights/callback', async (req, res) => {
+    const apiKey = req.headers['x-api-key'];
+    const masterKey = process.env.ADMIN_API_KEY;
+
+    if (!masterKey || apiKey !== masterKey) {
+        return res.status(401).json({ error: 'Acesso negado. API Key inválida.' });
+    }
+
+    const { 
+        match_id, 
+        player_id, 
+        insight_resumo, 
+        analysis_report, 
+        model_used, 
+        classification, 
+        impact_score, 
+        engine_version,
+        holt_state 
+    } = req.body;
+
+    if (!match_id || !player_id) {
+        return res.status(400).json({ error: 'match_id e player_id são obrigatórios.' });
+    }
+
+    console.log(`📥 [CALLBACK] Recebido insight para ${player_id} / Match: ${match_id}`);
+
+    try {
+        // 1. Atualizar Estado Holt-Winters no Jogador
+        if (holt_state) {
+            console.log(`📈 [CALLBACK] Atualizando tendência Holt-Winters para ${player_id}`);
+            await supabase.from('players').update(holt_state).eq('riot_id', player_id);
+        }
+
+        // 2. Persistir Insight (Mirror)
+        const { error: syncErr } = await supabase.from('ai_insights').upsert([{
+            player_id,
+            match_id,
+            insight_resumo: typeof insight_resumo === 'string' ? insight_resumo : JSON.stringify(insight_resumo),
+            analysis_report,
+            model_used,
+            classification,
+            impact_score,
+            engine_version,
+            created_at: new Date().toISOString()
+        }], { onConflict: 'match_id, player_id' });
+
+        if (syncErr) {
+            console.error(`❌ [CALLBACK] Erro ao persistir insight: ${syncErr.message}`);
+            throw syncErr;
+        }
+
+        // 3. Notificar usuário via Telegram
+        const { data: player } = await supabase.from('players')
+            .select('telegram_id')
+            .ilike('riot_id', player_id)
+            .maybeSingle();
+
+        if (player && player.telegram_id && bot) {
+            const nick = player_id.split('#')[0].toUpperCase();
+            const msg = UI.oraculo("MISSÃO ANALISADA") + `\n\n` +
+                `👤 *${nick}*\n` +
+                `📊 *Index:* \`${impact_score}/100\`\n\n` +
+                `[ACESSAR RELATÓRIO COMPLETO](https://protocolov.com/analise.html?player=${encodeURIComponent(player_id)}&matchId=${match_id})` +
+                UI.footer();
+            
+            bot.sendMessage(player.telegram_id, msg, { parse_mode: 'Markdown' })
+               .catch(e => console.warn(`⚠️ [CALLBACK] Falha ao enviar Telegram: ${e.message}`));
+        }
+
+        res.json({ success: true, message: 'Insight processado e persistido com sucesso.' });
+    } catch (err) {
+        console.error('🔥 [CALLBACK FATAL]:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
 
 const modoStr = process.env.WEBHOOK_URL ? 'WEBHOOK ONLINE' : 'POLLING ATIVO';
 app.listen(process.env.PORT || 3000, () => {
@@ -966,158 +1044,6 @@ app.listen(process.env.PORT || 3000, () => {
     
     // Inicializa o Worker do Oráculo V se estivermos no ambiente correto
     if (process.env.HENRIK_API_KEY && process.env.NODE_ENV !== 'test') {
-        console.log("🧠 [ORÁCULO-V] Protocolo de Análise Ativo. Aguardando jobs...");
-        startQueueWorker();
-    } else {
-        console.log("⚠️ [ORÁCULO-V] Worker em standby (Ambiente de Teste ou API Key ausente).");
+        console.log("🧠 [ORÁCULO-V] Pronto para receber Webhooks via /api/insights/callback.");
     }
 });
-
-// --- WORKER DE FILA DE ANÁLISE (Oráculo-V v3.0) ---
-const { analyzeMatch } = require('./oraculo');
-
-async function startQueueWorker() {
-    // Jitter tático: Atraso aleatório inicial para evitar concorrência com tarefas agendadas em picos de 30min
-    const jitter = Math.floor(Math.random() * 60000);
-    console.log(`🧠 [ORÁCULO-V] Sincronizando pulso tático... (Iniciando em ${Math.ceil(jitter/1000)}s)`);
-    await new Promise(r => setTimeout(r, jitter));
-
-    // Loop infinito para processar a fila
-    while (true) {
-        try {
-            if (!oraculoExt) {
-                console.warn("⚠️ [ORÁCULO-V] Conexão externa não configurada. Worker abortado.");
-                return;
-            }
-
-            // Busca o próximo job pendente
-            const { data: job, error } = await oraculoExt
-                .from('match_analysis_queue')
-                .select('*')
-                .eq('status', 'pending')
-                .order('created_at', { ascending: true })
-                .limit(1);
-
-            if (error) {
-                console.error("❌ [ORÁCULO-V] Erro ao consultar fila:", error.message);
-                await new Promise(r => setTimeout(r, 10000));
-                continue;
-            }
-
-            if (job && job.length > 0) {
-                const currentJob = job[0];
-                
-                if (currentJob.agente_tag === 'AUTO') {
-                    console.log(`🤖 [ORÁCULO-V] AUTO-SCAN: Iniciando varredura na partida ${currentJob.match_id}...`);
-                    try {
-                        // 1. Buscar dados da partida (V4)
-                        const res = await fetch(`https://api.henrikdev.xyz/valorant/v4/match/br/${currentJob.match_id}`, {
-                            headers: { 'Authorization': henrikApiKey }
-                        });
-                        
-                        if (res.status !== 200) throw new Error(`Erro API Henrik: ${res.status}`);
-                        const matchData = await res.json();
-                        const playersInMatch = matchData.data.players;
-
-                        // 2. Buscar todos os agentes registrados no Protocolo V
-                        const { data: dbPlayers } = await supabase.from('players').select('riot_id');
-                        const pVAgentsByRiotId = new Set(dbPlayers.map(p => p.riot_id.toLowerCase().trim()));
-
-                        // 3. Identificar quem da partida é do Protocolo V
-                        const targets = playersInMatch.filter(p => {
-                            const fullId = `${p.name}#${p.tag}`.toLowerCase().trim();
-                            return pVAgentsByRiotId.has(fullId);
-                        });
-
-                        console.log(`📡 [ORÁCULO-V] Varredura concluída. ${targets.length} agentes encontrados.`);
-
-                        if (targets.length > 0) {
-                            // 4. Criar jobs individuais para cada agente encontrado
-                            const newJobs = targets.map(t => ({
-                                match_id: currentJob.match_id,
-                                agente_tag: `${t.name}#${t.tag}`,
-                                status: 'pending',
-                                metadata: { 
-                                    ...(currentJob.metadata || {}),
-                                    auto_scan: true,
-                                    requester: currentJob.metadata?.requester || 'AUTO'
-                                }
-                            }));
-
-                            await oraculoExt.from('match_analysis_queue').upsert(newJobs, { onConflict: 'match_id,agente_tag' });
-                            
-                            await oraculoExt.from('match_analysis_queue').update({ 
-                                status: 'completed', 
-                                processed_at: new Date().toISOString(),
-                                error_message: `Varredura concluída: ${targets.length} agentes identificados e enfileirados.`
-                            }).eq('id', currentJob.id);
-                        } else {
-                            await oraculoExt.from('match_analysis_queue').update({ 
-                                status: 'completed', 
-                                processed_at: new Date().toISOString(),
-                                error_message: "Varredura concluída: Nenhum agente do Protocolo V detectado nesta partida."
-                            }).eq('id', currentJob.id);
-                            
-                            const chatIdToNotify = currentJob.chat_id || currentJob.metadata?.chat_id;
-                            if (chatIdToNotify && bot) {
-                                bot.sendMessage(chatIdToNotify, UI.kaio("VARREDURA CONCLUÍDA") + "\n\nNenhum agente do Protocolo V foi detectado nos logs desta missão." + UI.footer(), { parse_mode: 'Markdown' });
-                            }
-                        }
-                    } catch (scanErr) {
-                        console.error("❌ [ORÁCULO-V] Erro no AUTO-SCAN:", scanErr.message);
-                        await oraculoExt.from('match_analysis_queue').update({ 
-                            status: 'failed', 
-                            error_message: `Falha na varredura: ${scanErr.message}` 
-                        }).eq('id', currentJob.id);
-                    }
-                } else {
-                    // --- LÓGICA DE ANÁLISE INDIVIDUAL (Existente) ---
-                    const targetTag = currentJob.agente_tag;
-                    console.log(`🔍 [ORÁCULO-V] Analisando partida ${currentJob.match_id} para ${targetTag}...`);
-
-                    const result = await analyzeMatch(currentJob.match_id, targetTag);
-
-                    if (result.status === 'completed') {
-                        const updatedMeta = { 
-                            ...(currentJob.metadata || {}), 
-                            analysis: result.report 
-                        };
-
-                        await oraculoExt.from('match_analysis_queue').update({ 
-                            status: 'completed', 
-                            agente_tag: targetTag,
-                            metadata: updatedMeta,
-                            processed_at: new Date().toISOString()
-                        }).eq('id', currentJob.id);
-
-                        console.log(`✅ [ORÁCULO-V] Partida ${currentJob.id} processada com sucesso.`);
-                        
-                        const chatIdToNotify = currentJob.chat_id || currentJob.metadata?.chat_id;
-                        if (chatIdToNotify && bot) {
-                            const msg = UI.oraculo("MISSÃO ANALISADA") + `\n\n` +
-                                `👤 *${targetTag.split('#')[0].toUpperCase()}*\n` +
-                                `📊 *Index:* \`${result.report.performance_index}/100\`\n\n` +
-                                `[ACESSAR RELATÓRIO COMPLETO](https://protocolov.com/analise.html?player=${encodeURIComponent(targetTag)}&matchId=${currentJob.match_id})` +
-                                UI.footer();
-                            bot.sendMessage(chatIdToNotify, msg, { parse_mode: 'Markdown' });
-                        }
-                    } else {
-                        console.error(`❌ [ORÁCULO-V] Falha no JOB ${currentJob.id}:`, result.error);
-                        await oraculoExt.from('match_analysis_queue').update({ 
-                            status: 'failed', 
-                            error_message: result.error 
-                        }).eq('id', currentJob.id);
-                    }
-                }
-            }
-
-            // Aguarda antes da próxima verificação (5 segundos se processou, 30 se estava vazio)
-            const waitTime = (job && job.length > 0) ? 5000 : 30000;
-            await new Promise(r => setTimeout(r, waitTime));
-
-        } catch (err) {
-            console.error("🔥 [ORÁCULO-V] Erro crítico no worker:", err.message);
-            await new Promise(r => setTimeout(r, 60000));
-        }
-    }
-}
