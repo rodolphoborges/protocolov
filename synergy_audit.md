@@ -1,31 +1,24 @@
 # Relatório de Auditoria de Sinergia - Protocolo-V
 
-Data: 31/03/2026, 14:19:53
-Operações Competitivas Analisadas: 228
+Data: 05/04/2026, 05:49:49
+Operações Competitivas Analisadas: 266
 
 | Status | Jogador | Sinergia Atual | Sinergia Calculada | Diferença | Partidas em Squad |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| ❌ ERRO | m4sna#chama | 887 | 269 | -618 | 126 |
-| ❌ ERRO | DefeitoDeFábrica#ZzZ | 796 | 222 | -574 | 100 |
-| ❌ ERRO | ALEGRIA#021 | 900 | 202 | -698 | 85 |
-| ❌ ERRO | mwzeraDaShopee#s2s2 | 752 | 197 | -555 | 89 |
-| ❌ ERRO | ousadia#013 | 364 | 85 | -279 | 26 |
-| ❌ ERRO | Vduart#MEE | 370 | 69 | -301 | 21 |
-| ❌ ERRO | Pilako#3186 | 93 | 41 | -52 | 13 |
-| ✅ OK | Camarada vituxo#1312 | 38 | 38 | 0 | 18 |
-| ❌ ERRO | Ministro Xandao#peixe | 320 | 27 | -293 | 16 |
-| ❌ ERRO | Mahoraga#Chess | 5 | 14 | +9 | 4 |
-| ❌ ERRO | Fadinha Do FF#nobru | 2 | 6 | +4 | 2 |
+| ✅ OK | m4sna#chama | 380 | 380 | 0 | 155 |
+| ✅ OK | DefeitoDeFábrica#ZzZ | 361 | 361 | 0 | 134 |
+| ✅ OK | mwzeraDaShopee#s2s2 | 279 | 279 | 0 | 113 |
+| ✅ OK | ALEGRIA#021 | 245 | 245 | 0 | 95 |
+| ✅ OK | Camarada vituxo#1312 | 96 | 96 | 0 | 27 |
+| ✅ OK | ousadia#013 | 85 | 85 | 0 | 26 |
+| ✅ OK | Pilako#3186 | 76 | 76 | 0 | 21 |
+| ✅ OK | Vduart#MEE | 74 | 74 | 0 | 24 |
+| ✅ OK | ALT4O#easy | 73 | 73 | 0 | 12 |
+| ✅ OK | Ministro Xandao#peixe | 27 | 27 | 0 | 16 |
+| ✅ OK | Mahoraga#Chess | 14 | 14 | 0 | 4 |
+| ✅ OK | Fadinha Do FF#nobru | 6 | 6 | 0 | 2 |
 | ✅ OK | TKBatata#JINX | 4 | 4 | 0 | 2 |
-| ❌ ERRO | PDL CH1TUZ#666 | 1 | 4 | +3 | 1 |
-| ✅ OK | kugutsuhasu#2145 | 0 | 0 | 0 | 0 |
+| ✅ OK | PDL CH1TUZ#666 | 4 | 4 | 0 | 1 |
+| ✅ OK | 144 ALT4O#easy | 0 | 0 | 0 | 0 |
 
-## ⚠️ CONCLUSÃO: Foram encontradas divergências! 
-
-Total acumulado de erro: **3386 pontos**.
-
-### Possíveis causas:
-1. **Operações Deletadas:** Se uma operação foi removida do banco mas os pontos permaneceram nos jogadores.
-2. **Reset Parcial:** Se a tabela de jogadores foi resetada mas a de operações não.
-3. **Erro no Upsert Antigo:** Se o sistema falhou ao atualizar a pontuação incrementalmente (ex: processou a partida mas não somou os pontos).
-4. **Pontuação Manual:** Se alguém alterou o `synergy_score` diretamente no banco de dados.
+## ✅ CONCLUSÃO: Todos os pontos de sinergia estão 100% CORRETOS!
