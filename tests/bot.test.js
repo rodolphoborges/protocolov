@@ -15,6 +15,7 @@ jest.mock('@supabase/supabase-js', () => {
         limit: jest.fn(function() { return this; }),
         gt: jest.fn(function() { return this; }),
         order: jest.fn(function() { return this; }),
+        maybeSingle: jest.fn(function() { return this; }),
         update: jest.fn(function() { this._isUpdate = true; return this; }),
         then: jest.fn(function(onFulfilled) {
             const table = this._lastTable;
@@ -49,7 +50,9 @@ const mockApp = {
     get: jest.fn(),
     listen: jest.fn((port, cb) => cb && cb()),
 };
-jest.mock('express', () => jest.fn(() => mockApp));
+const mockExpress = jest.fn(() => mockApp);
+mockExpress.json = jest.fn(() => jest.fn());
+jest.mock('express', () => mockExpress);
 
 // Mock do Telegram Bot API
 const mockBotInstance = {
