@@ -40,9 +40,9 @@ jest.mock('@supabase/supabase-js', () => {
         }).then(onFulfilled);
       }
       if (table === 'operations') {
-        return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        return Promise.resolve({ data: isSingle ? null : [], error: null }).then(onFulfilled);
       }
-      return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+      return Promise.resolve({ data: isSingle ? null : [], error: null }).then(onFulfilled);
     })
   };
 
