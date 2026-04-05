@@ -706,6 +706,18 @@
                     }
                 }
 
+                // 4. Sanitização de Fallbacks (Para dados cacheados ou legados)
+                // Remove strings que começam com TENDÊNCIA, VIOLAÇÃO ou EXCELÊNCIA.
+                const sanitizeFallback = (arr) => {
+                    if (!Array.isArray(arr)) return arr;
+                    return arr.filter(item => {
+                        const low = item.toLowerCase();
+                        return !(low.startsWith('tendência') || low.startsWith('violação'));
+                    });
+                };
+                strongPoints = sanitizeFallback(strongPoints);
+                criticalFlaws = sanitizeFallback(criticalFlaws);
+
                 // Renderização Pontos Fortes
                 if (strongPoints.length > 0 && Array.isArray(strongPoints)) {
                     strengthContainer.innerHTML = `
@@ -736,6 +748,11 @@
                 } else {
                     kaioText = kaioObj || report.advice || "Análise tática concluída.";
                 }
+                
+                // Se o texto solto for tendência matemática pura, substituímos por default
+                if (typeof kaioText === 'string' && (kaioText.toUpperCase().startsWith('TENDÊNCIA') || kaioText.toUpperCase().startsWith('VIOLAÇÃO'))) {
+                    kaioText = "Análise tática concluída. Verifique os painéis de tendência.";
+                }
 
                 if (kaioText) {
                     document.getElementById('kaio-advice-section').classList.remove('hidden');
@@ -753,7 +770,9 @@
                     } else if (msg.includes("Destaque do jogo:")) {
                         focusPoint = msg.replace("Destaque do jogo:", "").trim();
                     } else if (msg.length > 5 && focusPoint === "--") {
-                        if (!msg.includes("ANALISANDO")) focusPoint = msg;
+                        if (!msg.includes("ANALISANDO") && !msg.toUpperCase().startsWith("TENDÊNCIA") && !msg.toUpperCase().startsWith("VIOLAÇÃO")) {
+                             focusPoint = msg;
+                        }
                     }
                 });
 
