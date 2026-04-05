@@ -1,4 +1,16 @@
+const crypto = require('crypto');
+
 class SynergyEngine {
+    static toUUID(input) {
+        // Se já for um UUID válido, retorna como está
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidRegex.test(input)) return input;
+
+        // Caso contrário, gera um UUID determinístico a partir do input usando MD5 (padrão UUID v3 aproximado)
+        const hash = crypto.createHash('md5').update(input).digest('hex');
+        return `${hash.substring(0, 8)}-${hash.substring(8, 12)}-${hash.substring(12, 16)}-${hash.substring(16, 20)}-${hash.substring(20, 32)}`;
+    }
+
     static calculateSynergyPoints(squadLength, result) {
         let basePoints = 0;
         if (squadLength === 2) basePoints = 1;
@@ -56,8 +68,9 @@ class SynergyEngine {
 
                     const startTime = match.metadata.game_start ? match.metadata.game_start * 1000 : new Date(match.metadata.started_at).getTime();
 
+                    const opId = this.toUUID(matchId);
                     operations.push({
-                        id: matchId, map: mapName, mode: 'Deathmatch',
+                        id: opId, map: mapName, mode: 'Deathmatch',
                         started_at: startTime,
                         score: 'TREINO', result: 'MATA-MATA', team_color: 'N/A',
                         squad: []
@@ -93,8 +106,9 @@ class SynergyEngine {
                     const blueScore = match.teams.blue.rounds_won ?? match.teams.blue.score ?? 0;
                     const redScore = match.teams.red.rounds_won ?? match.teams.red.score ?? 0;
 
+                    const opId = this.toUUID(matchId);
                     operations.push({
-                        id: matchId, map: mapName, mode: 'Competitive',
+                        id: opId, map: mapName, mode: 'Competitive',
                         started_at: startTime,
                         score: `${blueScore}-${redScore}`,
                         result: finalResult, team_color: teamId,

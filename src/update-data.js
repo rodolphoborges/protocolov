@@ -23,12 +23,13 @@ async function run() {
         const henrikKey = process.env.HENRIK_API_KEY;
         const matchesBatch = new Map();
 
-        // 🌱 Pre-seed com operações já processadas para evitar redundância extrema
+        // 🌱 Pre-seed com operações já processadas para evitar redundância
+        // Aumentado para 200 para maior cobertura de histórico recente
         const { data: recentOps } = await supabase
             .from('operations')
             .select('id')
             .order('started_at', { ascending: false })
-            .limit(50);
+            .limit(200);
         
         if (recentOps) {
             recentOps.forEach(op => matchesBatch.set(op.id, { processed: true }));
@@ -56,9 +57,25 @@ async function run() {
                     let soloDetail = 0;
                     let squadDetail = 0;
 
-                    matches.forEach(m => {
-                        if (m.metadata && !matchesBatch.has(m.metadata.matchid)) {
-                            matchesBatch.set(m.metadata.matchid, m);
+                    for (const m of matches) {
+                        if (!m.metadata) continue;
+                        const mId = m.metadata.matchid;
+
+                        if (!matchesBatch.has(mId)) {
+                            // Verificação extra de segurança no banco para evitar reprocessamento de partidas antigas
+                            // (Casos onde a partida não está no Top 200 de recentOps)
+                            const { data: exists } = await supabase
+                                .from('operations')
+                                .select('id')
+                                .eq('id', mId)
+                                .maybeSingle();
+
+                            if (exists) {
+                                matchesBatch.set(mId, { processed: true });
+                                continue;
+                            }
+
+                            matchesBatch.set(mId, m);
                             newOnes++;
 
                             // Identificação rápida de Solo/Squad para o log
@@ -70,7 +87,7 @@ async function run() {
                             if (pVCount > 1) squadDetail++;
                             else soloDetail++;
                         }
-                    });
+                    }
 
                     if (squadDetail > 0) {
                         console.log(`   [📡] ${agent.riot_id}: ${squadDetail} novas missões de esquadrão encontradas.`);
@@ -142,6 +159,12 @@ async function run() {
                     result: op.result,
                     team_color: op.team_color
                 }]);
+
+                if (opInsErr) {
+                    console.error(`      ❌ Erro ao registrar operação ${op.id} (${op.mode}): ${opInsErr.message}`);
+                    if (opInsErr.code === '22P02') console.error(`         💡 DICA: O ID da partida não é um UUID válido. Verifique SynergyEngine.toUUID().`);
+                    return;
+                }
 
                 // 2. Registrar os Membros do Esquadrão (Resiliente a falta de constraint única)
                 if (op.squad && op.squad.length > 0) {
