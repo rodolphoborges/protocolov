@@ -15,6 +15,7 @@ jest.mock('@supabase/supabase-js', () => {
     ilike: jest.fn().mockReturnThis(),
     delete: jest.fn().mockReturnThis(),
     single: jest.fn().mockReturnThis(),
+    maybeSingle: jest.fn().mockReturnThis(),
     update: jest.fn().mockReturnThis(),
     upsert: jest.fn().mockImplementation(() => Promise.resolve({ error: null })),
     insert: jest.fn().mockImplementation(() => Promise.resolve({ error: null })),
@@ -22,10 +23,11 @@ jest.mock('@supabase/supabase-js', () => {
     then: jest.fn(function(onFulfilled) {
       // Determinar o que retornar com base na última tabela chamada
       const table = this._lastTable;
-      const isSingle = this.single.mock.calls.length > 0;
+      const isSingle = this.single.mock.calls.length > 0 || this.maybeSingle.mock.calls.length > 0;
       
       // Limpa os mocks para a próxima chamada
       this.single.mockClear();
+      this.maybeSingle.mockClear();
       
       if (table === 'players') {
         const players = [
