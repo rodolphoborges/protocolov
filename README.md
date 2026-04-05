@@ -2,70 +2,23 @@
 
 [![Atualiza Dados](https://github.com/rodolphoborges/protocolov/actions/workflows/update.yml/badge.svg)](https://github.com/rodolphoborges/protocolov/actions/workflows/update.yml)
 
-> Centro de comando para recrutamento, gestao de esquadroes e ingestao de dados de combate do Valorant.
-> Fonte unica da verdade para identidade de jogadores e operacoes do ecossistema.
+> Centro de comando para recrutamento, gestão de esquadrões e ingestão de dados de combate do Valorant.
+> Atua como o **Data Owner** do ecossistema, gerindo a identidade dos jogadores e requisitando inteligência artificial ao *Oráculo-V*.
+
+Para compreender os detalhes interligados da infraestrutura global (Filas, Banco de Dados e Motores JS), leia o [Relatório de Arquitetura Global](../ARCHITECTURE.md).
 
 ---
 
-## Arquitetura
+## 🚀 Setup & Instalação
 
-O Protocolo V e o **Data Owner** do ecossistema. Ele controla:
-
-- **Identidade**: Riot IDs, tags, ranks, metadados de perfil
-- **Operacoes**: Formacao de squads, historico de partidas, sinergia
-- **Despacho**: Envia briefings de combate para o [Oraculo V](../oraculo-v/) processar
-
-### Fluxo de Dados
-
-```
-HenrikDev API (Riot Data)
-      |
-      v
-update-data.js (GitHub Actions, a cada 30min)
-      |
-      |-- Busca ultimas partidas de cada jogador
-      |-- SynergyEngine: calcula pontos de sinergia do squad
-      |-- Upsert: players, operations, operation_squads
-      |
-      |-- [Competitivas] fire-and-forget POST /api/queue -> Oraculo V (timeout 3s)
-      |                  se offline: enfileira em match_analysis_queue para retry
-      |
-      v
-telegram-bot.js (Express + Telegram Bot)
-      |
-      |-- Comandos: /vincular, /ranking, /perfil, /convocar, /analisar
-      |-- Notificacoes: Alpha, Deposito de Torreta, Lobo Solitario
-      |-- Health check: GET /vanguard-health
-      v
-Frontend React (Vite) — Dashboard tatico
-```
-
----
-
-## Stack
-
-| Camada | Tecnologia |
-|---|---|
-| **Runtime** | Node.js 18+ |
-| **API** | Express 4 |
-| **Bot** | node-telegram-bot-api |
-| **Database** | Supabase (PostgreSQL) |
-| **Frontend** | React 19, Vite 8, React Router 7, Lucide Icons |
-| **Dados Riot** | HenrikDev API v3/v4 (partidas, MMR, ranks) |
-| **Testes** | Jest |
-| **CI/CD** | GitHub Actions (sync a cada 30min) |
-
----
-
-## Setup
-
-### Pre-requisitos
+### Pré-requisitos
 - Node.js v18+
+- Docker & Docker Compose (opcional, recomendado para orquestração local)
 - Conta no [Supabase](https://supabase.com/)
 - API Key da [HenrikDev](https://henrikdev.xyz/dashboard)
 - Token de Bot Telegram via [@BotFather](https://t.me/BotFather)
 
-### Instalacao
+### Instalação (Standalone)
 
 ```bash
 git clone https://github.com/rodolphoborges/protocolov.git
@@ -74,155 +27,76 @@ npm install
 cp .env.example .env
 ```
 
-### Variaveis de Ambiente
-
-> **SEGURANCA**: O arquivo `.env` contem credenciais sensiveis (chaves Supabase, Riot ID, token Telegram). Nunca comite este arquivo. Use `.env.example` como template.
-
-| Variavel | Obrigatoria | Descricao |
-|---|---|---|
-| `SUPABASE_URL` | Sim | URL do projeto Supabase |
-| `SUPABASE_SERVICE_KEY` | Sim | Chave Service Role (nunca no client-side) |
-| `HENRIK_API_KEY` | Sim | Chave HenrikDev para dados da Riot |
-| `TELEGRAM_BOT_TOKEN` | Sim | Token do bot Telegram |
-| `TELEGRAM_CHAT_ID` | Sim | ID do chat para notificacoes |
-| `ADMIN_TELEGRAM_ID` | Sim | Seu user ID para comandos admin |
-| `ORACULO_API_URL` | Nao | URL da API do Oraculo V (ex: http://localhost:3001) |
-| `ORACULO_API_KEY` | Nao | Chave de autenticacao do Oraculo V |
-| `PORT` | Nao | Porta do Express (default: 3000) |
-
-### Execucao
+### Orquestração via Docker (Recomendado)
+A melhor forma de subir o Protocolo-V em conjunto com o motor Oráculo-V é usando o **Docker Compose** na raiz do repositório parente:
 
 ```bash
-# Bot Telegram + servidor Express
+cd .. # Direciona para a raiz de PROJETOS-V
+docker-compose up --build
+```
+*(O ecossistema irá gerir as portas 3000 e 3001 e simular uma rede bridge local)*
+
+---
+
+## 🔑 Variáveis de Ambiente
+
+> **SEGURANÇA**: O arquivo `.env` contém credenciais sensíveis (chaves Supabase, Token Telegram). Nunca integre (`commit`) este ficheiro. Use `.env.example` como gabarito.
+
+| Variável | Obrigatoriedade | Descrição |
+|---|---|---|
+| `SUPABASE_URL` | Obrigatório | URL do projeto Supabase |
+| `SUPABASE_SERVICE_KEY` | Obrigatório | Chave Service Role |
+| `HENRIK_API_KEY` | Obrigatório | Chave HenrikDev para resgate de dados da Riot |
+| `TELEGRAM_BOT_TOKEN` | Obrigatório | Token do bot Telegram |
+| `TELEGRAM_CHAT_ID` | Opcional | ID do chat para notificações de grupo |
+| `ADMIN_TELEGRAM_ID` | Obrigatório | Seu user ID para comandos de admin |
+| `ORACULO_API_URL` | Opcional | Endpoint alvo do Oráculo V para enviar *briefings* de análise. |
+| `ORACULO_API_KEY` | Opcional | Chave para autorizar envio dos briefings no Oráculo-V. |
+| `ADMIN_API_KEY` | Opcional | Chave partilhada requerida pelo Webhook (`/api/insights/callback`) para garantir segurança de chegada de dados do Oráculo. |
+
+---
+
+## 💻 Execução Manual e Scripts (Standalone)
+
+Caso não esteja utilizando Docker/Compose:
+
+```bash
+# Sobe a Express API (Webhook) e inicializa interação do Telegram (Polling Ativo)
 npm start
 
-# Sincronizacao manual de dados
+# Força o varrimento no HenrikDev agora (via Cron job/GitHub Actions originalmente)
 npm run sync
 
-# Frontend (em outro terminal)
+# O Frontend funciona à parte num repositório focado de React DOM (se compilável no Node module)
 cd frontend && npm install && npm run dev
 
-# Testes
+# Roda os Jest Test Hooks
 npm test
 ```
 
 ---
 
-## Comandos do Bot Telegram (K.A.I.O.)
+## 🤖 Comandos K.A.I.O. (Telegram Bot)
 
-| Comando | Descricao |
+| Comando | Descrição |
 |---|---|
 | `/start` | Inicializa interface e menu |
-| `/vincular [RiotID#Tag]` | Vincula Telegram ao perfil do jogador |
-| `/unidade [ALPHA/OMEGA/WINGMAN]` | Transferencia de squad (valida ranking de sinergia) |
-| `/ranking` | Top 10 por pontos de sinergia |
-| `/perfil [Nick]` | Perfil completo: sinergia, rank, card |
-| `/convocar [Codigo]` | Convoca squad para LFG |
-| `/analisar` | Solicita analise profunda ao Oraculo V |
-| `/ajuda` | Manual de comandos |
+| `/vincular [RiotID#Tag]` | Associa Conta do Telegram ao perfil do jogador in-game |
+| `/unidade [ALPHA/OMEGA/WINGMAN]` | Transferência de squad local. |
+| `/ranking` | Devolve o Top 10 por pontos de sinergia de Base |
+| `/perfil [Nick]` | Exibe resumo: sinergia, rank, e badge |
+| `/convocar [Código]` | Convoca o atual squad para LFG (Looking for Group) |
+| `/analisar` | Solicita à força uma análise de Oráculo V (Queueing manual) |
+| `/ajuda` | Manual de botões interativos |
 
 ---
 
-## Motor de Sinergia
+## 🧩 Integração com Oráculo-V via Webhooks
 
-Pontos calculados por partida baseados no tamanho do squad e resultado:
+O Oráculo processará assincronamente os *briefings* e submeterá os resultados finais para o Protocolo-V no formato:
+`POST /api/insights/callback`
 
-| Squad | Base | Vitoria |
-|---|---|---|
-| 2 jogadores | 1 pt | 2 pts |
-| 3 jogadores | 2 pts | 4 pts |
-| 4+ jogadores | 5 pts | 10 pts |
-
-**DM Score**: Kills + bonus por posicao no ranking (Top 1: +15, Top 2: +10, Top 3: +5).
-
-> **Regra de esquadrao**: tanto partidas Competitivas quanto Deathmatch so sao registradas se houver **2 ou mais membros do roster** na mesma partida. Partidas solo nao geram operacoes.
+O Protocolo-V verifica a validade da token de autorização, persiste a informação nos sumários do jogador, e finaliza interações com o Chat do Telegram se solicitado. Resiliência por princípio.
 
 ---
-
-## Integracao com Oraculo V
-
-O Protocolo V despacha briefings de combate para o Oraculo V via REST ou fila compartilhada no Supabase (`match_analysis_queue`).
-
-**Contrato de Briefing:**
-```json
-{
-  "match_id": "UUID",
-  "player_id": "Nick#Tag",
-  "map_name": "Haven",
-  "agent_name": "Viper",
-  "kills": 24, "deaths": 12,
-  "adr": 165.5, "kast": 82
-}
-```
-
-**Comportamento de resiliencia:**
-- O Protocolo V chama `/api/queue` com timeout de **3 segundos** (fire-and-forget)
-- Se o Oraculo nao responder, o briefing e salvo em `match_analysis_queue` no Supabase
-- O Oraculo consome essa fila de forma autonoma no proximo ciclo (backoff: 5min → 15min → 60min, max 3 tentativas)
-- Falhas na analise **nao afetam** o resultado do sync — `npm run sync` sempre termina com `exit(0)` se os dados foram persistidos com sucesso
-
----
-
-## Estrutura de Diretorios
-
-```
-protocolov/
-  src/
-    telegram-bot.js    # Bot + Express server (entrada principal)
-    update-data.js     # Sincronizador de dados (GitHub Actions)
-    oraculo.js         # Motor de analise local (standalone)
-    db.js              # Cliente Supabase
-  services/
-    api-client.js      # Smart fetch com rate-limiting e retry
-    synergy-engine.js  # Calculo de sinergia e DM score
-    oraculo-service.js # REST bridge para o Oraculo V
-    player-worker.js   # Processamento individual de jogador
-    notifier.js        # Notificacoes Telegram
-    match-briefing.js  # Empacotamento de dados de partida
-    achievements.js    # Milestones de performance
-  frontend/            # React SPA (Vite)
-  docs/                # Portal GitHub Pages (GitHub Pages)
-    index.html         #   Dashboard principal
-    historico.html     #   Historico completo com filtros (jogador, mapa, personagem, data, etc.)
-    treino.html        #   Leaderboard Mata-Mata
-    analise.html       #   Analise de partida individual
-    briefing.html      #   Briefing tatico
-    nav.js             #   Navegacao global injetada em todas as paginas
-    footer.js          #   Rodape com links sociais (controlado via config.js)
-    config.js          #   Config frontend: Supabase keys, redes sociais, UI params
-  documentation/       # Docs tecnicos (API.md, PROJECT_CONTEXT.md)
-  tests/               # Suite Jest
-  scripts/
-    maintenance/
-      reset-dm.js        # Reset semanal/mensal de DM score
-      clean-solo-ops.js  # Remove operacoes solo do banco (< 2 membros do roster)
-  .github/workflows/   # GitHub Actions
-```
-
----
-
-## Banco de Dados (Supabase)
-
-Tabelas principais:
-
-| Tabela | Descricao |
-|---|---|
-| `players` | Identidade, rank, sinergia, Holt-Winters state |
-| `operations` | Historico de partidas (mapa, score, resultado) |
-| `operation_squads` | Composicao do squad por operacao |
-| `match_analysis_queue` | Fila de briefings para o Oraculo V |
-| `ai_insights` | Insights do Oraculo (mirror via dual-write) |
-| `active_calls` | Convocacoes LFG ativas |
-
----
-
-## Links
-
-- [Arquitetura Global do Ecossistema](../ARCHITECTURE.md)
-- [API e Integracoes](documentation/API.md)
-- [Contexto do Projeto](documentation/PROJECT_CONTEXT.md)
-- [Guia de Contribuicao](CONTRIBUTING.md)
-
----
-
-*Protocolo V: Precisao. Sinergia. Vitoria.*
+*Protocolo V: Precisão. Sinergia. Vitória.*
