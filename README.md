@@ -5,7 +5,7 @@
 > Centro de comando para recrutamento, gestão de esquadrões e ingestão de dados de combate do Valorant.
 > Atua como o **Data Owner** do ecossistema, gerindo a identidade dos jogadores e requisitando inteligência artificial ao *Oráculo-V*.
 
-Para compreender os detalhes interligados da infraestrutura global (Filas, Banco de Dados e Motores JS), leia o [Relatório de Arquitetura Global](../ARCHITECTURE.md).
+Para compreender os detalhes interligados da infraestrutura global (Filas, Banco de Dados e Motores JS), leia o [Relatório de Arquitetura Global](./ARCHITECTURE.md).
 
 ---
 
