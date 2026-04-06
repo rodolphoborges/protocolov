@@ -4,7 +4,7 @@ const { supabase } = require('../src/db');
 const OraculoService = require('../services/oraculo-service');
 const { smartFetch } = require('../services/api-client');
 
-const TARGET_PLAYER = 'ousadia#013';
+const TARGET_PLAYER = process.argv[2] || 'ousadia#013';
 
 async function backfill() {
     console.log(`🚀 [BACKFILL] Iniciando varredura histórica para: ${TARGET_PLAYER}`);
