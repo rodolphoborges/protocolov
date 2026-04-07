@@ -1,57 +1,117 @@
-# Arquitetura Global: Ecossistema Protocolo-V & Oráculo-V
+# Arquitetura Global: Ecossistema Protocolo-V & Oraculo-V
 
-**Data de Atualização:** 05/04/2026
-**Status:** Produção — Desacoplado & Escalável
+**Data de Atualizacao:** 07/04/2026
+**Status:** Producao — Parcialmente Desacoplado
 
-Este documento descreve a arquitetura geral do ecossistema e como os seus dois principais microsserviços interagem de forma soberana e resiliente.
+Este documento descreve a arquitetura geral do ecossistema e como os dois principais microsservicos interagem.
 
 ---
 
-## 1. Visão Geral dos Domínios
+## 1. Visao Geral dos Dominios
 
-O ecossistema adota uma arquitetura orientada a serviços (SOA), dividindo responsabilidades claras entre dois sistemas principais:
+O ecossistema adota uma arquitetura orientada a servicos (SOA), dividindo responsabilidades entre dois sistemas:
 
 ### 1.1 Protocolo-V (Data Owner)
-Responsável por gerir a "verdade" dos utilizadores e das operações de combate.
-- **Identidade e Guilda**: Gere Riot IDs, vínculos com o Telegram, unidades táticas (ALPHA, OMEGA, WINGMAN) e rankings de sinergia.
-- **Ingestão**: Varre ativamente satélites da Riot Games (via HenrikDev API) para encontrar novas operações competitivas.
-- **Contrato de Decisão**: Avalia quando é necessário invocar os serviços de IA e empacota a operação num *Briefing Tático* padronizado.
+Responsavel por gerir a "verdade" dos utilizadores e das operacoes de combate.
+- **Identidade e Guilda**: Gere Riot IDs, vinculos com o Telegram, unidades taticas (ALPHA, OMEGA, WINGMAN) e rankings de sinergia.
+- **Ingestao**: Varre ativamente a Riot Games (via HenrikDev API v1/v3/v4) para encontrar novas operacoes competitivas.
+- **Contrato de Decisao**: Avalia quando e necessario invocar os servicos de IA e empacota a operacao num Briefing Tatico padronizado.
+- **Bot Telegram**: Interface primaria de interacao com os usuarios (comandos, callbacks, notificacoes).
+- **Express Server**: Embutido no `telegram-bot.js`, expoe endpoints REST para health checks e recebimento de callbacks do Oraculo.
 
-### 1.2 Oráculo-V (Service Provider)
-Responsável pela força computacional bruta e geração de *insights* baseados em dados de combate.
-- **Motor Matemático (JS Nativo)**: Computa estatísticas de *Performance Index* e projeções *Holt-Winters Double Exponential Smoothing*. Escrito exclusivamente em JavaScript (Node.js) para máxima performance, abandonando o antigo *overhead* de instâncias Python.
-- **Processamento Assíncrono**: Gere a sua própria fila e ciclo de vida de *jobs* (retry strategies, backoff exponencial).
-- **Motor LLM Tríplice**: Utiliza um padrão *fallback* resiliente para processamento de NLP (Ollama Local -> Groq -> OpenRouter) para criar análises sintéticas sem alucinações.
-
----
-
-## 2. Padrões de Comunicação e Resiliência
-
-Foi erradicado o padrão *Dual-Write* (acesso partilhado direto a bases de dados por diferentes domínios), que criava um acoplamento perigoso. O ecossistema segue agora os seguintes princípios:
-
-### 2.1 Soberania de Dados e Webhooks (Webhook Callbacks)
-Os serviços interagem **apenas mediante REST APIs**.
-
-1. O **Protocolo-V** deteta uma nova operação competitiva e evoca um `POST /api/queue` para o **Oráculo-V**. Este pedido falha rapidamente se offline (fire-and-forget com timeout de 3s). Em caso de indisponibilidade, o job é acumulado no próprio banco do Protocolo-V para tentativa futura. Se o Oráculo aceita o pedido, devolve instantaneamente um HTTP HTTP 202 (Accepted).
-2. O **Oráculo-V** toma a posse do trabalho e enfileira no seu próprio BD isolado (`match_analysis_queue`).
-3. Quando a análise LLM é concluída, o *worker* nativo do **Oráculo-V** efetua um callback HTTPS (Webhook) para o **Protocolo-V** no endpoint autorizado: `POST /api/insights/callback`, apresentando uma `ADMIN_API_KEY`.
-4. O **Protocolo-V** assinala a análise, notifica o user via Telegram e guarda no seu próprio historial estático.
-
-### 2.2 Orquestração Unificada (Docker)
-Todo o ecossistema é suportado por contentores. Apenas com o correr do `docker-compose up` no root-level, o ambiente local espelha a rede de produção:
-- Cada serviço expõe uma porta (`3000` para Protocolo-V, `3001` para Oráculo-V).
-- Variáveis de ambiente como o `PROTOCOL_API_URL` já estão cabeadas para a DNS interna do dock (`http://protocolov:3000`).
+### 1.2 Oraculo-V (Service Provider)
+Responsavel pela forca computacional bruta e geracao de insights baseados em dados de combate.
+- **Motor Matematico (JS Nativo)**: Computa Performance Index e projecoes Holt-Winters. Escrito exclusivamente em JavaScript (Node.js), abandonando o antigo motor Python.
+- **Tribunal Engine**: Motor LLM adversarial com 3 personas (Aliado, Rival, Mentor K.A.I.O.) para coaching tatico.
+- **Processamento Assincrono**: Gere a sua propria fila e ciclo de vida de jobs.
+- **Cadeia de Fallback LLM**: Groq -> OpenRouter -> Ollama local.
 
 ---
 
-## 3. Checklist de Marco Zero Arquitetural
+## 2. Padroes de Comunicacao e Resiliencia
 
-As dívidas técnicas passadas foram estritamente solvidas.
+### 2.1 Soberania de Dados e Webhooks (Modelo Ideal)
 
-- [x] **Desacoplar Bancos de Dados**: Eliminação da `PROTOCOL_SUPABASE_KEY` do ambiente Oráculo; Migração pra contratos REST *Callback-based*.
-- [x] **Migração do Motor Matemático**: A conversão de `analyze_valorant.py` puro para `analyze_valorant.js` suprimiu o estrangulamento da *V8 Engine Spawns*, unificando a *codebase* no ambiente nativo do *Node.js Worker*.
-- [x] **Dockerização Central**: Adição do `docker-compose.yml` e scripts agrupados do `concurrently` (via `package.json` base).
-- [x] **Normalização Documental**: *READMEs* focados apenas em *setup* e esta Arquitetura como a base teórica de verdade mútua.
+O modelo arquitetural planejado e baseado exclusivamente em REST APIs:
+
+1. O **Protocolo-V** deteta uma nova operacao e envia `POST /api/queue` para o **Oraculo-V** (fire-and-forget com timeout de 3s).
+2. O **Oraculo-V** aceita e enfileira no seu BD isolado (`match_analysis_queue`), retornando HTTP 202.
+3. Quando a analise e concluida, o worker do **Oraculo-V** efetua callback HTTPS para `POST /api/insights/callback` no **Protocolo-V**.
+4. O **Protocolo-V** persiste a analise e notifica o user via Telegram.
+
+### 2.2 Realidade Atual: Acoplamento Parcial
+
+> **Transparencia**: Apesar do objetivo de desacoplamento total via REST, o Protocolo-V **ainda mantem acesso direto** ao banco do Oraculo-V para algumas operacoes.
+
+O arquivo `src/db.js` cria um cliente Supabase para o banco do Oraculo se `ORACULO_SUPABASE_URL` estiver configurado. Isso e usado para:
+- Consultar o status da fila (`match_analysis_queue`) diretamente
+- Buscar historico de analises do Oraculo
+
+Este e um vestigio da arquitetura Dual-Database anterior que ainda nao foi totalmente removido. O caminho ideal seria migrar estas consultas para chamadas REST ao endpoint `/api/status` do Oraculo.
+
+### 2.3 Fallback de Persistencia (Oraculo -> Protocolo)
+
+Se o webhook callback falhar, o Oraculo-V tenta persistir diretamente no banco do Protocolo-V (via `PROTOCOL_SUPABASE_URL`). Isso e um mecanismo de emergencia, nao o fluxo principal.
 
 ---
-*Protocolo-V / Arquitetura Distribuída / Documentação Mantida por Agente Antigravity*
+
+## 3. Orquestracao
+
+### Docker Compose (Raiz do Workspace)
+
+O arquivo `docker-compose.yml` existe na raiz do workspace (`PROJETOS-V/`) e configura:
+- **protocolov**: Porta 3000, depende do oraculov
+- **oraculov**: Porta 3001, volume persistente para analises
+
+```bash
+cd PROJETOS-V
+docker-compose up --build
+```
+
+> **Nota**: O Docker Compose esta na raiz do workspace, NAO dentro do diretorio `protocolov`. Cada projeto individual nao possui seu proprio `docker-compose.yml` nem `Dockerfile` — estes precisam ser criados para que a orquestracao funcione.
+
+### Concurrently (Desenvolvimento Local)
+
+O `package.json` raiz do workspace oferece scripts para desenvolvimento sem Docker:
+
+```bash
+# Instalar dependencias de ambos os projetos
+npm run install:all
+
+# Rodar ambos em paralelo
+npm run dev
+```
+
+---
+
+## 4. Checklist de Marco Arquitetural
+
+- [x] **Migracao do Motor Python -> JS**: `analyze_valorant.py` substituido por `lib/analyze_valorant.js`
+- [x] **Tribunal Engine**: Motor LLM adversarial com 3 personas implementado
+- [x] **Webhook Callback**: Oraculo envia resultados via REST para Protocolo
+- [ ] **Desacoplamento Total de BD**: Protocolo-V ainda acessa banco do Oraculo diretamente (migrar para REST)
+- [ ] **Dockerfiles**: Criar Dockerfile individual para cada projeto
+- [ ] **Frontend Dashboard**: React app ainda e scaffold — implementar pages e componentes
+- [ ] **Endpoints Admin (Oraculo)**: Frontend admin existe mas backend nao tem os endpoints
+
+---
+
+## 5. Tabelas de Banco de Dados
+
+### Protocolo-V (Supabase)
+| Tabela | Descricao |
+|---|---|
+| `players` | Perfis de jogadores (riot_id, telegram_id, unit, synergy, holt state) |
+| `operations` | Historico de partidas competitivas |
+| `operation_squads` | Membros de squads por operacao |
+| `ai_insights` | Cache local de insights recebidos do Oraculo |
+
+### Oraculo-V (Supabase)
+| Tabela | Descricao |
+|---|---|
+| `match_analysis_queue` | Fila de jobs (pending/processing/failed) |
+| `match_stats` | Stats persistidos de cada analise |
+| `ai_insights` | Insights gerados pelo Tribunal Engine |
+
+---
+*Protocolo-V / Arquitetura Distribuida / Atualizado em 07/04/2026*
