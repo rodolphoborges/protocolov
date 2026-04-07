@@ -1,0 +1,31 @@
+name: Protocolo V Sync (Radar)
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # Roda a cada 30 minutos
+  workflow_dispatch: # Permite rodar manualmente
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Sync Radar Data
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          HENRIK_API_KEY: ${{ secrets.HENRIK_API_KEY }}
+          ORACULO_API_URL: ${{ secrets.ORACULO_API_URL }}
+          ORACULO_API_KEY: ${{ secrets.ORACULO_API_KEY }}
+        run: node src/update-data.js
