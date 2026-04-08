@@ -21,10 +21,17 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Diagnóstico de Variáveis
+        run: |
+          echo "Status das credenciais:"
+          echo "SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && 'Configurado' || 'VAZIO' }}"
+          echo "SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY != '' && 'Configurado' || 'VAZIO' }}"
+          echo "HENRIK_API_KEY: ${{ secrets.HENRIK_API_KEY != '' && 'Configurado' || 'VAZIO' }}"
+
       - name: Sync Radar Data
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           HENRIK_API_KEY: ${{ secrets.HENRIK_API_KEY }}
           ORACULO_API_URL: ${{ secrets.ORACULO_API_URL }}
           ORACULO_API_KEY: ${{ secrets.ORACULO_API_KEY }}
