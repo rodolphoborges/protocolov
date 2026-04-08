@@ -9,7 +9,9 @@ const oraculoKey = process.env.ORACULO_SUPABASE_SERVICE_KEY || process.env.ORACU
 // Fail-safe client creation
 let supabase = null;
 if (!supabaseUrl || !supabaseKey) {
-    console.error('🔥 [ERROR] Supabase Main credentials missing! System will fail on DB operations.');
+    console.error('🔥 [CRITICAL] Supabase Main credentials missing!');
+    console.error('   Check SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables.');
+    console.error('   System cannot continue without persistent storage.');
 } else {
     try {
         supabase = createClient(supabaseUrl, supabaseKey);
