@@ -6,6 +6,9 @@ const OraculoService = require('../services/oraculo-service');
 async function run() {
     console.log('--- INICIANDO COORDENADOR PROTOCOLO-V ---');
     
+    if (!supabase) {
+        throw new Error('Supabase client not initialized. Check your credentials in .env');
+    }
     try {
         // ... (existing roster fetch)
         const { data: roster, error: rosterErr } = await supabase
