@@ -29,6 +29,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
+      - name: Diagnóstico de Variáveis
+        run: |
+          echo "Status das credenciais:"
+          echo "SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && 'Configurado' || 'VAZIO' }}"
+          echo "SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY != '' && 'Configurado' || 'VAZIO' }}"
+          echo "HENRIK_API_KEY: ${{ secrets.HENRIK_API_KEY != '' && 'Configurado' || 'VAZIO' }}"
+          echo "ORACULO_API_URL: ${{ secrets.ORACULO_API_URL != '' && 'Configurado' || 'VAZIO' }}"
+
       - name: Roda o script de extração e API
         run: npm run sync
         env:
