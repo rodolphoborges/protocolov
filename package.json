@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/telegram-bot.js",
     "sync": "node src/update-data.js",
+    "maintenance:reset": "node scripts/maintenance/reset-dm.js",
     "test": "jest"
   },
   "dependencies": {

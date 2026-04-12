@@ -20,7 +20,7 @@ jobs:
           node-version: '20'
 
       - name: Instalar Dependências
-        run: npm install @supabase/supabase-js
+        run: npm install
 
       - name: Executar Script de Reset
         run: node scripts/maintenance/reset-dm.js
