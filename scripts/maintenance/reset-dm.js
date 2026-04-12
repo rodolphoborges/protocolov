@@ -13,9 +13,16 @@ async function run() {
     const isMonday = now.getDay() === 1; 
     // getDate() retorna o dia do mês.
     const isFirstOfMonth = now.getDate() === 1;
+    
+    // Verifica se a flag --force foi passada
+    const isForced = process.argv.includes('--force');
+
+    if (isForced) {
+        console.log('⚠️  EXECUÇÃO FORÇADA: Ignorando verificações de data.');
+    }
 
     try {
-        if (isMonday) {
+        if (isMonday || isForced) {
             console.log('🔄 Iniciando Reset SEMANAL de Mata-Mata...');
             const { data, error } = await supabase.from('players').update({ dm_score: 0 }).neq('dm_score', 0).select();
             if (error) throw error;
@@ -24,7 +31,7 @@ async function run() {
             console.log('⏭️ Hoje não é segunda-feira. Reset semanal ignorado.');
         }
 
-        if (isFirstOfMonth) {
+        if (isFirstOfMonth || isForced) {
             console.log('🔄 Iniciando Reset MENSAL de Mata-Mata...');
             const { data, error } = await supabase.from('players').update({ dm_score_monthly: 0 }).neq('dm_score_monthly', 0).select();
             if (error) throw error;
