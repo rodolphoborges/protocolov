@@ -3,6 +3,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 // --- CONFIGURAÇÃO ---
 const { supabase, oraculo: oraculoExt } = require('./db');
+const { fetchPlayerProfile } = require('../services/player-worker');
 const henrikApiKey = process.env.HENRIK_API_KEY ? process.env.HENRIK_API_KEY.trim() : null;
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const rawAdminId = process.env.ADMIN_TELEGRAM_ID ? process.env.ADMIN_TELEGRAM_ID.trim() : null;
@@ -309,31 +310,26 @@ bot.onText(/^\/vincular(?:@[\w_]+)?(?:\s+(.*))?/, async (msg, match) => {
                 `Consultando os servidores da Riot para validar sua identidade...`,
                 { parse_mode: 'Markdown' });
 
-            const [name, tag] = riotId.split('#');
-            let accountData = null;
-            try {
-                const verifyRes = await fetch(
-                    `https://api.henrikdev.xyz/valorant/v1/account/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
-                    { headers: { 'Authorization': process.env.HENRIK_API_KEY } }
-                );
-                if (verifyRes.status === 200) {
-                    const json = await verifyRes.json();
-                    accountData = json.data;
-                } else if (verifyRes.status === 404) {
-                    return bot.sendMessage(chatId,
-                        `❌ *Nick não encontrado na Riot.*\n\n` +
-                        `Verifique se "${escapeMarkdown(riotId)}" está correto (Ex: \`Jett#BR1\`).`,
-                        { parse_mode: 'Markdown' });
-                }
-            } catch (_) { /* prossegue mesmo sem validação */ }
+            const [name] = riotId.split('#');
+            const profile = await fetchPlayerProfile(riotId, process.env.HENRIK_API_KEY);
+
+            if (profile.is_ghost) {
+                return bot.sendMessage(chatId,
+                    `❌ *Nick não encontrado na Riot.*\n\n` +
+                    `Verifique se "${escapeMarkdown(riotId)}" está correto (Ex: \`Jett#BR1\`).`,
+                    { parse_mode: 'Markdown' });
+            }
 
             const { error: insertErr } = await supabase.from('players').insert([{
                 riot_id: riotId,
                 role_raw: 'Flex',
                 unit: 'UNIDADE DE APOIO',
-                current_rank: accountData?.currenttierpatched || 'Processando...',
-                level: accountData?.account_level || null,
-                card_url: accountData?.card?.small || null,
+                current_rank: profile.current_rank || 'Processando...',
+                current_rank_icon: profile.current_rank_icon || null,
+                peak_rank: profile.peak_rank || null,
+                peak_rank_icon: profile.peak_rank_icon || null,
+                level: profile.level || null,
+                card_url: profile.card_url || null,
                 telegram_id: telegramId,
                 synergy_score: 0
             }]);
