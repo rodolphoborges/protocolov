@@ -2,6 +2,7 @@ const { supabase } = require('./db');
 const { smartFetch } = require('../services/api-client');
 const SynergyEngine = require('../services/synergy-engine');
 const OraculoService = require('../services/oraculo-service');
+const { fetchPlayerProfile } = require('../services/player-worker');
 
 async function run() {
     console.log('--- INICIANDO COORDENADOR PROTOCOLO-V ---');
@@ -41,12 +42,36 @@ async function run() {
         // Sequential agent scanning to strictly respect HenrikDev API limits (10/min)
         const playersToSync = [];
 
+        const profileUpdates = [];
+
         for (const agent of roster) {
-            const [name, tag] = agent.riot_id.split('#');
+            const hashIdx = agent.riot_id.lastIndexOf('#');
+            const rawName = hashIdx === -1 ? agent.riot_id : agent.riot_id.slice(0, hashIdx);
+            const rawTag = hashIdx === -1 ? '' : agent.riot_id.slice(hashIdx + 1);
+            const name = rawName.trim().normalize('NFC');
+            const tag = rawTag.trim().normalize('NFC');
+            const safeName = encodeURIComponent(name);
+            const safeTag = encodeURIComponent(tag);
             try {
-                const url = `https://api.henrikdev.xyz/valorant/v3/matches/br/${name}/${tag}`;
+                const needsProfile = !agent.current_rank
+                    || agent.current_rank === 'Processando...'
+                    || !agent.peak_rank
+                    || !agent.updated_at
+                    || (Date.now() - new Date(agent.updated_at).getTime()) > 6 * 60 * 60 * 1000;
+
+                if (needsProfile) {
+                    const profile = await fetchPlayerProfile(agent.riot_id, henrikKey);
+                    if (!profile.api_error && Object.keys(profile).length > 0) {
+                        profileUpdates.push({ riot_id: agent.riot_id, ...profile });
+                        console.log(`   [🎖️] ${agent.riot_id}: Perfil atualizado (${profile.current_rank || 'N/A'} / pico: ${profile.peak_rank || 'N/A'}).`);
+                    } else if (profile.is_ghost) {
+                        console.log(`   [👻] ${agent.riot_id}: Não encontrado na Riot (404).`);
+                    }
+                }
+
+                const url = `https://api.henrikdev.xyz/valorant/v3/matches/br/${safeName}/${safeTag}`;
                 const res = await smartFetch(url, { 'Authorization': henrikKey });
-                
+
                 if (res.status === 200) {
                     const json = await res.json();
                     const matches = json.data || [];
@@ -102,6 +127,17 @@ async function run() {
                 }
             } catch (err) {
                 console.error(`   [⚠️] Falha ao consultar histórico de ${agent.riot_id}: ${err.message}`);
+            }
+        }
+
+        // 2.5 Persistência de Perfis Atualizados (rank, peak_rank, level, card_url)
+        if (profileUpdates.length > 0) {
+            console.log(`   [💾] Gravando ${profileUpdates.length} perfis atualizados...`);
+            for (const pu of profileUpdates) {
+                const { riot_id, ...fields } = pu;
+                fields.updated_at = new Date().toISOString();
+                const { error: profErr } = await supabase.from('players').update(fields).eq('riot_id', riot_id);
+                if (profErr) console.error(`   [❌] Erro ao atualizar perfil de ${riot_id}: ${profErr.message}`);
             }
         }
 
