@@ -127,11 +127,12 @@ describe('Motor de Sinergia do Protocolo V (E2E Shadow Test)', () => {
 
     // Executa o motor
     const runPromise = updaterMod.run();
-    
-    // Loop de avanço de tempo robusto para saltar todos os sleeps e retries
-    for(let i=0; i<100; i++) {
-        jest.advanceTimersByTime(1000);
-        await Promise.resolve(); // Resolvendo microtasks (promises) pendentes
+
+    // Loop de avanço de tempo robusto para saltar todos os sleeps e retries.
+    // advanceTimersByTimeAsync drena os microtasks entre os ticks, necessário
+    // agora que cada agente também dispara 2 chamadas extras de perfil (v1/account + v2/mmr).
+    for (let i = 0; i < 300; i++) {
+        await jest.advanceTimersByTimeAsync(1000);
     }
 
     await runPromise;
