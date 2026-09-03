@@ -164,6 +164,8 @@ async function run() {
                     playersToUpdate.push({
                         ...p,
                         synergy_score: p.synergy_score + addedSynergy,
+                        dm_score: (p.dm_score || 0) + addedDm,
+                        dm_score_monthly: (p.dm_score_monthly || 0) + addedDm,
                         dm_score_total: (p.dm_score_total || 0) + addedDm,
                         api_error: false,
                         updated_at: new Date().toISOString()
@@ -181,7 +183,7 @@ async function run() {
                 for (const p of playersToSync) {
                     await supabase.from('players').update({ 
                         last_match_id: p.last_match_id,
-                        last_scan_at: new Date().toISOString()
+                        updated_at: new Date().toISOString()
                     }).eq('riot_id', p.riot_id);
                 }
             }

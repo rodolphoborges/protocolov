@@ -1,4 +1,3 @@
-const updater = require('../src/update-data');
 const matchMock = require('./mocks/match-vr.json');
 
 // Mock do Supabase

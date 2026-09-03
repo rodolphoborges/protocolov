@@ -60,7 +60,7 @@ class SynergyEngine {
                     rosterMap.has(`${player.name}#${player.tag}`.toLowerCase().replace(/\s/g, ''))
                 );
 
-                if (myPlayersInDm.length >= 2) {
+                if (myPlayersInDm.length > 0) {
                     myPlayersInDm.forEach(m => {
                         const nId = `${m.name}#${m.tag}`.toLowerCase().replace(/\s/g, '');
                         newDmPoints[nId] = (newDmPoints[nId] || 0) + this.calculateDmPoints(playersArray, m);
