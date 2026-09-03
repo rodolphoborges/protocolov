@@ -18,6 +18,8 @@ async function run() {
     const toDelete = [];
 
     for (const op of ops) {
+        if (op.mode === 'Deathmatch') continue; // Não remover operações de treino Mata-Mata
+
         const { count, error } = await supabase
             .from('operation_squads')
             .select('*', { count: 'exact', head: true })

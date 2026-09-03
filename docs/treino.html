@@ -13,8 +13,6 @@
 
     <div class="val-bg-text-massive">DEATHMATCH</div>
 
-    <div class="val-bg-text-massive">DEATHMATCH</div>
-
     <div class="container content-wrapper">
         <div class="row fade-in-section is-visible">
             <div class="col-lg-8">
@@ -46,7 +44,7 @@
         </div>
 
         <div id="leaderboard-container" class="leaderboard-grid fade-in-section is-visible">
-            <div class="text-muted fw-bold mt-5">A DECODIFICAR DADOS DO SERVIDOR...</div>
+            <div class="text-muted fw-bold mt-5" style="grid-column: 1 / -1;">A DECODIFICAR DADOS DO SERVIDOR...</div>
         </div>
     </div>
 
@@ -69,7 +67,8 @@
 
         async function fetchDmLeaderboard(column = 'dm_score') {
             const container = document.getElementById('leaderboard-container');
-            container.innerHTML = `<div class="text-muted fw-bold mt-5">A DECODIFICAR DADOS DO SERVIDOR...</div>`;
+            container.style.display = ''; // Garante preservação da Grid CSS
+            container.innerHTML = `<div class="text-muted fw-bold mt-5" style="grid-column: 1 / -1;">A DECODIFICAR DADOS DO SERVIDOR...</div>`;
 
             // Atualiza o estado visual dos botões
             document.querySelectorAll('.btn-period').forEach(btn => {
@@ -77,8 +76,10 @@
                 btn.classList.add('btn-outline-danger');
             });
             const activeBtn = document.getElementById('btn-' + column);
-            activeBtn.classList.remove('btn-outline-danger');
-            activeBtn.classList.add('btn-danger', 'text-light');
+            if (activeBtn) {
+                activeBtn.classList.remove('btn-outline-danger');
+                activeBtn.classList.add('btn-danger', 'text-light');
+            }
 
             // Atualiza informação de reset de forma objetiva
             const resetInfo = document.getElementById('reset-info');
@@ -96,14 +97,23 @@
 
                 if (!playersData || playersData.length === 0) {
                     let periodoTexto = column === 'dm_score' ? 'nesta semana' : (column === 'dm_score_monthly' ? 'neste mês' : 'historicamente');
-                    container.innerHTML = `<div class="p-4 bg-dark text-light border-start border-danger border-4 fw-bold">Nenhum agente pontuou ${periodoTexto}.</div>`;
-                    container.style.display = 'block'; 
+                    container.innerHTML = `
+                        <div class="p-4 bg-dark text-light border-start border-danger border-4 fw-bold" style="grid-column: 1 / -1;">
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                                <div>
+                                    <span class="text-accent text-uppercase font-monospace">[!] CICLO EM PROGRESSO</span>
+                                    <p class="mb-0 mt-1">Nenhum agente pontuou ${periodoTexto}. O aquecimento diário alimenta este radar.</p>
+                                </div>
+                                ${column !== 'dm_score_total' ? `<button class="btn btn-sm btn-outline-danger text-uppercase fw-bold rounded-0 px-3" onclick="fetchDmLeaderboard('dm_score_total')">Ver Ranking Geral</button>` : ''}
+                            </div>
+                        </div>`;
                     return;
                 }
 
                 const mvp = playersData[0];
                 const contenders = playersData.slice(1);
                 const fallbackImg = 'https://media.valorant-api.com/playercards/9fb348bc-41a0-91ad-8a3e-818035c4e561/smallart.png';
+                const mvpScoreFormatted = Number(mvp[column]).toLocaleString('pt-BR');
 
                 let html = `
                 <div class="mvp-card">
@@ -111,43 +121,56 @@
                     <div class="position-relative z-1">
                         <img src="${mvp.card_url || fallbackImg}" class="mvp-avatar" onerror="this.onerror=null; this.src='${fallbackImg}';">
                         <div class="mvp-name">${mvp.riot_id.split('#')[0]}</div>
-                        <div class="text-dark fw-bold text-uppercase" style="letter-spacing: 2px;">Agente Dominante</div>
-                        <div class="mvp-score">${mvp[column]} <span>PTS</span></div>
+                        <div class="text-light fw-bold text-uppercase opacity-75" style="letter-spacing: 2px;">Agente Dominante</div>
+                        <div class="mvp-score">${mvpScoreFormatted} <span>PTS</span></div>
                     </div>
-                </div>
-                <div class="contender-list">`;
+                </div>`;
 
-                contenders.forEach((p, index) => {
-                    const rank = index + 2; 
-                    let rankStyle = "";
-                    if (rank === 2) rankStyle = 'style="border-left: 4px solid #C0C0C0;"'; // Prata
-                    if (rank === 3) rankStyle = 'style="border-left: 4px solid #CD7F32;"'; // Bronze
-
+                if (contenders.length === 0) {
                     html += `
-                    <div class="contender-card" ${rankStyle}>
-                        <div class="contender-rank">0${rank}</div>
-                        <img src="${p.card_url || fallbackImg}" class="contender-avatar" onerror="this.onerror=null; this.src='${fallbackImg}';">
-                        <div class="contender-name">${p.riot_id.split('#')[0]}</div>
-                        <div class="contender-score">${p[column]} <span>PTS</span></div>
+                    <div class="contender-list">
+                        <div class="p-4 bg-dark text-muted border border-secondary border-opacity-25 text-center fw-bold">
+                            Aguardando mais operadores para completar o Top 5 deste período.
+                        </div>
                     </div>`;
-                });
+                } else {
+                    html += `<div class="contender-list">`;
+                    contenders.forEach((p, index) => {
+                        const rank = index + 2; 
+                        let rankStyle = "";
+                        if (rank === 2) rankStyle = 'style="border-left: 4px solid #C0C0C0;"'; // Prata
+                        if (rank === 3) rankStyle = 'style="border-left: 4px solid #CD7F32;"'; // Bronze
+                        const scoreFormatted = Number(p[column]).toLocaleString('pt-BR');
 
-                html += `</div>`; 
+                        html += `
+                        <div class="contender-card" ${rankStyle}>
+                            <div class="contender-rank">0${rank}</div>
+                            <img src="${p.card_url || fallbackImg}" class="contender-avatar" onerror="this.onerror=null; this.src='${fallbackImg}';">
+                            <div class="contender-name">${p.riot_id.split('#')[0]}</div>
+                            <div class="contender-score">${scoreFormatted} <span>PTS</span></div>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+
                 container.innerHTML = html;
 
             } catch (err) {
                 console.error("Erro ao puxar dados:", err);
-                container.innerHTML = `<div class="text-danger fw-bold">ERRO DE CONEXÃO COM O SERVIDOR TÁTICO.</div>`;
+                container.innerHTML = `<div class="text-danger fw-bold mt-5" style="grid-column: 1 / -1;">ERRO DE CONEXÃO COM O SERVIDOR TÁTICO.</div>`;
             }
         }
         
         // Carrega a Leaderboard Semanal por predefinição ao abrir a página
         fetchDmLeaderboard('dm_score');
 
-        // Auto-refresh a cada 2 minutos (100% Client-side WOW)
+        // Auto-refresh a cada 2 minutos
         setInterval(() => {
-            const currentActive = document.querySelector('.btn-period.btn-danger').id.replace('btn-', '');
-            fetchDmLeaderboard(currentActive);
+            const currentActiveBtn = document.querySelector('.btn-period.btn-danger');
+            if (currentActiveBtn) {
+                const currentActive = currentActiveBtn.id.replace('btn-', '');
+                fetchDmLeaderboard(currentActive);
+            }
         }, 120000);
     </script>
 </body>
