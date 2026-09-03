@@ -14,6 +14,35 @@ function normalizeForCompare(s) {
     return (s || '').trim().normalize('NFC').toLowerCase();
 }
 
+const TIER_NAME_MAP = {
+    'unrated': 0, 'unranked': 0,
+    'iron 1': 3, 'iron 2': 4, 'iron 3': 5,
+    'bronze 1': 6, 'bronze 2': 7, 'bronze 3': 8,
+    'silver 1': 9, 'silver 2': 10, 'silver 3': 11,
+    'gold 1': 12, 'gold 2': 13, 'gold 3': 14,
+    'platinum 1': 15, 'platinum 2': 16, 'platinum 3': 17,
+    'diamond 1': 18, 'diamond 2': 19, 'diamond 3': 20,
+    'ascendant 1': 21, 'ascendant 2': 22, 'ascendant 3': 23,
+    'immortal 1': 24, 'immortal 2': 25, 'immortal 3': 26,
+    'radiant': 27
+};
+
+function getTierIcon(tierOrName) {
+    let tierNumber = null;
+    if (typeof tierOrName === 'number') {
+        tierNumber = tierOrName;
+    } else if (typeof tierOrName === 'string') {
+        const clean = tierOrName.trim().toLowerCase();
+        if (TIER_NAME_MAP[clean] !== undefined) {
+            tierNumber = TIER_NAME_MAP[clean];
+        }
+    }
+    if (tierNumber !== null && tierNumber >= 0 && tierNumber <= 27) {
+        return `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tierNumber}/smallicon.png`;
+    }
+    return null;
+}
+
 async function fetchPlayerProfile(riotId, apiKey, region = 'br') {
     const [name, tag] = splitRiotId(riotId);
     if (!name || !tag) return { api_error: true, reason: 'invalid_riot_id' };
@@ -24,6 +53,7 @@ async function fetchPlayerProfile(riotId, apiKey, region = 'br') {
 
     const profile = {};
     let anyOk = false;
+    let detectedRegion = region;
 
     try {
         const acctRes = await smartFetch(`${HENRIK}/v1/account/${encName}/${encTag}`, headers);
@@ -32,6 +62,7 @@ async function fetchPlayerProfile(riotId, apiKey, region = 'br') {
             const d = json?.data || {};
             if (d.account_level != null) profile.level = d.account_level;
             if (d.card?.small) profile.card_url = d.card.small;
+            if (d.region) detectedRegion = d.region;
             anyOk = true;
         } else if (acctRes && acctRes.status === 404) {
             return { api_error: true, is_ghost: true };
@@ -39,21 +70,23 @@ async function fetchPlayerProfile(riotId, apiKey, region = 'br') {
     } catch (_) { /* try MMR anyway */ }
 
     try {
-        const mmrRes = await smartFetch(`${HENRIK}/v2/mmr/${region}/${encName}/${encTag}`, headers);
+        const mmrRes = await smartFetch(`${HENRIK}/v2/mmr/${detectedRegion}/${encName}/${encTag}`, headers);
         if (mmrRes && mmrRes.status === 200) {
             const json = await mmrRes.json();
             const d = json?.data || {};
             if (d.current_data?.currenttierpatched) {
                 profile.current_rank = d.current_data.currenttierpatched;
-                if (d.current_data.images?.small) profile.current_rank_icon = d.current_data.images.small;
+                profile.current_rank_icon = d.current_data.images?.small || getTierIcon(d.current_data.currenttier);
             }
             if (d.highest_rank?.patched_tier) {
                 profile.peak_rank = d.highest_rank.patched_tier;
             }
-            if (d.highest_rank?.images?.small) {
+            if (d.highest_rank?.tier != null) {
+                profile.peak_rank_icon = getTierIcon(d.highest_rank.tier);
+            } else if (d.highest_rank?.patched_tier) {
+                profile.peak_rank_icon = getTierIcon(d.highest_rank.patched_tier);
+            } else if (d.highest_rank?.images?.small) {
                 profile.peak_rank_icon = d.highest_rank.images.small;
-            } else if (d.highest_rank?.patched_tier && d.current_data?.images?.small) {
-                profile.peak_rank_icon = d.current_data.images.small;
             }
             anyOk = true;
         }
