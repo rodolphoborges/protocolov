@@ -103,14 +103,17 @@ class SynergyEngine {
                     });
 
                     const startTime = match.metadata.game_start ? match.metadata.game_start * 1000 : new Date(match.metadata.started_at).getTime();
-                    const blueScore = match.teams.blue.rounds_won ?? match.teams.blue.score ?? 0;
-                    const redScore = match.teams.red.rounds_won ?? match.teams.red.score ?? 0;
+                    const blueScore = match.teams.blue?.rounds_won ?? match.teams.blue?.score ?? 0;
+                    const redScore = match.teams.red?.rounds_won ?? match.teams.red?.score ?? 0;
+                    const isRed = teamKey === 'red';
+                    const ourScore = isRed ? redScore : blueScore;
+                    const enemyScore = isRed ? blueScore : redScore;
 
                     const opId = this.toUUID(matchId);
                     operations.push({
                         id: opId, map: mapName, mode: 'Competitive',
                         started_at: startTime,
-                        score: `${blueScore}-${redScore}`,
+                        score: `${ourScore}-${enemyScore}`,
                         result: finalResult, team_color: teamId,
                         rawMatchData: match,
                         squad: squadMembers.map(m => {

@@ -25,7 +25,9 @@ let mapImages = {
     'PEARL': 'https://media.valorant-api.com/maps/fd267378-4d1d-484f-ff52-77821ed10dc2/splash.png',
     'LOTUS': 'https://media.valorant-api.com/maps/2fe4ed3a-450a-948b-6d6b-e89a78e680a9/splash.png',
     'SUNSET': 'https://media.valorant-api.com/maps/92584fbe-486a-b1b2-9faa-39b0f486b498/splash.png',
-    'ABYSS': 'https://media.valorant-api.com/maps/224b0a95-48b9-f703-1bd8-67aca101a61f/splash.png'
+    'ABYSS': 'https://media.valorant-api.com/maps/224b0a95-48b9-f703-1bd8-67aca101a61f/splash.png',
+    'SUMMIT': 'https://media.valorant-api.com/maps/756da597-416b-c0f2-f47b-afbdf28670bc/splash.png',
+    'CORRODE': 'https://media.valorant-api.com/maps/1c18ab1f-420d-0d8b-71d0-77ad3c439115/splash.png'
 };
 
 // --- CONFIGURAÇÃO ORGANIC CMD ---
@@ -258,20 +260,33 @@ async function fetchOperations(append = false) {
             }
 
             const formattedOps = data.map(op => {
-                const sortedSquad = op.operation_squads.map(sq => ({
+                const sortedSquad = (op.operation_squads || []).map(sq => ({
                     riotId: sq.riot_id, agent: sq.agent, agentImg: sq.agent_img, kda: sq.kda, hs: sq.hs_percent
                 })).sort((a, b) => {
-                    const [k1, d1, a1] = a.kda.split('/').map(Number);
-                    const [k2, d2, a2] = b.kda.split('/').map(Number);
+                    const [k1, d1, a1] = (a.kda || "0/0/0").split('/').map(Number);
+                    const [k2, d2, a2] = (b.kda || "0/0/0").split('/').map(Number);
                     
-                    if (k2 !== k1) return k2 - k1; // 1. Mais Kills
-                    if (d1 !== d2) return d1 - d2; // 2. Menos Deaths
-                    return a2 - a1;                // 3. Mais Assists
+                    if ((k2 || 0) !== (k1 || 0)) return (k2 || 0) - (k1 || 0); // 1. Mais Kills
+                    if ((d1 || 0) !== (d2 || 0)) return (d1 || 0) - (d2 || 0); // 2. Menos Deaths
+                    return (a2 || 0) - (a1 || 0);                              // 3. Mais Assists
                 });
+
+                // Normalização defensiva: garante que o placar do clã venha primeiro
+                let normalizedScore = op.score;
+                if (normalizedScore && normalizedScore.includes('-')) {
+                    const [s1, s2] = normalizedScore.split('-').map(Number);
+                    if (!isNaN(s1) && !isNaN(s2)) {
+                        if (op.result === 'VITÓRIA' && s1 < s2) {
+                            normalizedScore = `${s2}-${s1}`;
+                        } else if (op.result === 'DERROTA' && s1 > s2) {
+                            normalizedScore = `${s2}-${s1}`;
+                        }
+                    }
+                }
 
                 return {
                     id: op.id, map_name: op.map_name, started_at: op.started_at, 
-                    score: op.score, result: op.result, squad: sortedSquad
+                    score: normalizedScore, result: op.result, squad: sortedSquad
                 };
             });
             
@@ -484,7 +499,7 @@ function renderOperations(operations, append = false, completedMap = {}) {
             const isLast = index === op.squad.length - 1;
             const borderClass = isLast ? '' : 'border-bottom border-secondary border-opacity-25';
             
-            const [kills, deaths, assists] = m.kda.split('/');
+            const [kills, deaths, assists] = (m.kda || "0/0/0").split('/');
             
             const normalizedRiotId = (m.riotId || "").toLowerCase();
             const hasAnalysis = completedMap[op.id] && completedMap[op.id].has(normalizedRiotId);
@@ -498,7 +513,7 @@ function renderOperations(operations, append = false, completedMap = {}) {
                         <div class="d-flex align-items-center gap-2 overflow-hidden flex-grow-1">
                             <img src="${safeUrl(m.agentImg, '')}" class="rounded-0 border border-secondary flex-shrink-0" style="width: 28px; height: 28px; object-fit: cover;" onerror="this.onerror=null; this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/smallicon.png';">
                             <div class="d-flex flex-row align-items-center overflow-hidden">
-                                <span class="fw-bold text-light text-truncate text-uppercase" style="max-width: 80px; max-width: clamp(60px, 20vw, 120px); font-size: 0.85rem; letter-spacing: 1px;">${escapeHtml(m.riotId.split('#')[0])}</span>
+                                <span class="fw-bold text-light text-truncate text-uppercase" style="max-width: clamp(90px, 25vw, 180px); font-size: 0.85rem; letter-spacing: 1px;" title="${escapeHtml(m.riotId)}">${escapeHtml(m.riotId.split('#')[0])}</span>
                                 ${intelBtn}
                             </div>
                         </div>
@@ -521,16 +536,37 @@ function renderOperations(operations, append = false, completedMap = {}) {
         const mapUrl = mapImages[op.map_name.toUpperCase()] || '';
         const bgOverlay = mapUrl ? `<div class="mission-bg-overlay" style="background-image: url('${mapUrl}');"></div>` : '';
 
+        // Badge tático de composição do esquadrão
+        const sqLen = uniqueSquad.size;
+        let squadTypeBadge = '';
+        if (sqLen === 2) squadTypeBadge = '<span class="badge bg-dark border border-secondary text-secondary font-monospace" style="font-size: 0.65rem; letter-spacing: 1px;">DUO</span>';
+        else if (sqLen === 3) squadTypeBadge = '<span class="badge bg-dark border border-secondary text-secondary font-monospace" style="font-size: 0.65rem; letter-spacing: 1px;">TRIO</span>';
+        else if (sqLen === 4) squadTypeBadge = '<span class="badge bg-dark border border-secondary text-secondary font-monospace" style="font-size: 0.65rem; letter-spacing: 1px;">QUARTETO</span>';
+        else if (sqLen >= 5) squadTypeBadge = '<span class="badge bg-dark border border-info text-info font-monospace" style="font-size: 0.65rem; letter-spacing: 1px;">5-STACK</span>';
+
+        // Normalização defensiva de exibição de placar
+        let displayScore = op.score;
+        if (displayScore && displayScore.includes('-')) {
+            const [s1, s2] = displayScore.split('-').map(Number);
+            if (!isNaN(s1) && !isNaN(s2)) {
+                if (op.result === 'VITÓRIA' && s1 < s2) displayScore = `${s2}-${s1}`;
+                else if (op.result === 'DERROTA' && s1 > s2) displayScore = `${s2}-${s1}`;
+            }
+        }
+
         html += `
             <div onclick="window.open('https://tracker.gg/valorant/match/${op.id}', '_blank')" aria-label="Ver detalhes da partida ${op.map_name} no Tracker.gg" class="mission-row ${resultClass} p-3 p-md-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4" style="color: inherit; cursor: pointer; background-image: url('${mapUrl}');">
                 ${bgOverlay}
-                <div class="d-flex align-items-center gap-4" style="min-width: 220px;">
+                <div class="d-flex align-items-center gap-4" style="min-width: 240px;">
                     <div class="text-center" style="min-width: 80px; white-space: nowrap;">
-                        <div class="fs-1 fw-bold ${resultColor} lh-1" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;" aria-label="Placar: ${op.score}">${escapeHtml(op.score)}</div>
+                        <div class="fs-1 fw-bold ${resultColor} lh-1" style="font-family: 'Teko', sans-serif; letter-spacing: 1px;" aria-label="Placar: ${displayScore}">${escapeHtml(displayScore)}</div>
                         <div class="${resultColor} text-uppercase mt-2 fw-bold" style="font-size: 0.85rem; letter-spacing: 2px; opacity: 0.9;">${escapeHtml(op.result)}</div>
                     </div>
                     <div class="border-start border-secondary border-opacity-50 ps-4">
-                        <div class="fs-4 fw-bold text-white lh-1 mb-2 text-uppercase" style="letter-spacing: 1px;">${escapeHtml(op.map_name)}</div>
+                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                            <span class="fs-4 fw-bold text-white lh-1 text-uppercase" style="letter-spacing: 1px;">${escapeHtml(op.map_name)}</span>
+                            ${squadTypeBadge}
+                        </div>
                         <div class="d-flex align-items-center gap-2 fw-bold" style="font-size: 0.85rem; color: #adb5bd;">
                             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
                             ${date}

@@ -343,7 +343,9 @@
         'PEARL':    'https://media.valorant-api.com/maps/fd267378-4d1d-484f-ff52-77821ed10dc2/splash.png',
         'LOTUS':    'https://media.valorant-api.com/maps/2fe4ed3a-450a-948b-6d6b-e89a78e680a9/splash.png',
         'SUNSET':   'https://media.valorant-api.com/maps/92584fbe-486a-b1b2-9faa-39b0f486b498/splash.png',
-        'ABYSS':    'https://media.valorant-api.com/maps/224b0a95-48b9-f703-1bd8-67aca101a61f/splash.png'
+        'ABYSS':    'https://media.valorant-api.com/maps/224b0a95-48b9-f703-1bd8-67aca101a61f/splash.png',
+        'SUMMIT':   'https://media.valorant-api.com/maps/756da597-416b-c0f2-f47b-afbdf28670bc/splash.png',
+        'CORRODE':  'https://media.valorant-api.com/maps/1c18ab1f-420d-0d8b-71d0-77ad3c439115/splash.png'
     };
 
     const PER_PAGE = 20;
@@ -677,6 +679,15 @@
                     </div>`;
             }).join('');
 
+            let displayScore = op.score;
+            if (displayScore && displayScore.includes('-')) {
+                const [s1, s2] = displayScore.split('-').map(Number);
+                if (!isNaN(s1) && !isNaN(s2)) {
+                    if (op.result === 'VITÓRIA' && s1 < s2) displayScore = `${s2}-${s1}`;
+                    else if (op.result === 'DERROTA' && s1 > s2) displayScore = `${s2}-${s1}`;
+                }
+            }
+
             return `
                 <div onclick="window.open('https://tracker.gg/valorant/match/${op.id}','_blank')"
                      class="mission-row ${resultClass} p-3 p-md-4 d-flex flex-column flex-md-row align-items-md-start justify-content-between gap-3"
@@ -687,7 +698,7 @@
                     <div class="d-flex align-items-center gap-4" style="min-width:200px;">
                         <div class="text-center" style="min-width:70px;">
                             <div class="fs-1 fw-bold ${resultColor} lh-1"
-                                style="font-family:'Teko',sans-serif;letter-spacing:1px;">${escHtml(op.score)}</div>
+                                style="font-family:'Teko',sans-serif;letter-spacing:1px;">${escHtml(displayScore)}</div>
                             <div class="${resultColor} text-uppercase fw-bold mt-1"
                                 style="font-size:0.8rem;letter-spacing:2px;">${escHtml(op.result)}</div>
                         </div>

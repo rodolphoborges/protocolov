@@ -153,4 +153,32 @@ describe('Motor de Sinergia do Protocolo V (E2E Shadow Test)', () => {
     // Verifica se as flags de erro foram falsas
     expect(playerA.api_error).toBe(false);
   });
+
+  test('Deve ordenar placar corretamente com a pontuação do clã primeiro (Time Vermelho)', () => {
+    const SynergyEngine = require('../services/synergy-engine');
+    const rosterMap = new Map([
+      ['agentea#br1', { riot_id: 'AgenteA#BR1' }],
+      ['agenteb#br1', { riot_id: 'AgenteB#BR1' }]
+    ]);
+
+    // Partida onde o clã é time Vermelho e venceu 13-5 (Blue=5, Red=13)
+    const matchMap = new Map([
+      ['match-red-win', {
+        metadata: { map: 'Haven', mode: 'Competitive', started_at: '2026-06-25T12:00:00Z' },
+        teams: {
+          blue: { rounds_won: 5, score: 5, won: false },
+          red: { rounds_won: 13, score: 13, won: true }
+        },
+        players: [
+          { name: 'AgenteA', tag: 'BR1', team: 'Red', stats: { kills: 15, deaths: 10, assists: 5 } },
+          { name: 'AgenteB', tag: 'BR1', team: 'Red', stats: { kills: 12, deaths: 8, assists: 7 } }
+        ]
+      }]
+    ]);
+
+    const { operations } = SynergyEngine.processMatchResults(matchMap, rosterMap);
+    expect(operations.length).toBe(1);
+    expect(operations[0].result).toBe('VITÓRIA');
+    expect(operations[0].score).toBe('13-5'); // Pontuação do clã (13) deve vir primeiro!
+  });
 });
