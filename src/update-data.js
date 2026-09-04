@@ -53,6 +53,7 @@ async function run() {
             const safeName = encodeURIComponent(name);
             const safeTag = encodeURIComponent(tag);
             try {
+                let agentRegion = agent.region || 'br';
                 const needsProfile = !agent.current_rank
                     || agent.current_rank === 'Processando...'
                     || !agent.peak_rank
@@ -60,16 +61,17 @@ async function run() {
                     || (Date.now() - new Date(agent.updated_at).getTime()) > 6 * 60 * 60 * 1000;
 
                 if (needsProfile) {
-                    const profile = await fetchPlayerProfile(agent.riot_id, henrikKey);
+                    const profile = await fetchPlayerProfile(agent.riot_id, henrikKey, agentRegion);
                     if (!profile.api_error && Object.keys(profile).length > 0) {
                         profileUpdates.push({ riot_id: agent.riot_id, ...profile });
+                        if (profile.region) agentRegion = profile.region;
                         console.log(`   [🎖️] ${agent.riot_id}: Perfil atualizado (${profile.current_rank || 'N/A'} / pico: ${profile.peak_rank || 'N/A'}).`);
                     } else if (profile.is_ghost) {
                         console.log(`   [👻] ${agent.riot_id}: Não encontrado na Riot (404).`);
                     }
                 }
 
-                const url = `https://api.henrikdev.xyz/valorant/v3/matches/br/${safeName}/${safeTag}`;
+                const url = `https://api.henrikdev.xyz/valorant/v3/matches/${agentRegion}/${safeName}/${safeTag}`;
                 const res = await smartFetch(url, { 'Authorization': henrikKey });
 
                 if (res.status === 200) {
