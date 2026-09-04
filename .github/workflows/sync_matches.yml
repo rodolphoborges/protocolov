@@ -2,7 +2,7 @@ name: Protocolo V Sync (Radar)
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # Roda a cada 30 minutos
+    - cron: '15,45 * * * *' # Alterna a cada 15 min com update.yml (:00 e :30)
   workflow_dispatch: # Permite rodar manualmente
 
 jobs:
@@ -33,6 +33,10 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           HENRIK_API_KEY: ${{ secrets.HENRIK_API_KEY }}
+          ORACULO_SUPABASE_URL: ${{ secrets.ORACULO_SUPABASE_URL }}
+          ORACULO_SUPABASE_SERVICE_KEY: ${{ secrets.ORACULO_SUPABASE_SERVICE_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           ORACULO_API_URL: ${{ secrets.ORACULO_API_URL }}
           ORACULO_API_KEY: ${{ secrets.ORACULO_API_KEY }}
         run: node src/update-data.js
