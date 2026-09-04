@@ -13,13 +13,25 @@ Para compreender os detalhes da infraestrutura global (Filas, Banco de Dados e M
 
 | Camada | Tecnologia |
 |---|---|
-| Backend | Node.js (Express) |
+| Portal Web (Producao) | GitHub Pages (`docs/`) — Vanilla JS, Bootstrap 5, Custom CSS Cyberpunk/Teko, Supabase Client (`https://protocolov.com`) |
+| Backend & Worker | Node.js (Express) |
 | Bot | Telegram Bot API (`node-telegram-bot-api`) |
-| Database | Supabase (banco proprio + acesso ao Oraculo para consultas) |
-| HTTP Client | Axios |
-| API de Dados | HenrikDev API (v1, v3, v4) |
-| Frontend | React 19 + Vite 8 (em desenvolvimento) |
+| Database | Supabase (PostgreSQL — `players`, `operations`, `operation_squads`, `ai_insights`) |
+| HTTP Client | Fetch nativo & Axios com Exponential Backoff e Jitter |
+| API de Dados | HenrikDev API (v1 account, v2 mmr, v3 matches, v4 match details) + Valorant-API |
+| Frontend Admin (Experimental) | React 19 + Vite 8 (`frontend/`) |
 | Testes | Jest |
+
+---
+
+## Portal Tatico Oficial ([protocolov.com](https://protocolov.com))
+
+O painel publico e de debriefing do clã e servido estaticamente a partir de [docs/](file:///c:/Users/rodolpho/Desktop/protocolov/docs/) via GitHub Pages:
+
+- **Dashboard Principal (`docs/index.html`)**: Visao tatica dos esquadroes de elite (Unidade Alpha, Unidade Ômega e Deposito de Torretas), cards de agentes com elo atual e pico historico, radar de **Ultimas Operacoes** conjuntas (2+ agentes) com placares orientados ao cla (`ourScore - enemyScore`), badges de formacao (`DUO`, `TRIO`, `5-STACK`) e integracao direta com Tracker.gg.
+- **Sala de Treino / Mata-Mata (`docs/treino.html`)**: Leaderboard individual de Deathmatch com abas **Semanal** (reseta as segundas-feiras), **Mensal** (reseta no dia 1 de cada mes) e **Geral**, destacando o MVP com efeitos visuais taticos e lista de desafiantes.
+- **Historico Completo (`docs/historico.html`)**: Arquivo de combate com busca e filtros avancados por mapa, resultado, agente participante e periodo de datas.
+- **Analise Tatica (`docs/analise.html`)**: Relatorio aprofundado com radar de performance e avaliacao tatica integrada ao Oraculo V.
 
 ---
 
@@ -64,7 +76,7 @@ cp .env.example .env
 
 ---
 
-## Execucao
+## Execucao & Rotinas
 
 ```bash
 # Sobe a Express API + Bot Telegram (Polling ou Webhook conforme WEBHOOK_URL)
@@ -73,16 +85,24 @@ npm start
 # Forca varrimento de dados no HenrikDev (via Cron/GitHub Actions)
 npm run sync
 
-# Testes
+# Executa reset periodico da leaderboard de Mata-Mata (semanal / mensal)
+npm run maintenance:reset
+
+# Testes automatizados (Jest)
 npm test
 ```
 
-### Frontend (em desenvolvimento)
-```bash
-cd frontend && npm install && npm run dev
-```
+### Scripts de Manutencao (`scripts/maintenance/`)
+- `node scripts/maintenance/fix-inverted-scores.js`: Normaliza placares historicos de operacoes do time Vermelho no Supabase.
+- `node scripts/maintenance/clean-solo-ops.js`: Remove operacoes antigas sem esquadrao registrado.
+- `node scripts/maintenance/reset-dm.js`: Zera pontuacoes de Deathmatch semanal (segundas) e mensal (dia 1).
 
-> **Nota**: O frontend React esta em fase inicial (scaffold Vite). O dashboard funcional ainda nao foi implementado.
+### Automacoes (GitHub Actions)
+- **`update.yml`** (minutos `:00` e `:30`): Sincroniza operacoes e dados de perfil, despacha alertas ao Telegram e gatilhos de analise.
+- **`sync_matches.yml`** (minutos `:15` e `:45`): Sincronizacao complementar alternada para varredura continua a cada 15 minutos sem colisao de taxa de API.
+- **`reset-dm.yml`**: Cron semanal (toda segunda 00:00 UTC) e mensal (dia 1) para reset das pontuacoes competitivas de Deathmatch.
+
+> **Importante**: O GitHub desativa temporariamente cron jobs agendados em repositorios com mais de 60 dias sem commits. Realizar um commit ou reativar manualmente na aba **Actions** restaura o ciclo continuo.
 
 ---
 
@@ -152,15 +172,16 @@ Se `ORACULO_SUPABASE_URL` estiver configurado, o Protocolo-V tambem consulta dir
 
 ---
 
-## API HenrikDev
+## API HenrikDev & Roteamento Multi-Regiao
 
-O projeto utiliza multiplas versoes da API HenrikDev simultaneamente:
+O projeto integra multiplas versoes da API HenrikDev e suporta contas de qualquer regiao competitiva (`br`, `na`, `latam`, `eu`):
 
-| Versao | Uso | Arquivo |
-|---|---|---|
-| V1 | Verificacao de conta (vincular) | `telegram-bot.js` |
-| V3 | Busca de partidas por jogador | `update-data.js` |
-| V4 | Dados detalhados de partida por match ID | `oraculo.js` |
+| Versao | Endpoint Principal | Uso | Modulo Responsavel |
+|---|---|---|---|
+| V1 | `/v1/account/{name}/{tag}` | Verificacao de conta, nivel, card art e deteccao automatica de regiao | `services/player-worker.js`, `src/telegram-bot.js` |
+| V2 | `/v2/mmr/{region}/{name}/{tag}` | Coleta de elo atual, tier competitivo oficial (0-27) e rank maximo (peak) | `services/player-worker.js` |
+| V3 | `/v3/matches/{region}/{name}/{tag}` | Historico de partidas recentes por agente para calculo de sinergia | `src/update-data.js` |
+| V4 | `/v4/match/{region}/{matchId}` | Estatisticas granulares por round para analise tatica de IA | `src/oraculo.js`, `services/oraculo-service.js` |
 
 ---
 
