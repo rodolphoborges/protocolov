@@ -1,5 +1,7 @@
 # PROTOCOLO V // K.A.I.O. — COMANDO CENTRAL
 
+> **Aviso legal:** projeto independente, sem afiliação com Riot Games ou HenrikDev. `VALORANT` é marca da Riot Games. Dados via HenrikDev API (não-oficial, sujeita a ToS/limites da Riot). Use cache, respeite rate-limit, não exponha `TELEGRAM_BOT_TOKEN`/`SUPABASE_SERVICE_KEY`. Dados de jogadores: publique apenas IDs públicos de torneio, com opt-out.
+
 [![Atualiza Dados](https://github.com/rodolphoborges/protocolov/actions/workflows/update.yml/badge.svg)](https://github.com/rodolphoborges/protocolov/actions/workflows/update.yml)
 
 > Centro de comando para recrutamento, gestao de esquadroes e ingestao de dados de combate do Valorant.
